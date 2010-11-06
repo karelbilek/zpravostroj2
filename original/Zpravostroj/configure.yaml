@@ -1,0 +1,43 @@
+---
+#THOSE ADDRESS SHOULD NOT BE HARDCODED GOD DAMNED AAAAAA
+RSS_sources:
+    - http://www.blesk.cz/rss
+    - http://servis.idnes.cz/rss.asp?c=zpravodaj
+    - http://www.lidovky.cz/export/rss.asp
+    - http://www.tyden.cz/rss-export.php
+    - http://ihned.cz/?p=000000_rss
+    - http://aktualne.centrum.cz/export/rss-hp.phtml
+    - http://www.ceskenoviny.cz/sluzby/rss/index.php
+    - http://www.financninoviny.cz/sluzby/rss/index.php
+    - http://bleskove.aktualne.centrum.cz/export/rss-bleskove-hp.phtml
+articles_address: /a/merkur2/ufallabhome/bilek/rocnik/data/articles
+count_dir: /a/merkur2/ufallabhome/bilek/rocnik/data/counts
+RSS_address: /a/merkur2/ufallabhome/bilek/rocnik/data/RSS
+RSS_kept: 1000
+min_word_length: 3
+max_theme_length: 15
+counter_first_named: 30
+counter_first_themes: 15
+count_bottom: 500
+tagger_wanted_named:
+    - g
+    - m
+    - q
+    - P
+    - ps
+extractor_not_wanted_at_beginning:
+    - praha
+    - Praha
+    - PRAHA
+all_article_properties: #dont remove anything that is in more files 
+                        #     it will be impossible to change then!
+    - url
+    - title
+    - top_keys
+    - extracted
+    - html
+    - all_words
+    - all_named
+log_dir: /a/merkur2/ufallabhome/bilek/rocnik/data/log/
+warning_dir: /a/merkur2/ufallabhome/bilek/rocnik/data/warnings/
+themes_dir: /a/merkur2/ufallabhome/bilek/rocnik/data/themes
