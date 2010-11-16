@@ -1,7 +1,5 @@
 package TectoServer;
 
-use base 'Exporter';
-our @EXPORT = qw(run);
 
 use 5.010;
 use strict;
@@ -50,11 +48,15 @@ sub shut_up(&) {
 
 my $ent_scenario;
 my $lemma_scenario;
+sub initialize_scenarios {
+	if (!defined $ent_scenario) {
+		$ent_scenario = TectoMT::Scenario->new({'blocks'=> [ qw(SCzechW_to_SCzechM::Sentence_segmentation SCzechW_to_SCzechM::Tokenize SCzechW_to_SCzechM::TagHajic SCzechM_to_SCzechN::Find_geo_named_ent SCzechM_to_SCzechN::Geo_ne_recognizer SCzechM_to_SCzechN::SVM_ne_recognizer SCzechM_to_SCzechN::Embed_instances) ]});
+		$lemma_scenario = TectoMT::Scenario->new({'blocks'=> [ qw(SCzechW_to_SCzechM::Sentence_segmentation SCzechW_to_SCzechM::Tokenize SCzechW_to_SCzechM::TagHajic) ]});
+	}
+}
 
 shut_up {
-	$ent_scenario = TectoMT::Scenario->new({'blocks'=> [ qw(SCzechW_to_SCzechM::Sentence_segmentation SCzechW_to_SCzechM::Tokenize SCzechW_to_SCzechM::TagHajic SCzechM_to_SCzechN::Find_geo_named_ent SCzechM_to_SCzechN::Geo_ne_recognizer SCzechM_to_SCzechN::SVM_ne_recognizer SCzechM_to_SCzechN::Embed_instances) ]});
-	$lemma_scenario = TectoMT::Scenario->new({'blocks'=> [ qw(SCzechW_to_SCzechM::Sentence_segmentation SCzechW_to_SCzechM::Tokenize SCzechW_to_SCzechM::TagHajic) ]});
-};
+	};
 
 sub print_lemmatized_words {
 	my $node = shift;
@@ -153,6 +155,7 @@ my $sock = new IO::Socket::INET (
 
 
 sub run {
+	initialize_scenarios();
 	while (1) {
 		{
 			lock($curconn);

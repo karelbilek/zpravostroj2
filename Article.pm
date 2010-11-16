@@ -10,6 +10,13 @@ use ReadabilityExtractor;
 use Lemmatizer;
 use Word;
 
+use Date;
+
+use Theme;
+
+use MooseX::Storage;
+
+with Storage;
 
 
 has 'url' => (
@@ -43,35 +50,94 @@ has 'words' => (
 	default=>sub{lemmatize(($_[0]->title)." ".($_[0]->article_contents))}
 );
 
-
-
-has 'word_counts' => (
+has 'counts' => (
 	is=>'ro',
 	isa=>'HashRef',
+	clearer   => 'clear_counts',
 	lazy=>1,
 	default=>sub{
-		$|=1;
 		my $a = shift;
+
 		my %mycounts;
-		my $last = undef;
-		my $before_last = undef;
-		my @words = @{$a->words};
-		
+
+		# my @words = grep {$_->lemma ne ''} @{$a->words};
+				
+		# for my $word (@words) {
+			# my $l = $word->lemma;
+			
+			# my $prirustek = ($word->named_entity)?2:1;
+			# if ($l=~/^[0-9 ]*$/) {
+				# $prirustek = 0.33;
+			# }
+			
+			# $mycounts{$l}{counts}+=$prirustek;
+			
+			# my $f = $word->form;
+			
+			# $mycounts{$l}{back}=$f;
+			
+		# }
+		my $last;
+		my $before_last;
+		my @words = grep {$_->lemma ne ''} @{$a->words};
+				
 		for my $word (@words) {
 			my $l = $word->lemma;
-			$mycounts{$l}++;
+			
+			my $prirustek = ($word->named_entity)?2:1;
+			if ($l=~/^[0-9 ]*$/) {
+				$prirustek = 0.33;
+			}
+			
+			$mycounts{$l}{counts}+=$prirustek;
+			
+			my $f = $word->form;
+			
+			$mycounts{$l}{back}=$f;
+			
 			if (defined $last) {
-				$mycounts{$last." ".$l}++;
+				my $last_l = $last->{word}->lemma;
+				
+				my $last_p = $last->{prirustek};
+				
+				$mycounts{$last_l." ".$l}{counts}+=($last_p+$prirustek)/2;
+				
+				my $last_f = $last->{word}->form;
+				
+				$mycounts{$last_l." ".$l}{back}=$last_f." ".$f;
+				if (defined $before_last) {
+					my $b_last_l = $before_last->{word}->lemma;
+					
+					my $b_last_p = $before_last->{prirustek};
+					
+					$mycounts{$b_last_l." ".$last_l." ".$l}{counts}+=($b_last_p+$last_p+$prirustek)/3;
+					
+					my $b_last_f = $before_last->{word}->form;
+					
+					$mycounts{$b_last_l." ".$last_l." ".$l}{back}=$b_last_f." ".$last_f." ".$f;
+				}
 			}
-			if (defined $before_last) {
-				$mycounts{$before_last." ".$last." ".$l}++;
-			}
+			
 			$before_last = $last;
-			$last = $l;
+			$last = {word=>$word, prirustek=>$prirustek};
 		}
+		
+
 		return \%mycounts;
 	}
 );
+
+has 'themes' => (
+	is => 'rw',
+	isa=> 'ArrayRef[Theme]',
+	predicate => 'has_themes'
+);
+
+has 'last_themes_count' => (
+	is=>'rw',
+	isa=>'Date'	
+);
+
 
 sub BUILD {
 	my $s = shift;
@@ -79,6 +145,159 @@ sub BUILD {
 }
 
 __PACKAGE__->meta->make_immutable;
+
+
+sub get_all_subgroups {
+	my $w = shift;
+	my @all = split(/ /, $w);
+	my $s = scalar @all;
+	my @res;
+	while (@all) {
+		my @copy = @all;
+		while (@copy) {
+			if (scalar @copy!=$s) {
+				push @res, join(" ",@copy);
+			}
+			pop @copy;
+		}
+		shift @all;
+	}	
+	return @res;
+}
+
+sub count_themes {
+	my $s = shift;
+	$s->last_themes_count(new Date());
+	my $all_count = shift;
+	my $count_hashref = shift;
+	
+	my $document_size = scalar $s->words;
+	
+	my %importance;
+	
+	my $word_counts = $s->counts;
+	
+	
+	for my $wordgroup (keys %{$word_counts}) {
+		
+			
+			my $d = 1 + ($count_hashref->{$wordgroup}||0);
+			if ($wordgroup =~ / /) {
+				my @a = split(/ /, $wordgroup);
+				for my $word (@a) {
+					$d += ($count_hashref->{$word}||0)/(4*@a);
+				}
+			}
+			
+			$importance{$wordgroup} = ($word_counts->{$wordgroup}{counts} / $document_size) * log($all_count / $d);
+			
+			
+	}
+	
+	
+	my @sorted = (sort {$importance{$b}<=>$importance{$a}} keys %importance)[0..39];
+	
+	for my $lemma (@sorted) {
+		if (exists $importance{$lemma}) {
+			for my $subgroup (get_all_subgroups($lemma)) {
+				delete $importance{$subgroup};
+			}
+		}
+	}
+	
+	
+	my @ll=(map {new Theme(form=>$word_counts->{$_}{back}, lemma=>$_, importance=>$importance{$_})} (sort {$importance{$b}<=>$importance{$a}} keys %importance)[0..19]);
+	$s->themes(\@ll);
+	return;
+	
+	# for (keys %themes_longer) {
+		# if (/pozice a p.*za/) {
+			# say "Pozice a poza ma lemma themes longer uz z hashe.";
+			# say "a je ", $themes_longer{$_};
+			# say "a key je presne ",$_;
+		# }
+	# }
+	
+	
+	
+
+	# my %to_join;
+	# for my $theme_lemma (keys %themes_longer) {
+		# if ($theme_lemma =~ /.* ([^ ]*) ([^ ]*)$/) {
+			# if (!$themes_longer{$theme_lemma}) {
+				# die "Neni dobre $theme_lemma";
+			# }			
+			# $to_join{$1." ".$2} = $themes_longer{$theme_lemma};
+			
+		# }
+	# }
+	
+	# my $cont = 1;
+	# say "Jdu spojovat.";
+	# while ($cont) {
+		# $cont = 0;
+		# for my $theme_lemma (keys %themes_longer) {
+			# if (exists $themes_longer{$theme_lemma} and $theme_lemma =~ /^([^ ]*) ([^ ]*) ([^ ]*)/) {
+			#  menim hash -> musim testovat na existenci
+			
+			
+		# themes longer - vede od lemmat k hashi
+		# "pozice a poza" se tam doplni
+		# to_join ("a poza") je Theme "pozice a poza"
+		# tady to chytne "a poza museli"
+				# if (exists $to_join{$1." ".$2}) {
+				# ...."a poza" existuje, ukazuje na Theme "pozice a poza"
+					# if (!exists $themes_longer{$theme_lemma}){
+						# next;
+					# }
+					
+					# if (!exists $themes_longer{$to_join{$1." ".$2}->lemma}){
+						# next;
+					# }
+					
+					
+					
+					# my $theme = $themes_longer{$theme_lemma};
+					
+					
+					
+					# say "Spojuju ",$to_join{$1." ".$2}->form," a ",$theme->form, ", koef je ", $koef;
+					# my $newtheme = $to_join{$1." ".$2}->join($theme);
+					# vytvori se novy Theme, "pozice a poza muset"
+					 # say "Vysledek je ",$newtheme->form;
+					
+					# delete $themes_longer{$theme_lemma};
+					
+					# delete $themes_longer{$to_join{$1." ".$2}->lemma};
+					# delete $to_join{$1." ".$2};
+					# $to_join{$2." ".$3}=$newtheme;
+					# $themes_longer{$newtheme->lemma}=$newtheme;
+					
+					
+					
+					# $cont = 1;
+				# }
+			# }
+		# }
+	# }
+	# my @res=(map {new Theme(form=>$word_counts->{$_}{back}, lemma=>$_, importance=>$importance{$_})} (sort {$importance{$b}<=>$importance{$a}} keys %importance)[0..100]);
+ # die "dan";
+	 # my @sorted = (sort {$themes_longer{$b}->importance <=> $themes_longer{$a}->importance} keys %themes_longer);
+	
+	# for my $lemma (@sorted) {
+		# if (exists $themes_longer{$lemma}) {
+			# for my $subgroup (get_all_subgroups($lemma)) {
+				# delete $themes_longer{$subgroup};
+			# }
+		# }
+	# }
+	
+	# my @res = (sort {$b->importance <=> $a->importance} values %themes_longer);
+
+	# $s->themes(\@res);
+}
+
+
 
 1;
 # 

@@ -1,4 +1,15 @@
-divné
- http://www.lidovky.cz/vesteni-z-kristalove-koule-dfp-/ln_dopisy.asp?c=A100302_213556_ln_dopisy_gab
+-?? ` " '' + v počtech
 
-http://www.blesk.cz/clanek/132656/rappera-wayna-zatim-neodsoudili-u-soudu-horelo.html
+-spousteni/zavirani serveru (kdy presne?)
+
+
+
+-Xkrat za den stahne RSS
+-1 za den:
+   - spusti tectoserver
+   - stahne a otaguje
+   - zavre tectoserver
+   - naloaduje all
+   - vsechny (!) projede a prepocita temata
+   - konec
+  

@@ -5,7 +5,9 @@ use Moose;
 use MooseX::StrictConstructor;
 
 
+use MooseX::Storage;
 
+with Storage;
 
 has 'lemma' => (
 	is => 'ro',

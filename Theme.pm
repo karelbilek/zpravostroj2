@@ -4,14 +4,50 @@ package Theme;
 use Moose;
 use MooseX::StrictConstructor;
 use Moose::Util::TypeConstraints;
+use MooseX::Storage;
 
+with Storage;
 
-has 'words' => (
+has 'lemma' => (
 	is => 'ro',
-	isa => 'ArrayRef[Word]',
+	isa => 'Str',
 	required => 1
 );
 
-sub length {scalar(@{$_[0]->words})}
+has 'form' => (
+	is => 'ro',
+	isa => 'Str',
+	required => 1
+);
+
+has 'importance' => (
+	is => 'ro',
+	isa => 'Num',
+	required => 1
+);
+
+
+sub add_1{
+	my $this = shift;
+	return new Theme(lemma=>$this->lemma, form=>$this->form, importance=>$this->importance+1);
+
+}
+
+sub same_with_1 {
+	my $this = shift;
+	
+	return new Theme(lemma=>$this->lemma, form=>$this->form, importance=>1);
+}
+
+sub join {
+	my $this = shift;
+	my $that = shift;
+	$that->lemma =~ /^([^ ]*) ([^ ]*) (.*)$/;
+	my $addlemma = $3;
+	$that->form =~ /^([^ ]*) ([^ ]*) (.*)$/;
+	my $addform = $3;
+	
+	return new Theme(lemma=>$this->lemma." ".$addlemma, form=>$this->form." ".$addform, importance=>(($this->importance + $that->importance)/2));
+}
 
 1;
