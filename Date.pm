@@ -1,18 +1,25 @@
 package Date;
  
-use 5.010;
+use 5.008;
+use Globals;
+use forks;
+
 use Moose;
 use MooseX::StrictConstructor;
 use Moose::Util::TypeConstraints;
 
+use Time::Local 'timelocal';
 use MooseX::Storage;
 
 with Storage;
 
 use Article;
 use Globals;
+use MyTimer;
+
 
 # with 'ReturnsNewerCounts';
+
 
 has 'day' => (
 	is=>'ro',
@@ -59,6 +66,14 @@ sub get_to_file {
 	open my $f, ">:utf8", $where;
 	print $f $s->get_to_string;
 	close $f;
+}
+
+
+sub get_days_after {
+	my $s = shift;
+	my $h = shift;
+	my $d = new Date(year=>getpartoftime(5, $h, $s)+1900, month=>getpartoftime(4, $h, $s)+1, day=>getpartoftime(3, $h, $s));
+	return $d;
 }
 
 sub get_days_after_today {
@@ -123,6 +138,15 @@ sub save_day_themes {
 	dump_bz2($path, $themes);
 }
 
+sub get_day_themes {
+	my $s = shift;
+	my $path = $s->daypath_themes;
+	
+	
+	my $themes = undump_bz2($path);
+	return $themes;
+}
+
 sub get_top_themes{
 	my $s = shift;
 	my $path = $s->daypath_themes;
@@ -135,11 +159,18 @@ sub get_top_themes{
 	return @themes_top;
 }
 
+#localtime -> z casoscalaru pole
+#time -> cas
+#?? -> 
+
+
 sub getpartoftime {
 	
 	my $w=shift;
 	my $plus = shift || 0;
-	my @r = localtime(time() + $plus * 86400);
+	my $d = shift;
+	my $tme = $d ? timelocal(0,0,0,$d->day,$d->month-1,$d->year) : time();
+	my @r = localtime($tme + $plus * 86400+((defined $d and $d->month==10 and $plus>0)?3600:0));
 	return $r[$w];
 }
 
@@ -156,18 +187,7 @@ sub daypath {
 	return "data/articles/".$year."/".$month."/".$day;
 }
 
-sub temp_daypath_perldump {
-	my $s = shift;
-	mkdir "data";
-	mkdir "data/perldump_articles";
-	my $year = int($s->year);
-	my $month = int($s->month);
-	my $day = int($s->day);
-	mkdir "data/perldump_articles/".$year;
-	mkdir "data/perldump_articles/".$year."/".$month;	
-	mkdir "data/perldump_articles/".$year."/".$month."/".$day;
-	return "data/perldump_articles/".$year."/".$month."/".$day;
-}
+
 
 
 sub article_count{
@@ -178,20 +198,23 @@ sub article_count{
 
 }
 
-sub temp_pdump_article_count {
-	my $s=shift;
-	my $ds = $s->temp_daypath_perldump;
-	my @s = <$ds/*>;
-	return scalar @s;
-}
 
+sub if_undef {
+	my $what = shift;
+	my $ifnull = shift;
+	if (defined $what) {
+		return $what;
+	} else {
+		return $ifnull;
+	}
+}
 
 sub save_article {
 	my $s = shift;
 	my $a = shift;
-	my $c = shift || $s->article_count();
+	my $c = if_undef(shift, $s->article_count());
 	
-	dump_bz2_new($s->daypath."/".$c.".bz2", $a);
+	dump_bz2($s->daypath."/".$c.".bz2", $a);
 	
 }
 
@@ -200,95 +223,162 @@ sub save_article {
 sub read_article {
 	my $s = shift;
 	my $n = shift;
-	return undump_bz2_new($s->daypath."/".$n.".bz2");
+	return undump_bz2($s->daypath."/".$n.".bz2");
 	
 }
 
-sub temp_pdump_read_article {
-	my $s = shift;
-	my $n = shift;
-	return undump_bz2($s->temp_daypath_perldump."/".$n.".bz2");
-	
-}
+
 
 sub do_for_all {
 	my $s=shift;
 	my $subr = shift;
-	my $num = shift//0;
+	my $num = if_undef(shift,0);
 	my $c = $s->article_count;
-	my $endnum = shift//($c-1);
+	my $endnum = if_undef(shift, ($c-1));
+	$|=1;
+	
+	my @pseudoshared;
 	
 	for ($num..$endnum) {
-		my $a = $s->read_article($_);
-		my $changed = $subr->($a);
-		if ($changed) {$s->save_article($a, $_)}
+		
+		my $thread = threads->new( {'context' => 'list'}, sub {
+		
+			say "Num $_";
+			MyTimer::start_timing("nacitani");
+			say "nacitani v do_for_all";
+			my $a = $s->read_article($_);
+			say "hotovo nacitani v do_for_all";
+			if (defined $a) {
+				say "jdu spustit subref v do_for_all";
+				my $changed;
+				my @shared_copy = $subr->($a, \$changed, @pseudoshared);
+				say "hotovo, jdu ukladat tamtez";
+				if ($changed) {$s->save_article($a, $_)}
+				say "hotovo ukladani, lezu z do_for_all";
+				#say "shared copy je velky ", scalar @shared_copy;
+				return @shared_copy;
+			} else {
+				MyTimer::count_error("undefined a");
+				return ();
+			}
+		});
+		
+		@pseudoshared=$thread->join();
+		#say "pseudoshared copy je velky ", scalar @pseudoshared;
+
 	}
+	
+	return @pseudoshared;
 }
 
-sub temp_resave_all {
-	my $s=shift;
-	my $num = shift//0;
-	my $c = $s->temp_pdump_article_count;
-	my $endnum = shift//($c-1);
-	
-	for ($num..$endnum) {
-		my $a = $s->temp_pdump_read_article($_);
-		$s->save_article($a, $_);
-	}
-}
+
 
 sub get_and_save_themes {
 	my $s = shift;
-	my %day_themes;
+	
+	#my %day_themes;
+	$|=1;
+	say "Jdu na den ", $s->get_to_string;
 	
 	my $count = shift;
 	my $total = shift;
 	
-	say "DAN.";
 	my $i = 0;
-	$s->do_for_all(sub {
+	my %res_day_themes = $s->do_for_all(sub {
 		my $a = shift;
-		say "I je $i.";
+		my $changed = shift;
+		my %day_themes=@_;
+		
+		say "zacina delete_from_theme_files v get_and_save_themes";
+		MyTimer::start_timing("delete_from_theme_files");
+		
 		if ($a->has_themes) {
+			say "has_themes, jdu je nacist";
 			my $themes = $a->themes;
+			say "hotovo, jdu smazat";
 			All::delete_from_theme_files($themes, $s, $i);
-			
+			say "hotovo";
 		}
+		
+		say "spoustim count_themes";
+		
 		$a->count_themes($total, $count);
+		
+		say "hotovo, znova je nacitam";
 		my $themes = $a->themes;
+		
+		say "hotovo.";
+		MyTimer::start_timing("zapisovani do day_themes hashe");
+		
+		say "jdu si hrat s day_themes...";
 		for (@$themes) {
 			if (exists $day_themes{$_->lemma}) {
-				$day_themes{$_->lemma} = $day_themes{$_->lemma}->add_1;
+				my $p;#:shared;
+				$p = $day_themes{$_->lemma}->add_1;
+				$day_themes{$_->lemma} = $p;
 			} else {
-				$day_themes{$_->lemma} = $_->same_with_1;
+				my $p;#:shared;
+				
+				$p=$_->same_with_1;
+				
+				$day_themes{$_->lemma} = $p;
+				
 			}
 		}
+		
+		say "hotovo, ted ma keys ",scalar keys %day_themes, ", jdu pridat do souboru";
+		MyTimer::start_timing("add_to_theme_files");
+		
 		All::add_to_theme_files($themes, $s, $i);
+		
+		say "hotovo, jdu na dalsi rundu.";
 		$i++;
-		1;
+		$$changed = 1;
+		return %day_themes;
 	}
 	);
-	$s->save_day_themes(\%day_themes);
-	say "ALLDAN";
+	MyTimer::start_timing("save_day_themes");
+	
+	$s->save_day_themes(\%res_day_themes);
+	MyTimer::say_all;
+}
+
+sub review_all {
+	my $d = shift;
+	$d->do_for_all(sub{
+		my $a = shift;
+		my $changed = shift;
+		my $has = $a->has_counts;
+		if (!$has) {
+			$a->counts();
+		}
+		$$changed = !$has;
+	});
 }
 
 sub get_count {
 	my $s = shift;
 	my $num = shift;
-	my %counts;
-	my $i=0;
-	$s->do_for_all(sub{
+	#my %counts:shared;
+	#my $i:shared;
+	
+	my @c = $s->do_for_all(sub{
 		
 		my $a = shift;
+		my $changed = shift;
+		my $i = shift;
+		my %counts=@_;
 		say "i je $i";
 		$i++;
-		my $wcount = $a->word_counts;
+		my $wcount = $a->counts;
 		for (keys %$wcount) {
 			$counts{$_}++;
 		}
-		return 0;
+		$$changed = 0;
+		return ($i, %counts);
 	}, $num);
-	return \%counts;
+	shift @c;
+	return @c;
 }
 
 sub get_counts_parts {

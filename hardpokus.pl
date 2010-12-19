@@ -1,6 +1,6 @@
 use warnings;
 use strict;
-use 5.010;
+use 5.008;
 #use encoding 'utf8';
 binmode STDOUT, ":utf8";
 
@@ -9,10 +9,10 @@ use All;
 use Date;
 use Globals;
 
-
-my $counts = undump_bz2("data/all/counts.bz2");
-
-dump_bz2_new("data/all/counts_better.bz2", $counts); 
+say "Do once per hour...";
+All::do_once_per_hour();
+say "Do once per day...";
+All::do_once_per_day();
 
 
 #my $date = Date::get_from_string("2009-12-29");

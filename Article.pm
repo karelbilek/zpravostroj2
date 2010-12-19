@@ -1,7 +1,8 @@
 package Article;
-use 5.010;
+use 5.008;
 
 use Moose;
+use Globals;
 use MooseX::StrictConstructor;
 use Moose::Util::TypeConstraints;
 use Types;
@@ -47,7 +48,7 @@ has 'words' => (
 	is=>'ro',
 	isa=>'ArrayRef[Word]',
 	lazy=>1,
-	default=>sub{lemmatize(($_[0]->title)." ".($_[0]->article_contents))}
+	default=>sub{my $t = ($_[0]->title)." ".($_[0]->article_contents); lemmatize($t)}
 );
 
 has 'counts' => (
@@ -55,6 +56,7 @@ has 'counts' => (
 	isa=>'HashRef',
 	clearer   => 'clear_counts',
 	lazy=>1,
+	predicate => 'has_counts',
 	default=>sub{
 		my $a = shift;
 
@@ -141,7 +143,7 @@ has 'last_themes_count' => (
 
 sub BUILD {
 	my $s = shift;
-	$s->word_counts;
+	$s->counts;
 }
 
 __PACKAGE__->meta->make_immutable;
@@ -165,6 +167,9 @@ sub get_all_subgroups {
 	return @res;
 }
 
+use MyTimer;
+
+
 sub count_themes {
 	my $s = shift;
 	$s->last_themes_count(new Date());
@@ -175,14 +180,27 @@ sub count_themes {
 	
 	my %importance;
 	
+	MyTimer::start_timing("mazani counts");
+	
+	
+	$s->clear_counts();
+	
+	MyTimer::start_timing("ziskavani counts");
+	
 	my $word_counts = $s->counts;
+	
+	
+	
+	
+	
+	MyTimer::start_timing("staveni importance");
 	
 	
 	for my $wordgroup (keys %{$word_counts}) {
 		
 			
 			my $d = 1 + ($count_hashref->{$wordgroup}||0);
-			if ($wordgroup =~ / /) {
+			if ($wordgroup =~ /\ /) {
 				my @a = split(/ /, $wordgroup);
 				for my $word (@a) {
 					$d += ($count_hashref->{$word}||0)/(4*@a);
@@ -194,8 +212,12 @@ sub count_themes {
 			
 	}
 	
+	MyTimer::start_timing("prvni sorteni");
+	
 	
 	my @sorted = (sort {$importance{$b}<=>$importance{$a}} keys %importance)[0..39];
+	
+	MyTimer::start_timing("filtrovani");
 	
 	for my $lemma (@sorted) {
 		if (exists $importance{$lemma}) {
@@ -205,6 +227,15 @@ sub count_themes {
 		}
 	}
 	
+	for my $key (keys %importance) {
+		if (!exists $word_counts->{$key}{back}) {
+			say "Vadny key $key. Mazu.";
+			delete $word_counts->{$key}{back};
+		}
+	}
+	
+	
+	MyTimer::start_timing("navraceni");
 	
 	my @ll=(map {new Theme(form=>$word_counts->{$_}{back}, lemma=>$_, importance=>$importance{$_})} (sort {$importance{$b}<=>$importance{$a}} keys %importance)[0..19]);
 	$s->themes(\@ll);

@@ -1,7 +1,8 @@
 package TectoServer;
 
 
-use 5.010;
+use 5.008;
+use Globals;
 use strict;
 use warnings;
 use encoding 'utf8';
@@ -12,13 +13,13 @@ use TectoMT::Document;
 
 
 my $NOT_SHUT_UP=1;
-my $MAXCONN=3;
+my $MAXCONN=1;
 
-use forks;
-use forks::shared;
-my $curconn : shared;
+# use forks;
+# use forks::shared;
+# my $curconn : shared;
 
-$curconn = 0;
+# $curconn = 0;
 $|=1;
 
 sub shut_up(&) {
@@ -49,14 +50,16 @@ sub shut_up(&) {
 my $ent_scenario;
 my $lemma_scenario;
 sub initialize_scenarios {
+	$|=1;
+	say "Jsem tu.";
 	if (!defined $ent_scenario) {
-		$ent_scenario = TectoMT::Scenario->new({'blocks'=> [ qw(SCzechW_to_SCzechM::Sentence_segmentation SCzechW_to_SCzechM::Tokenize SCzechW_to_SCzechM::TagHajic SCzechM_to_SCzechN::Find_geo_named_ent SCzechM_to_SCzechN::Geo_ne_recognizer SCzechM_to_SCzechN::SVM_ne_recognizer SCzechM_to_SCzechN::Embed_instances) ]});
-		$lemma_scenario = TectoMT::Scenario->new({'blocks'=> [ qw(SCzechW_to_SCzechM::Sentence_segmentation SCzechW_to_SCzechM::Tokenize SCzechW_to_SCzechM::TagHajic) ]});
+		shut_up {
+			$ent_scenario = TectoMT::Scenario->new({'blocks'=> [ qw(SCzechW_to_SCzechM::Sentence_segmentation SCzechW_to_SCzechM::Tokenize SCzechW_to_SCzechM::TagHajic SCzechM_to_SCzechN::Find_geo_named_ent SCzechM_to_SCzechN::Geo_ne_recognizer SCzechM_to_SCzechN::SVM_ne_recognizer SCzechM_to_SCzechN::Embed_instances) ]});
+			$lemma_scenario ; #nepotrebuji = TectoMT::Scenario->new({'blocks'=> [ qw(SCzechW_to_SCzechM::Sentence_segmentation SCzechW_to_SCzechM::Tokenize SCzechW_to_SCzechM::TagHajic) ]});
+		};
 	}
 }
 
-shut_up {
-	};
 
 sub print_lemmatized_words {
 	my $node = shift;
@@ -155,20 +158,29 @@ my $sock = new IO::Socket::INET (
 
 
 sub run {
+	$|=1;
+	print "Jsem tu - run\n";
+	
+	
 	initialize_scenarios();
 	while (1) {
-		{
-			lock($curconn);
-			if ($curconn>$MAXCONN) {
-				cond_wait($curconn) until $curconn <= $MAXCONN;
-			}
-		}
+		say "Zacatek cyklu, cekam na podminku...";
+		#{
+		#	lock($curconn);
+		#	if ($curconn>$MAXCONN) {
+		#		cond_wait($curconn) until $curconn <= $MAXCONN;
+		#	}
+		#}
+		say "Docekal na podminku. Acceptuji spojeni.";
 		my $newsock = $sock->accept();
-		{
-			lock($curconn);
-			$curconn++;
-		}
-		my $thread = threads->new(sub{
+		#{
+		#	lock($curconn);
+		#	$curconn++;
+		#}
+		say "Pred vytvorenim threadu...";
+		#my $thread = threads->new(sub{
+			say "ve threadu...";
+			
 			binmode $newsock, ':utf8';
 		
 			my $what = <$newsock>;
@@ -198,15 +210,17 @@ sub run {
 			binmode STDOUT, ':utf8';
 		
 			for (tag($text, $lemmas, $named)) {
-				say $newsock $_;
+				print $newsock $_;
+				print $newsock "\n";
 			}
 
 			close $newsock;
-			{lock($curconn);
-			$curconn--;
-			cond_signal($curconn);}
-		});
-		$thread->detach();
+			#{lock($curconn);
+			#$curconn--;
+			#cond_signal($curconn);}
+		#});
+		#$thread->detach();
+		say "thread detachnut";
 	}
 }
 

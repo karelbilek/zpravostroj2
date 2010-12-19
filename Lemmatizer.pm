@@ -1,6 +1,7 @@
 package Lemmatizer;
 
-use 5.010;
+use 5.008;
+use Globals;
 use Word;
 use Data::Dumper;
 
@@ -48,14 +49,16 @@ sub lemmatize {
 
 	binmode $sock, ':utf8';
 	
-	say $sock "LEMMAS ENTITIES";
-	say $sock $text;
-	say $sock "ZPRAVOSTROJ KONEC ZPRAVOSTROJ KONEC";
+	print $sock "LEMMAS ENTITIES\n";
+	print $sock $text;
+	print $sock "\n";
+	print $sock "ZPRAVOSTROJ KONEC ZPRAVOSTROJ KONEC\n";
 	
-	
+	say "Neco rekl do TectoMT, jdu na nej cekat";
 	my @lemmas_all = read_from_sock($sock);
 	my %named = read_from_sock($sock);
 	
+	say "Docekal.";
 	
 	
 	my @res;

@@ -9,7 +9,7 @@ package ReadabilityExtractor;
 #stranka projektu - http://code.google.com/p/arc90labs-readability/
 #Readability (c) 2010 Arc90 Inc
 
-use 5.010;
+use 5.008;
 use Globals;
 
 use Switch;

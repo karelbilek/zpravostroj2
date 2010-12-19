@@ -13,3 +13,32 @@
    - vsechny (!) projede a prepocita temata
    - konec
   
+
+
+
+blesk.cz
+http://www.blesk.cz/kategorie/7/zpravy?page=WHATEVER
+
+idnes.cz
+http://zpravy.idnes.cz/archiv.asp?datum=2.+12.+2010&ostrov=zpravodaj
+
+lidovky.cz
+http://www.lidovky.cz/ln_domov.asp?strana=WHATEVER
+
+tyden.cz
+http://www.tyden.cz/archiv/?page=858&obsah=clanek&rubrika=6
+
+----ihned.cz
+
+aktualne.centrum.cz
+http://aktualne.centrum.cz/archiv.phtml?from=631&section=1666
+
+ceskenoviny.cz
+http://www.ceskenoviny.cz/archiv/?id_seznam=160&id_rubrika=36&seznam_start=2000
+
+
+financninoviny.cz
+ditto
+
+bleskove.centrum.cz
+taky pude

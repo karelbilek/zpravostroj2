@@ -1,6 +1,6 @@
 package All;
 
-use 5.010;
+use 5.008;
 use forks;
 # with 'ReturnsNewerCounts';
 
@@ -9,32 +9,139 @@ use warnings;
 use Date;
 use Globals;
 use TectoServer;
+use RSS;
 
 use File::Slurp;
 use Data::Dumper;
 
 $|=1;
 
+my $fork;
+
+sub run_thread {
+	$|=1;
+	print "Pred.\n";
+	$fork = threads->new( sub {    
+		$|=1;
+		print "Uvnitr\n";
+	} );
+	print "Po - $fork\n";
+}
+
 my $tecto_thread;
 
 sub run_tectomt {
+	$|=1;
+	print "Pred.\n";
 	$tecto_thread = threads->new( sub {    
-		use TectoServer;
+		$|=1;
+		print "Prvni radek\n";
 		
-		$SIG{'KILL'} = sub { threads->exit(); }; 
-		TectoServer::run;
+		#$SIG{'KILL'} = sub { threads->exit(); }; 
+		print "Druhy radek\n";
+		
+		#TectoServer::run;
+		print "Treti radek\n";
+		
 	} );
+	print "Po - $tecto_thread\n";
 }
 
+
 sub stop_tectomt {
+	$|=1;
+	say "Zastavuji tectoMT ve Stop_tectomt";
 	$tecto_thread->kill('KILL')->detach();
 }
 
-# sub get_all_rss {
-	# if (!
-# }
 
-sub get_top_themes {
+sub do_once_per_hour {
+	for my $f (<data/RSS/*>) {
+		my $RSS = undump_bz2($f);
+		$RSS->load_article_urls;
+		dump_bz2($f, $RSS);
+	}
+}
+
+sub review_all {
+	$|=1;
+	
+	run_tectomt();
+	
+	do_for_all(sub{
+		my $d = shift;
+		#my $d = new Date(day=>13, month=>12, year=>2010);
+		if ($d->month >=3 and $d->year >= 2010) {
+			$d->review_all();
+		}
+	});
+	
+	stop_tectomt();
+}
+
+sub do_once_per_day {
+	$|=1;
+	
+	run_tectomt();
+	
+	my @links;
+	my $date = new Date();
+	
+	for my $f (<data/RSS/*>) {
+		my $RSS = undump_bz2($f);
+		push (@links, $RSS->get_article_urls);
+		dump_bz2($f, $RSS);
+	}
+	
+	for my $link (@links) {
+		say "tvorim $link";
+		my $a = new Article(url=>$link); #the whole creation happens here
+		
+		say "ukladam $link";
+		$date->save_article($a);
+	}
+	
+	say "zastavuji tmt";
+	stop_tectomt(); #so it doesn't mess the memory when I don't really need it
+	
+	say "set_latest_count (buhvi co to udela)";
+	set_latest_count(); #looks at the latest count, adds all younger stuff (which means all the new articles, basically)
+	
+	say "set_all_themes (modleme se)";
+	set_all_themes(); #goes through ALL the articles - including the new ones - and sets new themes, based on the new counts
+	
+	say "ze by... hotovo?!?";
+}
+
+sub get_total_themes {
+	my %res_all = do_for_all (sub {
+		my $d = shift;
+		my %all = @_;
+		
+		say "Delam den ", $d->get_to_string();
+		
+		my $ts = $d->get_day_themes;
+		
+		my @arr = (sort{$ts->{$b}->importance <=> $ts->{$a}->importance} keys %$ts)[0..300];
+		#my %ts_filtered = map {($_=>$ts->{$_})} @arr;
+		
+		for my $key (@arr) {
+			if (defined $key) {
+				if (exists $all{$key}) {
+					$all{$key} = $all{$key}->add_another($ts->{$key});
+				} else {
+					$all{$key} = $ts->{$key};
+				}
+			}
+		}
+		
+		return %all;
+	});
+	my @arr = sort{$b->importance <=> $a->importance} values %res_all;
+	dump_bz2("sem", \@arr);
+}
+
+sub set_all_themes {
 	say "Nacitam count..";
 	my $count = All::get_count();
 	say "nacitam total_b_count";
@@ -108,28 +215,7 @@ sub _change_theme_files{
 	
 }
 
-sub temp_pdump_get_all_dates {
-	if (!-d "data" or !-d "data/perldump_articles") {
-		say "Tak nic, no.";
-		return ();
-	} else {
-		my @res;
-		for my $dir_year (<data/perldump_articles/*>) {
-			$dir_year=~/\/([^\/]*)$/;
-			my $year = $1;
-			for my $dir_month (<data/perldump_articles/$year/*>) {
-				$dir_month=~/\/([^\/]*)$/;
-				my $month = $1;
-				for my $dir_day (<data/perldump_articles/$year/$month/*>) {
-					$dir_day=~/\/([^\/]*)$/;
-					my $day = $1;
-					push(@res,new Date(day=>$day, month=>$month, year=>$year));
-				}
-			}
-		}
-		return @res;
-	}
-}
+
 
 sub get_all_dates {
 	if (!-d "data" or !-d "data/articles") {
@@ -154,13 +240,18 @@ sub get_all_dates {
 	}
 }
 
-sub do_for_all {
+sub do_for_all(&) {
 	my $subref = shift;
 	my @dates = get_all_dates;
 	say "Datumu je ".scalar @dates;
+	
+	my @pseudoshared;
+
 	for (@dates) {
-		$subref->($_);
+		my $thread =  threads->new( {'context' => 'list'}, sub { return $subref->($_, @pseudoshared)});
+		@pseudoshared = $thread->join();
 	}
+	return @pseudoshared;
 }
 
 sub get_total_before_count {
@@ -170,12 +261,15 @@ sub get_total_before_count {
 	}
 	say "Last day je ".$last_date->get_to_string();
 	
-	my $total;
-	do_for_all(sub{
+	#my $total;
+	my ($res) = do_for_all(sub{
 		
 		#say "Whatever start.";
 		
 		my $d = shift;
+		
+		my $total = shift;
+
 		if ($last_date->is_the_same_as($d)) {
 			$total += $last_article+1;
 		}
@@ -183,21 +277,21 @@ sub get_total_before_count {
 			$total += $d->article_count();
 		}
 		
+		return $total;
 		#say "Zkoumam ".$d->get_to_string." ; zatim ".$total;
 		
 	});
 	
-	return $total;
+	return $res;
 	
 }
 
 sub get_count {
-	#TODO - zjistit stari
 	return undump_bz2("data/all/counts.bz2");
 	
 }
 
-sub dump_latest_count {
+sub set_latest_count {
 	
 	mkdir "data";
 	mkdir "data/all";
@@ -207,16 +301,20 @@ sub dump_latest_count {
 	}
 	say "Last day je ".$last_date->get_to_string();
 	
-	my $d;
-	my $counts;
+	#my $d;
+	my $defcounts;
 	{
 		my $c = undump_bz2("data/all/counts.bz2");
-		if (defined $c) {$counts=$c}
+		if (defined $c) {$defcounts=$c}
 	}
 	
-	do_for_all(sub{
+	my ($res, $last_d) = do_for_all(sub{
 		
-		$d = shift;
+		my $d = shift;
+		my $counts = shift;
+		if (!defined $counts) {
+			$counts = $defcounts;
+		}
 		say "d je ".$d->get_to_string();
 		my $wcount = undef;
 		if ($last_date->is_the_same_as($d)) {
@@ -233,11 +331,12 @@ sub dump_latest_count {
 				}
 			}
 		}
+		return ($counts, $d);
 		
 	});
-	dump_bz2("data/all/counts.bz2", $counts);
-	set_last_saved($d, $d->article_count-1);
-	return $counts;
+	dump_bz2("data/all/counts.bz2", $res);
+	set_last_saved($last_d, $last_d->article_count-1);
+	return $res;
 }
 
 sub get_last_saved {

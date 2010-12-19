@@ -3,6 +3,9 @@ package WebReader;
 use strict;
 use warnings;
 
+use 5.008;
+use Globals;
+
 use Encode;
 use HTML::Encoding 'encoding_from_http_message';
 use LWP::UserAgent;

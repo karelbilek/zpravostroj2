@@ -1,5 +1,7 @@
 package Theme;
 
+use forks;
+
 
 use Moose;
 use MooseX::StrictConstructor;
@@ -29,14 +31,22 @@ has 'importance' => (
 
 sub add_1{
 	my $this = shift;
-	return new Theme(lemma=>$this->lemma, form=>$this->form, importance=>$this->importance+1);
+	return (new Theme(lemma=>$this->lemma, form=>$this->form, importance=>$this->importance+1));
 
+}
+
+sub add_another {
+	my $this = shift;
+	my $that = shift;
+	return (new Theme(lemma=>$this->lemma, form=>$this->form, importance=>$this->importance+$that->importance));
+	
 }
 
 sub same_with_1 {
 	my $this = shift;
 	
-	return new Theme(lemma=>$this->lemma, form=>$this->form, importance=>1);
+	return (new Theme(lemma=>$this->lemma, form=>$this->form, importance=>1));
+	
 }
 
 sub join {
