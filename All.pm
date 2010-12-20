@@ -16,35 +16,22 @@ use Data::Dumper;
 
 $|=1;
 
-my $fork;
-
-sub run_thread {
-	$|=1;
-	print "Pred.\n";
-	$fork = threads->new( sub {    
-		$|=1;
-		print "Uvnitr\n";
-	} );
-	print "Po - $fork\n";
-}
-
 my $tecto_thread;
 
 sub run_tectomt {
 	$|=1;
-	print "Pred.\n";
 	$tecto_thread = threads->new( sub {    
 		$|=1;
-		print "Prvni radek\n";
 		
-		#$SIG{'KILL'} = sub { threads->exit(); }; 
-		print "Druhy radek\n";
 		
-		#TectoServer::run;
-		print "Treti radek\n";
+		$SIG{'KILL'} = sub { threads->exit(); }; 
+		
+		
+		TectoServer::run;
+		
 		
 	} );
-	print "Po - $tecto_thread\n";
+
 }
 
 
@@ -72,6 +59,7 @@ sub review_all {
 		my $d = shift;
 		#my $d = new Date(day=>13, month=>12, year=>2010);
 		if ($d->month >=3 and $d->year >= 2010) {
+		#if ($d->month ==7 and $d->year >= 2010) {	
 			$d->review_all();
 		}
 	});

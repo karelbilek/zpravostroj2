@@ -346,13 +346,20 @@ sub get_and_save_themes {
 sub review_all {
 	my $d = shift;
 	$d->do_for_all(sub{
+		say "Zacinam review_all.";
 		my $a = shift;
 		my $changed = shift;
+		my $i = shift;
+		(defined $i) ? ($i++) : ($i=0);
 		my $has = $a->has_counts;
 		if (!$has) {
+			say "Nema has!";
 			$a->counts();
+		} else {
+			say "Ma has! Opakuju, je to den ", $d->get_to_string, " , cislo ",$i;
 		}
 		$$changed = !$has;
+		return $i;
 	});
 }
 

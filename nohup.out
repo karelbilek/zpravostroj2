@@ -1226,3 +1226,352 @@ Perl exited with active threads:
 	2 running and unjoined
 	1 finished and unjoined
 	0 running and detached
+Turning on Fslib.pm compatibility mode; deprecated Fslib classes will be created by default.
+Hint: Set env NO_FS_CLASSES=1 or avoid calling 'require Fslib' at /a/merkur2/ufallabhome/bilek/tectomt/share/tred/tredlib/libs/fslib/Fslib.pm line 0
+start
+Jsem tu - run
+Jsem tu.
+TMT-INFO:	Initializing an instance of TectoMT::Scenario ...
+TMT-INFO:	7 blocks to be used in the scenario:
+
+Datumu je 361
+TMT-INFO:	Loading block SCzechW_to_SCzechM::Sentence_segmentation (1/7) ...
+TMT-INFO:	Loading block SCzechW_to_SCzechM::Tokenize (2/7) ...
+TMT-INFO:	Loading block SCzechW_to_SCzechM::TagHajic (3/7) ...
+TMT-INFO:	Loading block SCzechM_to_SCzechN::Find_geo_named_ent (4/7) ...
+TMT-INFO:	Loading block SCzechM_to_SCzechN::Geo_ne_recognizer (5/7) ...
+TMT-INFO:	Loading block SCzechM_to_SCzechN::SVM_ne_recognizer (6/7) ...
+TMT-INFO:	Loading block SCzechM_to_SCzechN::Embed_instances (7/7) ...
+TMT-INFO:	
+TMT-INFO:	   ALL BLOCKS SUCCESSFULLY LOADED.
+TMT-INFO:	
+Zacatek cyklu, cekam na podminku...
+Docekal na podminku. Acceptuji spojeni.
+Num 0
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 0
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 1
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 1
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 2
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 2
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 3
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 3
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 4
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 4
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 5
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 5
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 6
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 6
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 7
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 7
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 8
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 8
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 9
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 9
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 10
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 10
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 11
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 11
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 12
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 12
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 13
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 13
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 14
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 14
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 15
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 15
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 16
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 16
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 17
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 17
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 18
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 18
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 19
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 19
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 20
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 20
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 21
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 21
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 22
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 22
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 23
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 23
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 24
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 24
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 25
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 25
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 26
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 26
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 27
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 27
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 28
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 28
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 29
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 29
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 30
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 30
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 31
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 31
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 32
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 32
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 33
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 33
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 34
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 34
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 35
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 35
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 36
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 36
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 37
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 37
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 38
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 38
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 39
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 39
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
+Num 40
+nacitani v do_for_all
+hotovo nacitani v do_for_all
+jdu spustit subref v do_for_all
+Zacinam review_all.
+Ma has! Opakuju, je to den 2010-10-1 , cislo 40
+hotovo, jdu ukladat tamtez
+hotovo ukladani, lezu z do_for_all
