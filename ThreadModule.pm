@@ -1,6 +1,7 @@
 package ThreadModule;
 
 use forks;
+use HTML::DOM;
 
 $|=1;
 
