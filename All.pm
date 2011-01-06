@@ -2,6 +2,7 @@ package All;
 
 use 5.008;
 use forks;
+use forks::shared;
 # with 'ReturnsNewerCounts';
 
 use strict;
@@ -62,9 +63,17 @@ sub review_all {
 		#if ($d->month ==7 and $d->year >= 2010) {	
 			$d->review_all();
 		}
-	});
+	},1);
 	
 	stop_tectomt();
+}
+
+sub review_all_2 {
+	set_latest_count();
+}
+
+sub review_all_3 {
+	set_all_themes();
 }
 
 sub do_once_per_day {
@@ -124,7 +133,7 @@ sub get_total_themes {
 		}
 		
 		return %all;
-	});
+	},1);
 	my @arr = sort{$b->importance <=> $a->importance} values %res_all;
 	dump_bz2("sem", \@arr);
 }
@@ -137,7 +146,7 @@ sub set_all_themes {
 	do_for_all(sub{
 		my $date = shift;
 		$date->get_and_save_themes($count, $total);
-	});
+	},1);
 }
 
 sub get_theme_path{
@@ -151,6 +160,7 @@ sub get_theme_path{
 	mkdir "data";
 	mkdir "data/themes_history";
 	mkdir "data/themes_history/".$first;
+
 	
 	return "data/themes_history/".$first."/".$n.".bz2";
 }
@@ -203,6 +213,11 @@ sub _change_theme_files{
 	
 }
 
+sub _get_last_folder {
+	my $w = shift;
+	$w=~/\/([^\/]*)$/;
+	return $1;
+}
 
 
 sub get_all_dates {
@@ -211,15 +226,12 @@ sub get_all_dates {
 		return ();
 	} else {
 		my @res;
-		for my $dir_year (<data/articles/*>) {
-			$dir_year=~/\/([^\/]*)$/;
-			my $year = $1;
-			for my $dir_month (<data/articles/$year/*>) {
-				$dir_month=~/\/([^\/]*)$/;
-				my $month = $1;
-				for my $dir_day (<data/articles/$year/$month/*>) {
-					$dir_day=~/\/([^\/]*)$/;
-					my $day = $1;
+		for (sort {_get_last_folder($a)<=>_get_last_folder($b)} <data/articles/*>) {
+			my $year = _get_last_folder($_);;
+			for (sort {_get_last_folder($a)<=>_get_last_folder($b)} <data/articles/$year/*>) {
+				my $month = _get_last_folder($_);
+				for (sort {_get_last_folder($a)<=>_get_last_folder($b)} <data/articles/$year/$month/*>) {
+					my $day = _get_last_folder($_);
 					push(@res,new Date(day=>$day, month=>$month, year=>$year));
 				}
 			}
@@ -228,18 +240,27 @@ sub get_all_dates {
 	}
 }
 
-sub do_for_all(&) {
+sub do_for_all(&$) {
 	my $subref = shift;
+	my $do_thread = shift;
 	my @dates = get_all_dates;
 	say "Datumu je ".scalar @dates;
 	
-	my @pseudoshared;
+	my @shared;
+	if ($do_thread) {
+		share(@shared);
+	}
 
 	for (@dates) {
-		my $thread =  threads->new( {'context' => 'list'}, sub { return $subref->($_, @pseudoshared)});
-		@pseudoshared = $thread->join();
+		if ($do_thread) {
+			my $thread =  threads->new( {'context' => 'list'}, sub { @shared= $subref->($_, @shared)});
+			#@shared = $thread->join();
+			$thread->join();
+		} else {
+			@shared = $subref->($_, @shared);
+		}
 	}
-	return @pseudoshared;
+	return @shared;
 }
 
 sub get_total_before_count {
@@ -268,7 +289,7 @@ sub get_total_before_count {
 		return $total;
 		#say "Zkoumam ".$d->get_to_string." ; zatim ".$total;
 		
-	});
+	},0);
 	
 	return $res;
 	
@@ -296,35 +317,48 @@ sub set_latest_count {
 		if (defined $c) {$defcounts=$c}
 	}
 	
-	my ($res, $last_d) = do_for_all(sub{
+	my @res = do_for_all(sub{
 		
 		my $d = shift;
-		my $counts = shift;
-		if (!defined $counts) {
-			$counts = $defcounts;
+		shift;
+		my %counts = @_;
+		if ((scalar keys %counts)==0 and defined $defcounts) {
+			%counts = %$defcounts;
 		}
+		
 		say "d je ".$d->get_to_string();
 		my $wcount = undef;
 		if ($last_date->is_the_same_as($d)) {
-			$wcount = $d->get_count($last_article+1);
+			$wcount = {$d->get_count($last_article+1)};
 		}
 		if ($last_date->is_older_than($d)) {
-			$wcount = $d->get_count(0);
+			$wcount = {$d->get_count(0)};
 			
 		}
 		if (defined $wcount) {
 			for (keys %$wcount) {
 				if ($wcount->{$_}>=$min_article_count_per_day) {
-					$counts->{$_}+=$wcount->{$_};
+					$counts{$_}+=$wcount->{$_};
 				}
 			}
 		}
-		return ($counts, $d);
 		
-	});
-	dump_bz2("data/all/counts.bz2", $res);
+		#if (!($i%5)) {
+			say "POZOR POZOR UKLADAM MEZISOUCTY na datu ", $d->get_to_string();
+			dump_bz2("data/all/counts.bz2", \%counts);
+			set_last_saved($d, $d->article_count-1);
+		#}
+		
+		return ($d->get_to_string, %counts);
+		#return ($counts, $d, $i);
+		
+	},1);
+	my $last_day_string = shift @res;
+	my $last_d = Date::get_from_string($last_day_string);
+	my $res_counts = {@res};
+	dump_bz2("data/all/counts.bz2", $res_counts);
 	set_last_saved($last_d, $last_d->article_count-1);
-	return $res;
+	return $res_counts;
 }
 
 sub get_last_saved {

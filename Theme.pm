@@ -28,6 +28,17 @@ has 'importance' => (
 	required => 1
 );
 
+sub to_string{
+	my $s = shift;
+	return $s->lemma."|".$s->form."|".$s->importance;
+}
+
+sub from_string {
+	my $st = shift;
+	$st=~/^(.*)\|(.*)\|(.*)$/;
+	return new Theme(lemma=>$1, form=>$2, importance=>$3);
+}
+
 
 sub add_1{
 	my $this = shift;

@@ -3,12 +3,14 @@ package Date;
 use 5.008;
 use Globals;
 use forks;
+use forks::shared;
 
 use Moose;
 use MooseX::StrictConstructor;
 use Moose::Util::TypeConstraints;
 
 use Time::Local 'timelocal';
+
 use MooseX::Storage;
 
 with Storage;
@@ -232,16 +234,21 @@ sub read_article {
 sub do_for_all {
 	my $s=shift;
 	my $subr = shift;
+	my $do_thread = shift;
 	my $num = if_undef(shift,0);
 	my $c = $s->article_count;
 	my $endnum = if_undef(shift, ($c-1));
 	$|=1;
 	
-	my @pseudoshared;
+	#my @pseudoshared; - puvodni
+	my @shared;# - novy
+	if ($do_thread) {
+		share(@shared);
+	}
 	
 	for ($num..$endnum) {
-		
-		my $thread = threads->new( {'context' => 'list'}, sub {
+	
+		my $subref = sub {
 		
 			say "Num $_";
 			MyTimer::start_timing("nacitani");
@@ -251,24 +258,42 @@ sub do_for_all {
 			if (defined $a) {
 				say "jdu spustit subref v do_for_all";
 				my $changed;
-				my @shared_copy = $subr->($a, \$changed, @pseudoshared);
+				@shared = $subr->($a, \$changed, @shared);
 				say "hotovo, jdu ukladat tamtez";
 				if ($changed) {$s->save_article($a, $_)}
 				say "hotovo ukladani, lezu z do_for_all";
-				#say "shared copy je velky ", scalar @shared_copy;
-				return @shared_copy;
-			} else {
-				MyTimer::count_error("undefined a");
-				return ();
-			}
-		});
+				say "shared je velky ", scalar @shared;
+				#return @shared_copy; - puvodni
+				#@shared = @shared_copy; #- novy
+			} #else {
+				#MyTimer::count_error("undefined a");
+				#return @pseudoshared;
+			#	nic - novy
+			#}
+		};
 		
-		@pseudoshared=$thread->join();
+		if ($do_thread) {
+			my $thread = threads->new( {'context' => 'list'}, $subref);
+		
+			say "!!!!!!!!!!TESNE PRED JOINEM";
+			#@pseudoshared=$thread->join();
+			$thread->join();
+			say "!!!!!!!!!!TESNE PO JOINU";
+			
+			#say "pseudoshared je velky ", scalar @pseudoshared;
+
+			
+		} else {
+			say "V else.";
+			#@pseudoshared = $subref->();
+			$subref->();
+		}
+		
+		
 		#say "pseudoshared copy je velky ", scalar @pseudoshared;
 
 	}
-	
-	return @pseudoshared;
+	return @shared;
 }
 
 
@@ -287,7 +312,8 @@ sub get_and_save_themes {
 	my %res_day_themes = $s->do_for_all(sub {
 		my $a = shift;
 		my $changed = shift;
-		my %day_themes=@_;
+		my @imp=@_;
+		my %day_themes = map {my $t = Theme::from_string($_); ($t->lemma, $t);} @imp;
 		
 		say "zacina delete_from_theme_files v get_and_save_themes";
 		MyTimer::start_timing("delete_from_theme_files");
@@ -334,8 +360,9 @@ sub get_and_save_themes {
 		say "hotovo, jdu na dalsi rundu.";
 		$i++;
 		$$changed = 1;
-		return %day_themes;
-	}
+		my @res = map {$_->to_string()} values %day_themes;
+		return @res;
+	},1
 	);
 	MyTimer::start_timing("save_day_themes");
 	
@@ -360,7 +387,7 @@ sub review_all {
 		}
 		$$changed = !$has;
 		return $i;
-	});
+	},0);
 }
 
 sub get_count {
@@ -375,7 +402,7 @@ sub get_count {
 		my $changed = shift;
 		my $i = shift;
 		my %counts=@_;
-		say "i je $i";
+		say "i je $i -- inside get_count";
 		$i++;
 		my $wcount = $a->counts;
 		for (keys %$wcount) {
@@ -383,7 +410,8 @@ sub get_count {
 		}
 		$$changed = 0;
 		return ($i, %counts);
-	}, $num);
+	}, 0, $num);
+	
 	shift @c;
 	return @c;
 }

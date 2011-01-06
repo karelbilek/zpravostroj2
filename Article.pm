@@ -207,7 +207,7 @@ sub count_themes {
 				}
 			}
 			
-			$importance{$wordgroup} = ($word_counts->{$wordgroup}{counts} / $document_size) * log($all_count / $d);
+			$importance{$wordgroup} = ($word_counts->{$wordgroup}{counts} / $document_size) * log($all_count / $d)if defined $wordgroup;
 			
 			
 	}
