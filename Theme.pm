@@ -1,6 +1,58 @@
+package ThemeHash;
+use forks;
+use forks::shared;
+
+use Globals;
+use Moose;
+use MooseX::StrictConstructor;
+use Moose::Util::TypeConstraints;
+use MooseX::Storage;
+
+with Storage;
+
+has 'themes' => (
+	is => 'rw',
+	isa => 'HashRef[Theme]',
+	default => sub { {} }
+);
+
+sub add_theme {
+	my $s = shift;
+	my $what = shift;
+	
+	my $themes = $s->themes;
+	
+	if (exists $themes -> { $what->lemma }) {
+		my $p = $themes -> { $what->lemma } -> add_1;
+		$themes -> {$what->lemma} = shared_clone($p);
+	} else {
+		my $p = $what->same_with_1;
+		$themes -> {$what->lemma} = shared_clone($p);
+	}
+}
+
+sub all_themes_lemmas {
+	my $s = shift;
+	
+	return keys %{$s->themes}
+}
+
+sub get_theme {
+	my $s = shift;
+	my $lm = shift;
+	return $s->themes->{$lm};
+}
+
+sub all_themes {
+	my $s = shift;
+	
+	return values %{$s->themes}
+}
+
+__PACKAGE__->meta->make_immutable;
+
 package Theme;
 
-use forks;
 
 
 use Moose;
@@ -70,5 +122,7 @@ sub join {
 	
 	return new Theme(lemma=>$this->lemma." ".$addlemma, form=>$this->form." ".$addform, importance=>(($this->importance + $that->importance)/2));
 }
+
+__PACKAGE__->meta->make_immutable;
 
 1;

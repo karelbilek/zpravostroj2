@@ -3,15 +3,12 @@ package MyTimer;
 use 5.008;
 use strict;
 use warnings;
+use forks;
+use forks::shared;
 
-sub new {
-	my $c = shift;
-	bless {}, $c;
-}
-
-my $bezi;
-my $start;
-my %measured;
+my $bezi:shared;
+my $start:shared;
+my %measured:shared;
 
 sub start_timing {
 	my $what = shift;
@@ -26,12 +23,18 @@ sub start_timing {
 
 sub stop_timing {
 	my $what = $bezi;
-	$bezi = undef;
+	if (defined $what) {
+		$bezi = undef;
 	
-	my $st = $start;
-	my $ted = time;
+		my $st = $start;
+		my $ted = time;
 	
-	$measured{$what}+=($ted-$st);
+		my $addto = $ted-$st;
+		my $mw = $measured{$what} || 0;
+		my $nw = $mw + $addto; 
+	
+		$measured{$what}=$nw;
+	}
 	
 }
 
@@ -52,10 +55,16 @@ sub say_all {
 		$soucet+=$measured{$_};
 	}
 	
+	print "Celkovy cas : $soucet sekund\n";
+	
 	print "CASY:","\n";
 	
+	my %res;
 	for (keys %measured) {
-		print $_, " ma ", (100 * $measured{$_} / $soucet), "%\n";
+		$res{$_} = (100 * $measured{$_} / $soucet);
+	}
+	for (sort {$res{$b}<=>$res{$a}} keys %measured) {
+		print $_, " ma ", $res{$_}, "%\n";
 	}
 	
 	print "CHYBY:\n";

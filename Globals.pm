@@ -79,7 +79,7 @@ sub undump_bz2 {
 	
 	eval {$v = Load($dumped);};
 	
-	MyTimer::start_timing("load_after");
+	MyTimer::start_timing("load_after_wtf1");
 	
 	
 	if ($@) {
@@ -93,19 +93,36 @@ sub undump_bz2 {
 		say $@;
 		return undef;
 	}
+	MyTimer::start_timing("load_after_wtf2");
+	
 	
 	
 	if (reftype $v ne "HASH") {
+		MyTimer::start_timing("load_after_wtf3");
+		
 		return $v;
 	} else {
+		MyTimer::start_timing("load_after_wtf4");
+		
 		if (exists $v->{"__CLASS__"}) {
+			MyTimer::start_timing("load_after_wtf5");
+			
 			my $class = $v->{"__CLASS__"};
-			return $class->unpack($v); 
+			
+			MyTimer::start_timing("unpacking ".$class);
+			my $r = $class->unpack($v); 
+			
+			MyTimer::start_timing("load_after_wtf6");
+			
+			
+			return $r;
 		} else {
+			MyTimer::start_timing("load_after_wtf7");
+			
+			
 			return $v;
 		}
 	}
-	MyTimer::stop_timing();
 	
 	
 }

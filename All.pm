@@ -14,6 +14,10 @@ use RSS;
 
 use File::Slurp;
 use Data::Dumper;
+use Scalar::Util qw(blessed);
+
+use MyTimer;
+use Theme;
 
 $|=1;
 
@@ -74,6 +78,36 @@ sub review_all_2 {
 
 sub review_all_3 {
 	set_all_themes();
+}
+
+
+sub review_all_final {
+	
+	my %r = do_for_all(sub{
+		my $d = shift;
+		say "Day ", $d->get_to_string();
+		my %imp_themes = @_;
+		#my %imp_themes = map {my $t = Theme::from_string($_); ($t->lemma, $t);} @_;
+		
+		my @d_themes = $d->get_top_themes(100);
+		for my $theme (@d_themes) {
+			if (exists $imp_themes{$theme->lemma}) {
+				$imp_themes{$theme->lemma} = $theme->add_another($imp_themes{$theme->lemma});
+			} else {
+				$imp_themes{$theme->lemma} = $theme;
+				
+			}
+		}
+		
+		#my @res = map {$_->to_string()} values %imp_themes;
+		return %imp_themes;
+	}, 0);
+	
+	my @r_themes = values %r;
+	
+	@r_themes = sort {$b->importance <=> $a->importance} @r_themes;
+	
+	return @r_themes[0..100];
 }
 
 sub do_once_per_day {
@@ -139,14 +173,21 @@ sub get_total_themes {
 }
 
 sub set_all_themes {
-	say "Nacitam count..";
+	MyTimer::start_timing("get all count");
+	
 	my $count = All::get_count();
-	say "nacitam total_b_count";
+	
+	MyTimer::start_timing("get total before count");
+
 	my $total = All::get_total_before_count();
+	MyTimer::start_timing("prvni doforall priprava");
+	
 	do_for_all(sub{
 		my $date = shift;
+		
 		$date->get_and_save_themes($count, $total);
 	},1);
+	MyTimer::say_all();
 }
 
 sub get_theme_path{
@@ -155,59 +196,109 @@ sub get_theme_path{
 	if ($n eq '') {
 		$n = "empty";
 	}
-	my $first = substr($n, 0, 2);
+	$n = lc ($n);
+	if (length $n < 4) {
+		$n = $n."____";
+	}
+	my $first = substr($n, 0, 1);
+	my $second = substr($n, 1, 1);
+	my $third = substr($n,2,2);
 	
 	mkdir "data";
 	mkdir "data/themes_history";
 	mkdir "data/themes_history/".$first;
+	mkdir "data/themes_history/".$first."/".$second;
 
 	
-	return "data/themes_history/".$first."/".$n.".bz2";
+	return "data/themes_history/".$first."/".$second."/".$third.".bz2";
 }
 
 sub delete_from_theme_files{
 	my $theme_list = shift;
 	my $date = shift;
-	my $artnum = shift;
-	_change_theme_files(0,$theme_list, $date, $artnum);
+	
+	if (((blessed $theme_list)||"") eq "ThemeHash") {
+		_change_theme_files(0,$theme_list, $date);
+	}
+	
+	
 }
 
 sub add_to_theme_files{
 	my $theme_list = shift;
 	my $date = shift;
-	my $artnum = shift;
-	_change_theme_files(1,$theme_list, $date, $artnum);
+	
+	
+	
+	_change_theme_files(1,$theme_list, $date);
 }
 
 sub _change_theme_files{
 	my $add = shift;
 	my $theme_list = shift;
-	my $date = shift;
-	my $artnum = shift;
 	
-	for my $theme (@$theme_list) {
+	
+	
+	my $date = shift;
+	
+	#pro kazde tema
+	for my $theme ($theme_list->all_themes) {
 		
-		my $path = get_theme_path($theme->lemma);
+		if ($theme->importance > 2) {
+			my $lemma = $theme->lemma;
+			my $form = $theme->form;
 		
-		my $theme_file_load;
-		if (-e $path) {
-			$theme_file_load = undump_bz2($path);
-		}
-		if ($add) {
-			if (!exists $theme_file_load -> {$theme->lemma}) {
-				$theme_file_load->{$theme->lemma}{form} = $theme->form;
+			my $should_dump;
+		
+			#vezmi cestu a nacti soubor s tematy, pokud existuje
+			my $path = get_theme_path($lemma);
+			my $theme_file_load;
+			if (-e $path) {
+				$theme_file_load = undump_bz2($path);
 			}
-			$theme_file_load->{$theme->lemma}{seen}{$date->get_to_string}{$artnum}=undef;
-		} else {
-			delete $theme_file_load->{$theme->lemma}{seen}{$date->get_to_string}{$artnum};
-			if (scalar keys %{$theme_file_load->{$theme->lemma}{seen}{$date->get_to_string}}==0) {
-				delete $theme_file_load->{$theme->lemma}{seen}{$date->get_to_string};
+		
+			if ($add) {
+			
+				$theme_file_load -> {$lemma} {$form} {$date->get_to_string()} = $theme->{importance};
+				$should_dump = 1;
+			
+			} else {
+			
+				#postupne cistit vsechny pripadne prazdne hashe
+				delete $theme_file_load -> {$lemma} {$form} {$date->get_to_string()};
+			
+				{
+					#pokud dana kombinace soubor - lemma - form nema smysl...
+				
+					my $lemmahash = $theme_file_load -> {$lemma};
+					if (scalar keys %{$lemmahash -> {$form}}==0) {
+						#smaz ji
+						delete $lemmahash -> {$form};
+					}
+				}
+			
+				{
+					#totez s kombinaci soubor - lemma (v jednom souboru je hafo lemmat)
+					if (scalar keys %{$theme_file_load -> {$lemma}} == 0) {
+						delete $theme_file_load -> {$lemma};
+					}
+				}
+			
+				{
+					#a pokud je prazdny i hash, proc drzet soubor?
+					if (scalar keys %{$theme_file_load} == 0) {
+						$should_dump = 0;
+					} else {
+						$should_dump = 1;
+					}
+				}
 			}
-			if (scalar keys %{$theme_file_load->{$theme->lemma}{seen}}==0) {
-				delete $theme_file_load->{$theme->lemma};
-			} 
+			if ($should_dump) {
+				dump_bz2($path, $theme_file_load);
+			} else {
+				system("rm $path");
+			}
 		}
-		dump_bz2($path, $theme_file_load);
 	}
 	
 	
@@ -243,7 +334,9 @@ sub get_all_dates {
 sub do_for_all(&$) {
 	my $subref = shift;
 	my $do_thread = shift;
-	my @dates = get_all_dates;
+	#my @dates = get_all_dates;
+	my @dates = (new Date(day=>24,month=>11,year=>2009), new Date(day=>25,month=>11,year=>2009), new Date(day=>26,month=>11,year=>2009));
+	
 	say "Datumu je ".scalar @dates;
 	
 	my @shared;

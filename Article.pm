@@ -146,9 +146,6 @@ sub BUILD {
 	$s->counts;
 }
 
-__PACKAGE__->meta->make_immutable;
-
-
 sub get_all_subgroups {
 	my $w = shift;
 	my @all = split(/ /, $w);
@@ -191,7 +188,7 @@ sub count_themes {
 	
 	
 	
-	
+	#http://en.wikipedia.org/wiki/Tf%E2%80%93idf
 	
 	MyTimer::start_timing("staveni importance");
 	
@@ -207,7 +204,8 @@ sub count_themes {
 				}
 			}
 			
-			$importance{$wordgroup} = ($word_counts->{$wordgroup}{counts} / $document_size) * log($all_count / $d)if defined $wordgroup;
+			
+			$importance{$wordgroup} = ($word_counts->{$wordgroup}{counts} / $document_size) * log($all_count / ($d**(1.5)))if defined $wordgroup;
 			
 			
 	}
@@ -328,6 +326,7 @@ sub count_themes {
 	# $s->themes(\@res);
 }
 
+__PACKAGE__->meta->make_immutable;
 
 
 1;

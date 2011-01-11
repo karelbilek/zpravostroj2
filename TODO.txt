@@ -1,4 +1,26 @@
--?? ` " '' + v počtech
-
-- proc je v nejakych 1000?
-- proc to do 09-12-1 neleze?
+2009-11-26
+...
+Num 59
+Use of uninitialized value in hash element at Article.pm line 241.
+Use of uninitialized value in hash element at Article.pm line 241.
+Use of uninitialized value in anonymous hash ({}) at /ufallabhome/bilek/perl5/lib/perl5/x86_64-linux-thread-multi/Moose/Object.pm line 46.
+Thread 1084 terminated abnormally: Attribute (form) does not pass the type constraint because: Validation failed for 'Str' with value undef at /ufallabhome/bilek/perl5/lib/perl5/x86_64-linux-thread-multi/Moose/Meta/Attribute.pm line 483
+	Moose::Meta::Attribute::initialize_instance_slot('Moose::Meta::Attribute=HASH(0x7fa5daf12c60)', 'Moose::Meta::Instance=HASH(0x7fa5daf1a980)', 'Theme=HASH(0x7fa5d6f16390)', 'HASH(0x7fa5d744a8b0)') called at /ufallabhome/bilek/perl5/lib/perl5/x86_64-linux-thread-multi/Class/MOP/Class.pm line 603
+	Class::MOP::Class::_construct_instance('Moose::Meta::Class=HASH(0x7fa5daf016f0)', 'HASH(0x7fa5d744a8b0)') called at /ufallabhome/bilek/perl5/lib/perl5/x86_64-linux-thread-multi/Class/MOP/Class.pm line 576
+	Class::MOP::Class::new_object('Moose::Meta::Class=HASH(0x7fa5daf016f0)', 'HASH(0x7fa5d744a8b0)') called at /ufallabhome/bilek/perl5/lib/perl5/x86_64-linux-thread-multi/Moose/Meta/Class.pm line 256
+	Moose::Meta::Class::new_object('Moose::Meta::Class=HASH(0x7fa5daf016f0)', 'HASH(0x7fa5d744a8b0)') called at /ufallabhome/bilek/perl5/lib/perl5/x86_64-linux-thread-multi/Moose/Object.pm line 26
+	Moose::Object::new('Theme', 'form', 'undef', 'lemma', 'undef', 'importance', 'undef') called at Article.pm line 241
+	Article::count_themes('Article=HASH(0x7fa5d71b24e0)', 1529, 'HASH(0x7fa5d93b0d00)') called at Date.pm line 324
+	Date::__ANON__('Article=HASH(0x7fa5d71b24e0)', 'SCALAR(0x7fa5d6fc8d30)', 'rozvádět|rozvádí|1', 'vysazení|vysazení|1', 'válec|válce|2', 'příznivě|příznivě|1', 'setřást střížkov|setřást Střížkov|1', 'štybar|Štybar|1', 'kulomet nasazovat|kulometem Nasazuje|1', 'zdali|zdali|1', 'štěkat|štěkat|1', 'invazivní|invazivní|1', 'bobr|bobra|1', 'pusa|pusu|1', 'rammlied|Rammlied|2', 'očkovací|očkovacího|1', 'prokládat|prokládala|1', 'podání lék projev|podání léků projev|1', 'vzývající|vzývající|1', 'bavorský zwiesel regena|bavorského Zwieselu Regenu|1', 'rozhlas alencar burti|rozhlas Alencar Burti|1', ...) called at Date.pm line 261
+	Date::__ANON__() called at /ufallabhome/bilek/perl5/lib/perl5/x86_64-linux-thread-multi/forks.pm line 797
+	eval {...} called at /ufallabhome/bilek/perl5/lib/perl5/x86_64-linux-thread-multi/forks.pm line 797
+	threads::new('threads', 'HASH(0x7fa5d80bba20)', 'CODE(0x7fa5d7243e00)') called at Date.pm line 272
+	Date::do_for_all('Date=HASH(0x7fa5d93b04e0)', 'CODE(0x7fa5d805f990)', 1) called at Date.pm line 357
+	Date::get_and_save_themes('Date=HASH(0x7fa5d93b04e0)', 'HASH(0x7fa5d93b0d00)', 1529) called at All.pm line 186
+	All::__ANON__('Date=HASH(0x7fa5d93b04e0)', 0) called at All.pm line 297
+	All::__ANON__() called at /ufallabhome/bilek/perl5/lib/perl5/x86_64-linux-thread-multi/forks.pm line 797
+	eval {...} called at /ufallabhome/bilek/perl5/lib/perl5/x86_64-linux-thread-multi/forks.pm line 797
+	threads::new('threads', 'HASH(0x7fa5d70dce30)', 'CODE(0x7fa5d93b1ad0)') called at All.pm line 297
+	All::do_for_all('CODE(0x7fa5d93b0370)', 1) called at All.pm line 187
+	All::set_all_themes() called at All.pm line 78
+	All::review_all_3() called at review.pl line 14

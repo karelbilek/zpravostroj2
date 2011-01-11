@@ -137,26 +137,27 @@ sub save_day_themes {
 	my $themes = shift;
 
 	my $path = $s->daypath_themes;
+	say $path;
 	dump_bz2($path, $themes);
 }
 
 sub get_day_themes {
 	my $s = shift;
 	my $path = $s->daypath_themes;
-	
-	
+
 	my $themes = undump_bz2($path);
 	return $themes;
 }
 
 sub get_top_themes{
 	my $s = shift;
+	my $n = shift;
 	my $path = $s->daypath_themes;
 	
 	
 	my $themes = undump_bz2($path);
 	
-	my @themes_top = ((sort{$b->importance <=> $a->importance} values %$themes)[0..29]);
+	my @themes_top = ((sort{$b->importance <=> $a->importance} values %$themes)[0..$n]);
 	
 	return @themes_top;
 }
@@ -251,50 +252,39 @@ sub do_for_all {
 		my $subref = sub {
 		
 			say "Num $_";
-			MyTimer::start_timing("nacitani");
-			say "nacitani v do_for_all";
+			MyTimer::start_timing("read article v DFA");
+			
 			my $a = $s->read_article($_);
-			say "hotovo nacitani v do_for_all";
+			
 			if (defined $a) {
-				say "jdu spustit subref v do_for_all";
 				my $changed;
 				@shared = $subr->($a, \$changed, @shared);
-				say "hotovo, jdu ukladat tamtez";
-				if ($changed) {$s->save_article($a, $_)}
-				say "hotovo ukladani, lezu z do_for_all";
-				say "shared je velky ", scalar @shared;
-				#return @shared_copy; - puvodni
-				#@shared = @shared_copy; #- novy
-			} #else {
-				#MyTimer::count_error("undefined a");
-				#return @pseudoshared;
-			#	nic - novy
-			#}
+				
+				if ($changed) {
+					MyTimer::start_timing("save article v DFA");
+					$s->save_article($a, $_)
+				}
+			
+			} 
 		};
 		
 		if ($do_thread) {
 			my $thread = threads->new( {'context' => 'list'}, $subref);
 		
-			say "!!!!!!!!!!TESNE PRED JOINEM";
-			#@pseudoshared=$thread->join();
-			$thread->join();
-			say "!!!!!!!!!!TESNE PO JOINU";
 			
-			#say "pseudoshared je velky ", scalar @pseudoshared;
+			$thread->join();
+			
 
 			
 		} else {
-			say "V else.";
-			#@pseudoshared = $subref->();
 			$subref->();
 		}
 		
-		
-		#say "pseudoshared copy je velky ", scalar @pseudoshared;
-
 	}
 	return @shared;
 }
+
+
 
 
 
@@ -307,67 +297,51 @@ sub get_and_save_themes {
 	
 	my $count = shift;
 	my $total = shift;
+	MyTimer::start_timing("delete_from_theme_files in date.pm");
 	
-	my $i = 0;
-	my %res_day_themes = $s->do_for_all(sub {
+	{
+		my $old_day_themes = $s->get_day_themes;
+		All::delete_from_theme_files($old_day_themes, $s);
+	}
+	
+	my $themhash:shared;
+	$themhash = shared_clone(new ThemeHash());
+	
+	my $i:shared;
+	$i=0;
+	
+	$s->do_for_all(sub {
 		my $a = shift;
 		my $changed = shift;
-		my @imp=@_;
-		my %day_themes = map {my $t = Theme::from_string($_); ($t->lemma, $t);} @imp;
 		
-		say "zacina delete_from_theme_files v get_and_save_themes";
-		MyTimer::start_timing("delete_from_theme_files");
 		
-		if ($a->has_themes) {
-			say "has_themes, jdu je nacist";
-			my $themes = $a->themes;
-			say "hotovo, jdu smazat";
-			All::delete_from_theme_files($themes, $s, $i);
-			say "hotovo";
-		}
-		
-		say "spoustim count_themes";
+		MyTimer::start_timing("count themes");
 		
 		$a->count_themes($total, $count);
 		
-		say "hotovo, znova je nacitam";
+		MyTimer::start_timing("opetne nacitani");
 		my $themes = $a->themes;
 		
-		say "hotovo.";
 		MyTimer::start_timing("zapisovani do day_themes hashe");
 		
-		say "jdu si hrat s day_themes...";
 		for (@$themes) {
-			if (exists $day_themes{$_->lemma}) {
-				my $p;#:shared;
-				$p = $day_themes{$_->lemma}->add_1;
-				$day_themes{$_->lemma} = $p;
-			} else {
-				my $p;#:shared;
-				
-				$p=$_->same_with_1;
-				
-				$day_themes{$_->lemma} = $p;
-				
-			}
+			$themhash->add_theme($_);
 		}
 		
-		say "hotovo, ted ma keys ",scalar keys %day_themes, ", jdu pridat do souboru";
-		MyTimer::start_timing("add_to_theme_files");
-		
-		All::add_to_theme_files($themes, $s, $i);
-		
-		say "hotovo, jdu na dalsi rundu.";
 		$i++;
 		$$changed = 1;
-		my @res = map {$_->to_string()} values %day_themes;
-		return @res;
+		
+		return();
 	},1
-	);
-	MyTimer::start_timing("save_day_themes");
+	);	
+
+	MyTimer::start_timing("save day themes");
+	$s->save_day_themes($themhash);
 	
-	$s->save_day_themes(\%res_day_themes);
-	MyTimer::say_all;
+	MyTimer::start_timing("add_to_theme_files in date.pm");
+	
+	All::add_to_theme_files($themhash, $s);
+	MyTimer::stop_timing();
 }
 
 sub review_all {
