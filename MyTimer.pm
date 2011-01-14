@@ -13,6 +13,8 @@ my %measured:shared;
 sub start_timing {
 	my $what = shift;
 	
+	#print "TIMER: ",$what,"\n";
+	
 	if (defined $bezi) {
 		stop_timing();
 	}

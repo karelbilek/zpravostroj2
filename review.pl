@@ -11,7 +11,7 @@ use All;
 
 say "start";
 $|=1;
-All::review_all_3();
-
+#All::resave_to_new();
+All::set_all_themes();
 
 say "end";

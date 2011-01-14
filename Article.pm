@@ -1,5 +1,273 @@
+package AllDateArticles;
+use Globals;
+use strict;
+use warnings;
+
+use List::Util qw(min);
+use forks;
+use forks::shared;
+
+use Moose;
+use MooseX::StrictConstructor;
+use Moose::Util::TypeConstraints;
+
+
+
+use Date;
+
+has 'date' => (
+	is=>'ro',
+	required=>1,
+	weak_ref => 1,
+	isa=>'Date'
+);
+
+has 'size' => (
+	is=>'ro',
+	isa=>'Int',
+	required=>1
+);
+
+
+
+sub pathname {
+	my $s = shift;
+	mkdir "data";
+	mkdir "data/new_articles";
+	my $year = int($s->date->year);
+	my $month = int($s->date->month);
+	my $day = int($s->date->day);
+	mkdir "data/new_articles/".$year;
+	mkdir "data/new_articles/".$year."/".$month;	
+	mkdir "data/new_articles/".$year."/".$month."/".$day;
+	return "data/new_articles/".$year."/".$month."/".$day;
+}
+
+sub filename {
+	my $s = shift;
+	my $n = shift;
+	return ($s->pathname)."/".$n.".bz2";
+}
+
+sub real_article_count {
+	my $s=shift;
+	my $ds = $s->pathname;
+	my @s = <$ds/*>;
+	return (scalar @s)*($s->size);
+}
+
+
+sub save_articles {
+	my $s = shift;
+	my $n = shift;
+	my $articles = shift;
+	if (!$articles->is_all_undef) {
+		my $p = $s->filename($n);
+		dump_bz2($p, $articles, "ArticleArray");
+	}
+}
+
+sub load_articles {
+	my $s = shift;
+	my $n = shift;
+	my $p = $s->filename($n);
+	
+	my $art = (-e $p) ? (undump_bz2($p, "ArticleArray")) : (new ArticleArray($s->size));
+	if (!defined $art) {
+		$art = new ArticleArray($s->size);
+	}
+	return $art;
+}
+
+sub resave_to_new {
+	my $s = shift;
+	
+	my $i:shared;
+	$i=0;
+	$s->do_for_all(sub {
+		#my $a = shift;
+		my $read_a;
+		
+		my $pokusy=0;
+		while (!defined $read_a and $pokusy<20) {
+			MyTimer::start_timing("read article v pseudo gst");
+			$read_a = $s->date->read_article($i);
+			$i++;
+			$pokusy++;
+		}
+		
+		return ($read_a, 1);
+	
+	}, 1, 0, $s->date->article_count);
+}
+
+sub get_and_save_themes {
+	my $s = shift;
+		
+	my $count = shift;
+	my $total = shift;
+	
+	MyTimer::start_timing("tvoreni thash");
+	my $themhash:shared;
+	$themhash = shared_clone(new ThemeHash());
+	
+	
+	$s->do_for_all(sub {
+		my $a = shift;
+		if (defined $a) {
+			MyTimer::start_timing("count themes");
+		
+			$a->count_themes($total, $count);
+		
+			MyTimer::start_timing("opetne nacitani");
+		
+			my $themes = $a->themes;
+		
+			MyTimer::start_timing("zapisovani do day_themes hashe");
+		
+			for (@$themes) {
+				$themhash->add_theme($_);
+			}
+		
+			return($a, 1);
+		} else {
+			return($a, 0);
+		}
+	},1
+	);	
+	return $themhash;
+}
+
+sub do_for_all {
+	my $s=shift;
+	my $subr = shift;
+	my $do_thread = shift;
+	my $num = if_undef(shift,0);
+	my $c = $s->real_article_count;
+	my $endnum = if_undef(shift, ($c-1));
+	$|=1;
+	
+	
+	my $currently=$num;
+	while ($currently <= $endnum) {
+	
+		my $subref = sub {
+		
+			say "Curr $currently";
+			MyTimer::start_timing("read article v art DFA");
+			my $articles = $s->load_articles($currently);
+			
+			my $changed = 0;
+
+			for my $i ($currently..min($currently + $s->size-1, $endnum)) {
+				MyTimer::start_timing("pred-subr kecy");
+				say $i;
+				my $a = $articles->article($i - $currently);
+				my ($res_a, $art_changed) = $subr->($a, $c);
+				
+				MyTimer::start_timing("po-subr kecy");
+				if (($res_a||"") ne ($a||"")) {
+					$articles->article($i - $currently, $res_a);
+				}
+				$changed = 1 if ($art_changed);
+			}
+			if ($changed) {
+				MyTimer::start_timing("saving articles v art DFA");
+				$s->save_articles($currently, $articles);
+			}
+		};
+		
+		if ($do_thread) {
+			my $thread = threads->new( {'context' => 'list'}, $subref);
+		
+			$thread->join();	
+		} else {
+			$subref->();
+		}
+	} continue {
+		$currently += $s->size;
+	}
+}
+
+1;
+
+
+__PACKAGE__->meta->make_immutable;
+
+
+package ArticleArray;
+use strict;
+use warnings;
+use Moose;
+use MooseX::StrictConstructor;
+use Moose::Util::TypeConstraints;
+use MooseX::Storage;
+
+with Storage;
+
+
+has 'size' => (
+	is=>'ro',
+	isa=>'Int',
+	required=>1
+);
+
+has 'articles' => (
+	is=>'rw',
+	isa=>'ArrayRef[Maybe[Article]]',
+	required=>1
+);
+
+around BUILDARGS => sub {
+	my $orig  = shift;
+	my $class = shift;
+	
+	if ( @_ == 1 && !ref $_[0] ) {
+		my $size = shift;
+		my @arr = (undef) x $size;
+	
+		return {articles=>\@arr, size=>$size};
+	}  else {
+		return $class->$orig(@_);
+	}
+};
+
+sub is_all_undef {
+	my $s = shift;
+	my $res = 1;
+	for (@{$s->articles}) {
+		if (defined $_) {
+			$res = 0;
+		}
+	}
+	return $res;
+}
+
+
+sub article {
+	$|=1;
+	
+	my $s = shift;
+	my $n = shift;
+	my $a = shift;
+	if ($n < $s->size) {
+		if (defined $a) {			
+			$s->articles->[$n] = $a;
+		}
+		return $s->articles->[$n];
+	} else {
+		die "Too high index!";
+	}
+}
+1;
+
+__PACKAGE__->meta->make_immutable;
+
+
 package Article;
 use 5.008;
+use strict;
+use warnings;
 
 use Moose;
 use Globals;

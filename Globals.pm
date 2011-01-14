@@ -2,7 +2,7 @@ package Globals;
 
 use base 'Exporter';
 
-our @EXPORT = qw(@todelete $not_beginning $min_article_count_per_day compare_dates get_date_from_file undump_bz2 dump_bz2 say);
+our @EXPORT = qw(@todelete $not_beginning $min_article_count_per_day compare_dates get_date_from_file undump_bz2 dump_bz2 say if_undef);
 
 our @todelete = qw(strong b span a);
 our $not_beginning="[Pp][Rr][aA][hH][aA]";
@@ -26,11 +26,26 @@ sub say(@) {
 	print "\n";
 }
 
+sub if_undef {
+	my $what = shift;
+	my $ifnull = shift;
+	if (defined $what) {
+		return $what;
+	} else {
+		return $ifnull;
+	}
+}
+
 sub dump_bz2 {
 	my $path = shift;
 	my $ref = shift;
 	
-	my $z = IO::Compress::Bzip2->new ($path);
+	my $exp_class = shift || "";
+	
+	MyTimer::start_timing("creating bz2 $exp_class");
+	
+	#my $z = IO::Compress::Bzip2->new ($path);
+	open my $z, "|bzip2 > $path";
 	if (!$z) {
 		say "Cannot create BZ2 with path $path!";
 		MyTimer::count_error("Cannot create");
@@ -39,7 +54,7 @@ sub dump_bz2 {
 	
 	my $to_dump;
 	if (blessed $ref and $ref->can("pack")) {
-		
+		MyTimer::start_timing("pack $exp_class");
 		$to_dump = $ref->pack;
 	} else {
 		
@@ -47,12 +62,12 @@ sub dump_bz2 {
 		
 	}
 	
-	MyTimer::start_timing("dump");
+	MyTimer::start_timing("dump $exp_class");
 	my $w = Dump($to_dump);
-	MyTimer::start_timing("print");
+	MyTimer::start_timing("print $exp_class");
 	print $z $w;
 	
-	MyTimer::start_timing("close_out");
+	MyTimer::start_timing("close_out $exp_class");
 	close($z);
 	MyTimer::stop_timing();
 }
@@ -63,23 +78,51 @@ sub undump_bz2 {
 	if (!-e $path) {
 		return undef;
 	}
-	my $z = IO::Uncompress::Bunzip2->new($path);
-
+	my $exp_class = shift || "";
+	my $z;
+	$@=1;
 	
-
-	MyTimer::start_timing("join read");
+	MyTimer::start_timing("reading bz2 $exp_class");
 	
-	my $dumped = join ("", <$z>);
+	while($@) {
+		eval {
+			#$z = IO::Uncompress::Bunzip2->new($path);
+			open $z, "bunzip2 -c $path |";
+		};
+		if ($@) {
+			say "KURVA WTF chyba";
+			say $@;
+		}
+	} 
 	
-	MyTimer::start_timing("close_in");
+	MyTimer::start_timing("join read $exp_class");
+	
+	my $dumped;
+	$@=1;
+	while($@) {
+		eval {
+			$dumped = "";
+			while (<$z>) {
+				$dumped = $dumped.$_;
+			}
+			use Devel::Size qw(size);
+			my $size = size($dumped);
+		};
+		if ($@) {
+			say "2 KURVA WTF chyba";
+			say $@;
+		}
+	}
+	
+	MyTimer::start_timing("close_in $exp_class");
 	close($z);
 	
 	my $v;
-	MyTimer::start_timing("load");
+	MyTimer::start_timing("load $exp_class");
 	
 	eval {$v = Load($dumped);};
 	
-	MyTimer::start_timing("load_after_wtf1");
+	MyTimer::start_timing("load_after_wtf1 $exp_class");
 	
 	
 	if ($@) {
@@ -93,31 +136,31 @@ sub undump_bz2 {
 		say $@;
 		return undef;
 	}
-	MyTimer::start_timing("load_after_wtf2");
+	MyTimer::start_timing("load_after_wtf2 $exp_class");
 	
 	
 	
 	if (reftype $v ne "HASH") {
-		MyTimer::start_timing("load_after_wtf3");
+		MyTimer::start_timing("load_after_wtf3 $exp_class");
 		
 		return $v;
 	} else {
-		MyTimer::start_timing("load_after_wtf4");
+		MyTimer::start_timing("load_after_wtf4 $exp_class");
 		
 		if (exists $v->{"__CLASS__"}) {
-			MyTimer::start_timing("load_after_wtf5");
+			MyTimer::start_timing("load_after_wtf5 $exp_class");
 			
 			my $class = $v->{"__CLASS__"};
 			
-			MyTimer::start_timing("unpacking ".$class);
+			MyTimer::start_timing("unpacking $exp_class");
 			my $r = $class->unpack($v); 
 			
-			MyTimer::start_timing("load_after_wtf6");
+			MyTimer::start_timing("load_after_wtf6 $exp_class");
 			
 			
 			return $r;
 		} else {
-			MyTimer::start_timing("load_after_wtf7");
+			MyTimer::start_timing("load_after_wtf7 $exp_class");
 			
 			
 			return $v;

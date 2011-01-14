@@ -190,6 +190,17 @@ sub set_all_themes {
 	MyTimer::say_all();
 }
 
+sub resave_to_new {
+	my $begin = new Date(day=>17,year=>2010, month=>8);
+	do_for_all(sub{
+		my $date = shift;
+		if ($begin->is_older_than($date)) {
+			say "Du na den ",$date->get_to_string();
+			$date->resave_to_new();
+		}
+	},1);
+}
+
 sub get_theme_path{
 	my $n = shift;
 	$n=~s/[^a-zA-Z]//g;
@@ -254,7 +265,7 @@ sub _change_theme_files{
 			my $path = get_theme_path($lemma);
 			my $theme_file_load;
 			if (-e $path) {
-				$theme_file_load = undump_bz2($path);
+				$theme_file_load = undump_bz2($path, "themefile");
 			}
 		
 			if ($add) {
@@ -294,9 +305,9 @@ sub _change_theme_files{
 				}
 			}
 			if ($should_dump) {
-				dump_bz2($path, $theme_file_load);
+				dump_bz2($path, $theme_file_load, "themefile");
 			} else {
-				system("rm $path");
+				system("rm $path") if (-e $path);
 			}
 		}
 	}

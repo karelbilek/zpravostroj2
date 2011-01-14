@@ -1,4 +1,7 @@
 package ThemeHash;
+use strict;
+use warnings;
+
 use forks;
 use forks::shared;
 
@@ -53,7 +56,8 @@ __PACKAGE__->meta->make_immutable;
 
 package Theme;
 
-
+use strict;
+use warnings;
 
 use Moose;
 use MooseX::StrictConstructor;
