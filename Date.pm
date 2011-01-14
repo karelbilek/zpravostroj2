@@ -231,7 +231,7 @@ sub do_for_all {
 	my $subr = shift;
 	my $do_thread = shift;
 	my $num = if_undef(shift,0);
-	my $c = 1;#$s->article_count;
+	my $c = $s->article_count;
 	my $endnum = if_undef(shift, ($c-1));
 	$|=1;
 	
@@ -309,16 +309,49 @@ sub get_and_save_themes {
 	MyTimer::start_timing("tvorim ada");
 	my $datearticles = new AllDateArticles(date=>$s, size=>$ARTICLE_CLUSTER_SIZE);
 	
-	my $themehash = $datearticles->get_and_save_themes($count, $total);
+	my $themhash = $datearticles->get_and_save_themes($count, $total);
+	
+	# MyTimer::start_timing("tvorim themehash");
+	# 	my $themhash:shared;
+	# 	$themhash = shared_clone(new ThemeHash());
+	# 	
+	# 	MyTimer::start_timing("pred DFA");
+	# 	
+	# 	
+	# 	$s->do_for_all(sub {
+	# 		my $a = shift;
+	# 		my $changed = shift;
+	# 		
+	# 		
+	# 		MyTimer::start_timing("count themes");
+	# 		
+	# 		$a->count_themes($total, $count);
+	# 		
+	# 		MyTimer::start_timing("opetne nacitani");
+	# 		my $themes = $a->themes;
+	# 		
+	# 		MyTimer::start_timing("zapisovani do day_themes hashe");
+	# 		
+	# 		for (@$themes) {
+	# 			$themhash->add_theme($_);
+	# 		}
+	# 		
+	# 		$$changed = 1;
+	# 		
+	# 		return();
+	# 	},1
+	# 	);
+	
+	
 	
 	
 
 	MyTimer::start_timing("save day themes");
-	$s->save_day_themes($themehash);
+	$s->save_day_themes($themhash);
 	
 	MyTimer::start_timing("add_to_theme_files in date.pm");
 	
-	All::add_to_theme_files($themehash, $s);
+	All::add_to_theme_files($themhash, $s);
 	MyTimer::stop_timing();
 }
 
