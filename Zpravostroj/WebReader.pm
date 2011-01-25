@@ -1,4 +1,8 @@
-package WebReader;
+package Zpravostroj::WebReader;
+#Pomocny modulek na cteni z webu
+#co mu dam jenom URL a on vyda HTML
+
+#(v CPANu je na to spooousta modulu, ale vzdycky delaji bud moc, nebo malo)
 
 use strict;
 use warnings;
@@ -10,16 +14,12 @@ use Encode;
 use HTML::Encoding 'encoding_from_http_message';
 use LWP::UserAgent;
 
-use base 'Exporter';
-our @EXPORT = qw(read_from_web);
-
+#UserAgent je globalni, protoze proc ne.
 my $ua = LWP::UserAgent->new;
 
-
-sub read_from_web {
+sub wread {
 	my $try_count;
 	my $address = shift;
-	#my $not_decoding = shift;
 	
 	my $resp;
 	
@@ -33,12 +33,11 @@ sub read_from_web {
 		return "";
 	}
 	
+	#s timhle byl myslim nekdy problem, ale uz nevim kdy :)
 	my $enco = encoding_from_http_message($resp);
-	#if ($not_decoding) {
-		#return ($resp->content);
-	#} else {
-		return decode($enco => ($resp->content));
-	#}
+
+	return decode($enco => ($resp->content));
+	
 }
 
 1;

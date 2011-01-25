@@ -14,7 +14,7 @@ with Storage;
 
 
 use Date;
-use WebReader;
+use Zpravostroj::WebReader;
 
 has 'url' => (
 	is=>'ro',
@@ -32,7 +32,7 @@ sub load_article_urls {
 	my $s = shift;
 	my $today = new Date() -> get_to_string;
 	my $before_yesterday = Date::get_days_before_today(2)-> get_to_string;
-	my $html = read_from_web($s->url);
+	my $html = Zpravostroj::WebReader::wread($s->url);
 	
 	say "RSS ".$s->url;
 	

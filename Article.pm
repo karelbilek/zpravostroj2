@@ -203,7 +203,7 @@ use Globals;
 use MooseX::StrictConstructor;
 use Moose::Util::TypeConstraints;
 use Zpravostroj::MooseTypes;
-use WebReader;
+use Zpravostroj::WebReader;
 use ReadabilityExtractor;
 use Zpravostroj::TectoClient;
 use Word;
@@ -226,7 +226,7 @@ has 'url' => (
 has 'html_contents' => (
 	is=>'ro',
 	lazy => 1,
-	default=>sub{read_from_web($_[0]->url)}
+	default=>sub{Zpravostroj::WebReader::wread($_[0]->url)}
 );
 
 has 'article_contents' => (
