@@ -1,6 +1,6 @@
 package Word;
 
-use Types;
+use Zpravostroj::MooseTypes;
 use Moose;
 use MooseX::StrictConstructor;
 

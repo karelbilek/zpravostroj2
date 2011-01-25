@@ -202,7 +202,7 @@ use Moose;
 use Globals;
 use MooseX::StrictConstructor;
 use Moose::Util::TypeConstraints;
-use Types;
+use Zpravostroj::MooseTypes;
 use WebReader;
 use ReadabilityExtractor;
 use Zpravostroj::TectoClient;
