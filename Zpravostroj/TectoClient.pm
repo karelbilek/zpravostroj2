@@ -3,7 +3,7 @@ package Zpravostroj::TectoClient;
 
 use 5.008;
 use Globals;
-use Word;
+use Zpravostroj::Word;
 
 use IO::Socket::INET;
 use strict;
@@ -65,7 +65,7 @@ sub lemmatize {
 	while (@lemmas_all) {
 		
 		#Word uz si nejak v constructoru zaridi jestli je named
-		my $w = Word->new(all_named=>\%named, lemma=>(shift @lemmas_all), form=>(shift @lemmas_all));
+		my $w = Zpravostroj::Word->new(all_named=>\%named, lemma=>(shift @lemmas_all), form=>(shift @lemmas_all));
 		
 		#is_meaningful zkontroluje, jestli je lemma pekne
 		#(ve skutecnosti konstruktor Word pres Zpravostroj::MooseTypes zkrati lemma a is_meaningful kontroluje, 

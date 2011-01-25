@@ -206,7 +206,7 @@ use Zpravostroj::MooseTypes;
 use Zpravostroj::WebReader;
 use ReadabilityExtractor;
 use Zpravostroj::TectoClient;
-use Word;
+use Zpravostroj::Word;
 
 use Date;
 
@@ -243,7 +243,7 @@ has 'title' => (
 
 has 'words' => (
 	is=>'ro',
-	isa=>'ArrayRef[Word]',
+	isa=>'ArrayRef[Zpravostroj::Word]',
 	lazy=>1,
 	default=>sub{my $t = ($_[0]->title)." ".($_[0]->article_contents); [ Zpravostroj::TectoClient::lemmatize($t) ]}
 );
