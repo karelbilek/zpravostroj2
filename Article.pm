@@ -8,7 +8,7 @@ use forks;
 use forks::shared;
 
 
-use Forker;
+use Zpravostroj::Forker;
 
 use Moose;
 use MooseX::StrictConstructor;

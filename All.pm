@@ -12,7 +12,7 @@ use Globals;
 use Zpravostroj::TectoServer;
 use RSS;
 
-use Forker;
+use Zpravostroj::Forker;
 
 use File::Slurp;
 use Data::Dumper;
