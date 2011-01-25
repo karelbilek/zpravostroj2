@@ -9,13 +9,10 @@ package Zpravostroj::Forker;
 #jako jinde v programu, thready myslim ve skutecnosti forky z modulu forks, ale jelikoz jsou vsude klicova slova jako "threads", tak se mi o tom pise lip jako o threadech. plus, syntaxe zustava z perlich, jinak nepouzitelnych, ithreadu.
 
 use forks;
-use forks::shared;
 
 use Moose;
 use MooseX::StrictConstructor;
 use Moose::Util::TypeConstraints;
-
-use Globals;
 
 #mnozstvi povolenych threadu
 has 'size' => (
@@ -24,169 +21,53 @@ has 'size' => (
 	isa=>'Int'
 );
 
-has 'name' => (
-	is=>'ro',
-	required=>0,
-	isa=>'Str'
-);
-
-has 'currently_running' => (
-	is=>'rw',
-	isa=>'Int',
-	default=>0
-);
-
-has 'waiting_subs' => (
+#thready samotne
+has 'threads' => (
 	is=>'rw',
 	isa=>'ArrayRef',
 	default=>sub{[]}
 );
 
-sub BUILD {
-	my $self = shift;
-	say "SHARUJI V ".$self->name;
-	share($self->{currently_running});
-	say "SHARUJI V ".$self->name." DONE";
-	$self->{currently_running}=0;
-	my $w = is_shared($self->{currently_running});
-	say "IS SHARED V ".$self->name." JE ".$w;
-	
-	
-}
-
-
-
 #cekam na skonceni vseho = dokud je 0 bezicich threadu
 sub wait {
 	my $s = shift;
-	
-	while (!$s->is_all_completed()) {
-		sleep(1);		
-		$s->check_waiting();
-	}
+	$s->_wait_until(0);
 }
 
-sub get_curr_running {
-	my $self = shift;
-	say "PTAM SE V ".$self->name;
-	
-	if (!is_shared($self->{currently_running})) {
-		say "OMG verze GCR - bylo ".$self->{currently_running};
-		share($self->{currently_running});
-		$self->{currently_running}=0;
-		share($self->{currently_running});
-		$self->{currently_running}=1;
-		share($self->{currently_running});
-		$self->{currently_running}=0;
-		share($self->{currently_running});
-	}
-	
-	my $w = is_shared($self->{currently_running});
-	say "IS SHARED V ".$self->name." JE ".$w;
-	
-	
-	lock($self->{currently_running});
-	
-	say "PTAM SE V ".$self->name." DONE";
-	
-	return $self->currently_running;
-}
-
-sub is_all_completed {
+#cekam, dokud neni HOW nebo mene bezicich threadu
+sub _wait_until {
 	my $s = shift;
+	my $how = shift;
 	
-	
-	return (($s->get_curr_running == 0) and (scalar @{$s->waiting_subs} == 0));
-}
-
-sub how_many_free_to_run {
-	my $s = shift;
-	return ($s->size - $s->get_curr_running);
-}
-
-
-sub add_to_threads {
-	my $s = shift;
-	my $sub = shift;
-	#say "ADD TO THREADS ".$s->name;
-	
-	if (!is_shared($s->{currently_running})) {
-		say "OMG verze ADT - bylo ".$s->{currently_running};
-		share($s->{currently_running});
+	while (scalar @{$s->threads} > $how) {
+		sleep(1);
+		$s->clean_up();
+			#clean_up tady nutny!
 	}
-	
-	{
-		lock($s->{currently_running});
-		$s->{currently_running}++;
-	}
-	
-	my $thread = threads->new(sub {
-		eval{$sub->();};
-		if ($@) {
-			say "ERROR ERROR ERROR - died with $@";
-		}
-		lock($s->{currently_running});
-		$s->{currently_running}--;
-	});
-	#say "CREATED THREAD ".$s->name;
-	$thread->detach();
-	#say "DETACHED THREAD ".$s->name;	
 }
-
 
 #projede thready a smaze mrtvolky
-sub check_waiting {
+sub clean_up {
 	my $s = shift;
-	
-	my $subs = $s->how_many_free_to_run();
-	
-	for (1..$subs) {
-		if (scalar @{$s->waiting_subs} > 0) {
-			my $sub = shift @{$s->waiting_subs};
-			$s->add_to_threads($sub);
-		}
-	}
-	
-	if ($subs>0 and scalar @{$s->waiting_subs} > 0) {
-		$s->check_waiting();
-	}
+	my @newthreads = grep {$_->is_running()} @{$s->threads};
+	$s->threads(\@newthreads);
 }
 
 sub run {
-	
 	my $s = shift;
-	#say "LOCK RUN 2 ".$s->name;
-	
 	my $sub = shift;
-	#say "LOCK RUN 3".$s->name;
 	
-	{
+	#tady muze blokovat
+	$s->_wait_until($s->size);
 	
-		#say "LOCK RUN 4".$s->name;
 	
-		if ($s->how_many_free_to_run()>0) {
-		
-			#say "LOCK RUN 5".$s->name;
-		
-			$s->add_to_threads($sub);
-			
-			#say "LOCK RUN 6".$s->name;
-			
-		} else {
-			push @{$s->waiting_subs}, $sub;
-		}
-		
-		#say "LOCK RUN 7".$s->name;
-		
-		$s->check_waiting();
-			#check_waiting tady - MYSLIM - nutny neni, ale nicemu nevadi
-			
-			#say "LOCK RUN 8".$s->name;
-			
-	}
+	my $thread = threads->new($sub);
 	
-	#say "LOCK RUN 9".$s->name;
-
+	$thread->detach();
+	push @{$s->threads}, $thread;
+	
+	$s->clean_up();
+		#clean_up tady - MYSLIM - nutny neni, ale nicemu nevadi
 	
 }
 
