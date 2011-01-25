@@ -1,1 +1,0 @@
-nohup perl -e 'use OldGetter; OldGetter::get_all_dates;' >nohup_oldgetter.out &
