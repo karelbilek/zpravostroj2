@@ -1,4 +1,4 @@
-package Lemmatizer;
+package Zpravostroj::TectoClient;
 
 use 5.008;
 use Globals;
@@ -49,7 +49,6 @@ sub lemmatize {
 
 	binmode $sock, ':utf8';
 	
-	print $sock "LEMMAS ENTITIES\n";
 	print $sock $text;
 	print $sock "\n";
 	print $sock "ZPRAVOSTROJ KONEC ZPRAVOSTROJ KONEC\n";

@@ -9,7 +9,7 @@ use strict;
 use warnings;
 use Date;
 use Globals;
-use TectoServer;
+use Zpravostroj::TectoServer;
 use RSS;
 
 use Forker;
@@ -34,7 +34,7 @@ sub run_tectomt {
 		$SIG{'KILL'} = sub { threads->exit(); }; 
 		
 		
-		TectoServer::run;
+		Zpravostroj::TectoServer::run;
 		
 		
 	} );

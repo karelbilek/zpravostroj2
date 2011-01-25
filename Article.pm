@@ -205,7 +205,7 @@ use Moose::Util::TypeConstraints;
 use Types;
 use WebReader;
 use ReadabilityExtractor;
-use Lemmatizer;
+use Zpravostroj::TectoClient;
 use Word;
 
 use Date;
