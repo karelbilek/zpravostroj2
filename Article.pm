@@ -245,7 +245,7 @@ has 'words' => (
 	is=>'ro',
 	isa=>'ArrayRef[Word]',
 	lazy=>1,
-	default=>sub{my $t = ($_[0]->title)." ".($_[0]->article_contents); lemmatize($t)}
+	default=>sub{my $t = ($_[0]->title)." ".($_[0]->article_contents); [ Zpravostroj::TectoClient::lemmatize($t) ]}
 );
 
 has 'counts' => (
