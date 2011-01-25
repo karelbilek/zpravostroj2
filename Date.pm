@@ -159,7 +159,10 @@ sub get_top_themes{
 	
 	my $themes = undump_bz2($path);
 	
-	my @themes_top = ((sort{$b->importance <=> $a->importance} values %$themes)[0..$n]);
+	
+	my @themes_top = $themes->top_themes($n);
+	
+
 	
 	return @themes_top;
 }
@@ -282,7 +285,7 @@ sub resave_to_new {
 	$|=1;
 	MyTimer::start_timing("tvoreni ada");
 	
-	my $datearticles = new AllDateArticles(date=>$s, size=>$ARTICLE_CLUSTER_SIZE );
+	my $datearticles = new AllDateArticles(date=>$s);#, size=>$ARTICLE_CLUSTER_SIZE );
 	
 	$datearticles->resave_to_new();
 } 
@@ -307,7 +310,7 @@ sub get_and_save_themes {
 	
 	
 	MyTimer::start_timing("tvorim ada");
-	my $datearticles = new AllDateArticles(date=>$s, size=>$ARTICLE_CLUSTER_SIZE);
+	my $datearticles = new AllDateArticles(date=>$s);#, size=>$ARTICLE_CLUSTER_SIZE);
 	
 	my $themhash = $datearticles->get_and_save_themes($count, $total);
 	

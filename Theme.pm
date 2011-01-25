@@ -52,6 +52,23 @@ sub all_themes {
 	return values %{$s->themes}
 }
 
+sub all_themes_sorted {
+	my $s = shift;
+	my @all = $s->all_themes;
+	return sort{$b->importance <=> $a->importance} @all;
+}
+
+sub top_themes {
+	my $s = shift;
+	my $n = shift;
+	my @top = $s->all_themes_sorted;
+	if (@top < $n) {
+		return @top;
+	} else {
+		return @top[0..$n-1];
+	}
+}
+
 __PACKAGE__->meta->make_immutable;
 
 package Theme;

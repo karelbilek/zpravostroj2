@@ -7,11 +7,14 @@ use List::Util qw(min);
 use forks;
 use forks::shared;
 
+
+use Forker;
+
 use Moose;
 use MooseX::StrictConstructor;
 use Moose::Util::TypeConstraints;
 
-
+my $THREADS_SIZE=20;
 
 use Date;
 
@@ -22,84 +25,58 @@ has 'date' => (
 	isa=>'Date'
 );
 
-has 'size' => (
-	is=>'ro',
-	isa=>'Int',
-	required=>1
-);
 
 
 
 sub pathname {
 	my $s = shift;
 	mkdir "data";
-	mkdir "data/new_articles";
+	mkdir "data/articles";
 	my $year = int($s->date->year);
 	my $month = int($s->date->month);
 	my $day = int($s->date->day);
-	mkdir "data/new_articles/".$year;
-	mkdir "data/new_articles/".$year."/".$month;	
-	mkdir "data/new_articles/".$year."/".$month."/".$day;
-	return "data/new_articles/".$year."/".$month."/".$day;
+	mkdir "data/articles/".$year;
+	mkdir "data/articles/".$year."/".$month;	
+	mkdir "data/articles/".$year."/".$month."/".$day;
+	return "data/articles/".$year."/".$month."/".$day;
 }
 
-sub filename {
-	my $s = shift;
-	my $n = shift;
-	return ($s->pathname)."/".$n.".bz2";
-}
 
-sub real_article_count {
+sub article_names {
 	my $s=shift;
 	my $ds = $s->pathname;
 	my @s = <$ds/*>;
-	return (scalar @s)*($s->size);
+	@s = grep {/\/[0-9]*\.bz2$/} @s;
+	return (@s);
 }
 
 
-sub save_articles {
+
+sub save_article {
 	my $s = shift;
 	my $n = shift;
-	my $articles = shift;
-	if (!$articles->is_all_undef) {
-		my $p = $s->filename($n);
-		dump_bz2($p, $articles, "ArticleArray");
+	my $article = shift;
+	if (defined $article) {
+		dump_bz2($n, $article, "Article");
 	}
 }
 
-sub load_articles {
+sub remove_article {
 	my $s = shift;
 	my $n = shift;
-	my $p = $s->filename($n);
 	
-	my $art = (-e $p) ? (undump_bz2($p, "ArticleArray")) : (new ArticleArray($s->size));
-	if (!defined $art) {
-		$art = new ArticleArray($s->size);
-	}
-	return $art;
+	say "Mazu $n.";
+	system ("rm $n");
 }
 
-sub resave_to_new {
+
+sub load_article {
 	my $s = shift;
+	my $n = shift;
 	
-	my $i:shared;
-	$i=0;
-	$s->do_for_all(sub {
-		#my $a = shift;
-		my $read_a;
-		
-		my $pokusy=0;
-		while (!defined $read_a and $pokusy<20) {
-			MyTimer::start_timing("read article v pseudo gst");
-			$read_a = $s->date->read_article($i);
-			$i++;
-			$pokusy++;
-		}
-		
-		return ($read_a, 1);
-	
-	}, 1, 0, $s->date->article_count);
+	return undump_bz2($n, "Article");
 }
+
 
 sub get_and_save_themes {
 	my $s = shift;
@@ -111,13 +88,23 @@ sub get_and_save_themes {
 	my $themhash:shared;
 	$themhash = shared_clone(new ThemeHash());
 	
+	my %urls:shared;
 	
 	$s->do_for_all(sub {
 		my $a = shift;
 		if (defined $a) {
+			{
+				lock(%urls);
+				if (exists $urls{$a->url}) {
+					return (-1);
+				}
+				
+				$urls{$a->url} = 1;
+			}
 			MyTimer::start_timing("count themes");
 		
 			$a->count_themes($total, $count);
+			
 		
 			MyTimer::start_timing("opetne nacitani");
 		
@@ -126,12 +113,15 @@ sub get_and_save_themes {
 			MyTimer::start_timing("zapisovani do day_themes hashe");
 		
 			for (@$themes) {
-				$themhash->add_theme($_);
+				{
+					lock($themhash);
+					$themhash->add_theme($_);
+				}
 			}
 		
-			return($a, 1);
+			return(1);
 		} else {
-			return($a, 0);
+			return(0);
 		}
 	},1
 	);	
@@ -142,51 +132,57 @@ sub do_for_all {
 	my $s=shift;
 	my $subr = shift;
 	my $do_thread = shift;
-	my $num = if_undef(shift,0);
-	my $c = $s->real_article_count;
-	my $endnum = if_undef(shift, ($c-1));
+	
+	my $start = if_undef(shift,0);
+	
+	my @art_names = $s->article_names;
+		
+	my $c = $#art_names;
+	
+	my $end = if_undef(shift, ($c-1));
 	$|=1;
 	
+	my $forker = new Forker(size=>$THREADS_SIZE);
 	
-	my $currently=$num;
-	while ($currently <= $endnum) {
+	for my $art_name (@art_names[$start..$end]) {
 	
 		my $subref = sub {
-		
-			say "Curr $currently";
-			MyTimer::start_timing("read article v art DFA");
-			my $articles = $s->load_articles($currently);
 			
-			my $changed = 0;
-
-			for my $i ($currently..min($currently + $s->size-1, $endnum)) {
-				MyTimer::start_timing("pred-subr kecy");
-				say $i;
-				my $a = $articles->article($i - $currently);
-				my ($res_a, $art_changed) = $subr->($a, $c);
+			
+			MyTimer::start_timing("read article v art DFA");
+			
+			my $a = $s->load_article($art_name);
+			
+			MyTimer::start_timing("pred-subr kecy");
+			
+			if (defined $a) {
+				my ($art_changed, $res_a) = $subr->($a, $c);
 				
-				MyTimer::start_timing("po-subr kecy");
-				if (($res_a||"") ne ($a||"")) {
-					$articles->article($i - $currently, $res_a);
+				if ($art_changed>=1) {
+					MyTimer::start_timing("saving article v art DFA");
+					if ($art_changed==2) {
+						$a = $res_a;
+					}
+					
+					$s->save_article($art_name, $a);
+				} elsif ($art_changed==-1) {
+					MyTimer::start_timing("deleting article v art DFA");
+					
+					$s->remove_article($art_name);
 				}
-				$changed = 1 if ($art_changed);
 			}
-			if ($changed) {
-				MyTimer::start_timing("saving articles v art DFA");
-				$s->save_articles($currently, $articles);
-			}
+			say $art_name;
 		};
 		
 		if ($do_thread) {
-			my $thread = threads->new( {'context' => 'list'}, $subref);
-		
-			$thread->join();	
+			
+			$forker->run($subref);
+			
 		} else {
 			$subref->();
 		}
-	} continue {
-		$currently += $s->size;
-	}
+	} 
+	$forker->wait();
 }
 
 1;
@@ -195,73 +191,6 @@ sub do_for_all {
 __PACKAGE__->meta->make_immutable;
 
 
-package ArticleArray;
-use strict;
-use warnings;
-use Moose;
-use MooseX::StrictConstructor;
-use Moose::Util::TypeConstraints;
-use MooseX::Storage;
-
-with Storage;
-
-
-has 'size' => (
-	is=>'ro',
-	isa=>'Int',
-	required=>1
-);
-
-has 'articles' => (
-	is=>'rw',
-	isa=>'ArrayRef[Maybe[Article]]',
-	required=>1
-);
-
-around BUILDARGS => sub {
-	my $orig  = shift;
-	my $class = shift;
-	
-	if ( @_ == 1 && !ref $_[0] ) {
-		my $size = shift;
-		my @arr = (undef) x $size;
-	
-		return {articles=>\@arr, size=>$size};
-	}  else {
-		return $class->$orig(@_);
-	}
-};
-
-sub is_all_undef {
-	my $s = shift;
-	my $res = 1;
-	for (@{$s->articles}) {
-		if (defined $_) {
-			$res = 0;
-		}
-	}
-	return $res;
-}
-
-
-sub article {
-	$|=1;
-	
-	my $s = shift;
-	my $n = shift;
-	my $a = shift;
-	if ($n < $s->size) {
-		if (defined $a) {			
-			$s->articles->[$n] = $a;
-		}
-		return $s->articles->[$n];
-	} else {
-		die "Too high index!";
-	}
-}
-1;
-
-__PACKAGE__->meta->make_immutable;
 
 
 package Article;
@@ -330,25 +259,6 @@ has 'counts' => (
 
 		my %mycounts;
 
-		# my @words = grep {$_->lemma ne ''} @{$a->words};
-				
-		# for my $word (@words) {
-			# my $l = $word->lemma;
-			
-			# my $prirustek = ($word->named_entity)?2:1;
-			# if ($l=~/^[0-9 ]*$/) {
-				# $prirustek = 0.33;
-			# }
-			
-			# $mycounts{$l}{counts}+=$prirustek;
-			
-			# my $f = $word->form;
-			
-			# $mycounts{$l}{back}=$f;
-			
-		# }
-		my $last;
-		my $before_last;
 		my @words = grep {$_->lemma ne ''} @{$a->words};
 				
 		for my $word (@words) {
@@ -365,37 +275,15 @@ has 'counts' => (
 			
 			$mycounts{$l}{back}=$f;
 			
-			if (defined $last) {
-				my $last_l = $last->{word}->lemma;
-				
-				my $last_p = $last->{prirustek};
-				
-				$mycounts{$last_l." ".$l}{counts}+=($last_p+$prirustek)/2;
-				
-				my $last_f = $last->{word}->form;
-				
-				$mycounts{$last_l." ".$l}{back}=$last_f." ".$f;
-				if (defined $before_last) {
-					my $b_last_l = $before_last->{word}->lemma;
-					
-					my $b_last_p = $before_last->{prirustek};
-					
-					$mycounts{$b_last_l." ".$last_l." ".$l}{counts}+=($b_last_p+$last_p+$prirustek)/3;
-					
-					my $b_last_f = $before_last->{word}->form;
-					
-					$mycounts{$b_last_l." ".$last_l." ".$l}{back}=$b_last_f." ".$last_f." ".$f;
-				}
-			}
-			
-			$before_last = $last;
-			$last = {word=>$word, prirustek=>$prirustek};
+		
 		}
 		
 
 		return \%mycounts;
 	}
 );
+
+
 
 has 'themes' => (
 	is => 'rw',
@@ -447,7 +335,7 @@ sub count_themes {
 	
 	MyTimer::start_timing("mazani counts");
 	
-	
+	#!!!!!!tohle pak smazat, proboha
 	$s->clear_counts();
 	
 	MyTimer::start_timing("ziskavani counts");
@@ -473,7 +361,7 @@ sub count_themes {
 			}
 			
 			
-			$importance{$wordgroup} = ($word_counts->{$wordgroup}{counts} / $document_size) * log($all_count / ($d**(1.5)))if defined $wordgroup;
+			$importance{$wordgroup} = ($word_counts->{$wordgroup}{counts} / $document_size) * log($all_count / ($d**1.3))if defined $wordgroup;
 			
 			
 	}
@@ -496,109 +384,27 @@ sub count_themes {
 	for my $key (keys %importance) {
 		if (!exists $word_counts->{$key}{back}) {
 			say "Vadny key $key. Mazu.";
-			delete $word_counts->{$key}{back};
+			delete $importance{$key};
 		}
 	}
 	
 	
 	MyTimer::start_timing("navraceni");
 	
-	my @ll=(map {new Theme(form=>$word_counts->{$_}{back}, lemma=>$_, importance=>$importance{$_})} (sort {$importance{$b}<=>$importance{$a}} keys %importance)[0..19]);
-	$s->themes(\@ll);
+	my @newthemes_keys = (sort {$importance{$b}<=>$importance{$a}} keys %importance);
+	if (@newthemes_keys > 20) {
+		@newthemes_keys = @newthemes_keys[0..19];
+	}
+	
+	
+	my @newthemes=(map {new Theme(form=>$word_counts->{$_}{back}, lemma=>$_, importance=>$importance{$_})} @newthemes_keys);
+	$s->themes(\@newthemes);
 	return;
 	
-	# for (keys %themes_longer) {
-		# if (/pozice a p.*za/) {
-			# say "Pozice a poza ma lemma themes longer uz z hashe.";
-			# say "a je ", $themes_longer{$_};
-			# say "a key je presne ",$_;
-		# }
-	# }
-	
-	
-	
 
-	# my %to_join;
-	# for my $theme_lemma (keys %themes_longer) {
-		# if ($theme_lemma =~ /.* ([^ ]*) ([^ ]*)$/) {
-			# if (!$themes_longer{$theme_lemma}) {
-				# die "Neni dobre $theme_lemma";
-			# }			
-			# $to_join{$1." ".$2} = $themes_longer{$theme_lemma};
-			
-		# }
-	# }
-	
-	# my $cont = 1;
-	# say "Jdu spojovat.";
-	# while ($cont) {
-		# $cont = 0;
-		# for my $theme_lemma (keys %themes_longer) {
-			# if (exists $themes_longer{$theme_lemma} and $theme_lemma =~ /^([^ ]*) ([^ ]*) ([^ ]*)/) {
-			#  menim hash -> musim testovat na existenci
-			
-			
-		# themes longer - vede od lemmat k hashi
-		# "pozice a poza" se tam doplni
-		# to_join ("a poza") je Theme "pozice a poza"
-		# tady to chytne "a poza museli"
-				# if (exists $to_join{$1." ".$2}) {
-				# ...."a poza" existuje, ukazuje na Theme "pozice a poza"
-					# if (!exists $themes_longer{$theme_lemma}){
-						# next;
-					# }
-					
-					# if (!exists $themes_longer{$to_join{$1." ".$2}->lemma}){
-						# next;
-					# }
-					
-					
-					
-					# my $theme = $themes_longer{$theme_lemma};
-					
-					
-					
-					# say "Spojuju ",$to_join{$1." ".$2}->form," a ",$theme->form, ", koef je ", $koef;
-					# my $newtheme = $to_join{$1." ".$2}->join($theme);
-					# vytvori se novy Theme, "pozice a poza muset"
-					 # say "Vysledek je ",$newtheme->form;
-					
-					# delete $themes_longer{$theme_lemma};
-					
-					# delete $themes_longer{$to_join{$1." ".$2}->lemma};
-					# delete $to_join{$1." ".$2};
-					# $to_join{$2." ".$3}=$newtheme;
-					# $themes_longer{$newtheme->lemma}=$newtheme;
-					
-					
-					
-					# $cont = 1;
-				# }
-			# }
-		# }
-	# }
-	# my @res=(map {new Theme(form=>$word_counts->{$_}{back}, lemma=>$_, importance=>$importance{$_})} (sort {$importance{$b}<=>$importance{$a}} keys %importance)[0..100]);
- # die "dan";
-	 # my @sorted = (sort {$themes_longer{$b}->importance <=> $themes_longer{$a}->importance} keys %themes_longer);
-	
-	# for my $lemma (@sorted) {
-		# if (exists $themes_longer{$lemma}) {
-			# for my $subgroup (get_all_subgroups($lemma)) {
-				# delete $themes_longer{$subgroup};
-			# }
-		# }
-	# }
-	
-	# my @res = (sort {$b->importance <=> $a->importance} values %themes_longer);
-
-	# $s->themes(\@res);
 }
 
 __PACKAGE__->meta->make_immutable;
 
 
 1;
-# 
-# package Main;
-# 
-# my $r = Article->new(url=>"http://www.blesk.cz/clanek/134067/topolanek-dostane-pet-platu-co-s-nim-dal.html");

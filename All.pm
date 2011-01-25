@@ -12,6 +12,8 @@ use Globals;
 use TectoServer;
 use RSS;
 
+use Forker;
+
 use File::Slurp;
 use Data::Dumper;
 use Scalar::Util qw(blessed);
@@ -87,7 +89,7 @@ sub review_all_final {
 		my $d = shift;
 		say "Day ", $d->get_to_string();
 		my %imp_themes = @_;
-		#my %imp_themes = map {my $t = Theme::from_string($_); ($t->lemma, $t);} @_;
+		
 		
 		my @d_themes = $d->get_top_themes(100);
 		for my $theme (@d_themes) {
@@ -182,10 +184,13 @@ sub set_all_themes {
 	my $total = All::get_total_before_count();
 	MyTimer::start_timing("prvni doforall priprava");
 	
+	#my $begin = new Date(day=>1, month=>7, year=>2010);
+	
 	do_for_all(sub{
 		my $date = shift;
-		
-		$date->get_and_save_themes($count, $total);
+		#if ($begin->is_older_than($date)) {
+			$date->get_and_save_themes($count, $total);
+		#}
 	},1);
 	MyTimer::say_all();
 }
@@ -229,7 +234,8 @@ sub delete_from_theme_files{
 	my $date = shift;
 	
 	if (((blessed $theme_list)||"") eq "ThemeHash") {
-		_change_theme_files(0,$theme_list, $date);
+		#_change_theme_files(0,$theme_list, $date);
+		#ted ne, protoze smazano rucne
 	}
 	
 	
@@ -248,69 +254,74 @@ sub _change_theme_files{
 	my $add = shift;
 	my $theme_list = shift;
 	
-	
+	my $forker = new Forker(size=>40);
 	
 	my $date = shift;
 	
 	#pro kazde tema
 	for my $theme ($theme_list->all_themes) {
 		
-		if ($theme->importance > 2) {
-			my $lemma = $theme->lemma;
-			my $form = $theme->form;
+		if ($theme->importance > 7 or (!$add)) {
+			my $subref = sub {
+				my $lemma = $theme->lemma;
+				my $form = $theme->form;
 		
-			my $should_dump;
+				my $should_dump;
 		
-			#vezmi cestu a nacti soubor s tematy, pokud existuje
-			my $path = get_theme_path($lemma);
-			my $theme_file_load;
-			if (-e $path) {
-				$theme_file_load = undump_bz2($path, "themefile");
-			}
+				#vezmi cestu a nacti soubor s tematy, pokud existuje
+				my $path = get_theme_path($lemma);
+				my $theme_file_load;
+				if (-e $path) {
+					$theme_file_load = undump_bz2($path, "themefile");
+				}
 		
-			if ($add) {
+				if ($add) {
 			
-				$theme_file_load -> {$lemma} {$form} {$date->get_to_string()} = $theme->{importance};
-				$should_dump = 1;
+					$theme_file_load -> {$lemma} {$form} {$date->get_to_string()} = $theme->{importance};
+					$should_dump = 1;
 			
-			} else {
+				} else {
 			
-				#postupne cistit vsechny pripadne prazdne hashe
-				delete $theme_file_load -> {$lemma} {$form} {$date->get_to_string()};
+					#postupne cistit vsechny pripadne prazdne hashe
+					delete $theme_file_load -> {$lemma} {$form} {$date->get_to_string()};
 			
-				{
-					#pokud dana kombinace soubor - lemma - form nema smysl...
+					{
+						#pokud dana kombinace soubor - lemma - form nema smysl...
 				
-					my $lemmahash = $theme_file_load -> {$lemma};
-					if (scalar keys %{$lemmahash -> {$form}}==0) {
-						#smaz ji
-						delete $lemmahash -> {$form};
+						my $lemmahash = $theme_file_load -> {$lemma};
+						if (scalar keys %{$lemmahash -> {$form}}==0) {
+							#smaz ji
+							delete $lemmahash -> {$form};
+						}
 					}
-				}
 			
-				{
-					#totez s kombinaci soubor - lemma (v jednom souboru je hafo lemmat)
-					if (scalar keys %{$theme_file_load -> {$lemma}} == 0) {
-						delete $theme_file_load -> {$lemma};
+					{
+						#totez s kombinaci soubor - lemma (v jednom souboru je hafo lemmat)
+						if (scalar keys %{$theme_file_load -> {$lemma}} == 0) {
+							delete $theme_file_load -> {$lemma};
+						}
 					}
-				}
 			
-				{
-					#a pokud je prazdny i hash, proc drzet soubor?
-					if (scalar keys %{$theme_file_load} == 0) {
-						$should_dump = 0;
-					} else {
-						$should_dump = 1;
+					{
+						#a pokud je prazdny i hash, proc drzet soubor?
+						if (scalar keys %{$theme_file_load} == 0) {
+							$should_dump = 0;
+						} else {
+							$should_dump = 1;
+						}
 					}
 				}
-			}
-			if ($should_dump) {
-				dump_bz2($path, $theme_file_load, "themefile");
-			} else {
-				system("rm $path") if (-e $path);
-			}
+				if ($should_dump) {
+					dump_bz2($path, $theme_file_load, "themefile");
+				} else {
+					system("rm $path") if (-e $path);
+				}
+			};
+			$forker->run($subref);
 		}
 	}
+	
+	$forker->wait();
 	
 	
 }
@@ -345,8 +356,8 @@ sub get_all_dates {
 sub do_for_all(&$) {
 	my $subref = shift;
 	my $do_thread = shift;
-	#my @dates = get_all_dates;
-	my @dates = (new Date(day=>24,month=>11,year=>2009), new Date(day=>25,month=>11,year=>2009), new Date(day=>26,month=>11,year=>2009));
+	my @dates = get_all_dates;
+	#my @dates = (new Date(day=>24,month=>11,year=>2009), new Date(day=>25,month=>11,year=>2009), new Date(day=>26,month=>11,year=>2009));
 	
 	say "Datumu je ".scalar @dates;
 	

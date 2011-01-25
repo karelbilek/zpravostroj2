@@ -44,8 +44,8 @@ sub dump_bz2 {
 	
 	MyTimer::start_timing("creating bz2 $exp_class");
 	
-	my $z = IO::Compress::Bzip2->new ($path);
-	#open my $z, "|bzip2 > $path";
+	#my $z = IO::Compress::Bzip2->new ($path);
+	open my $z, "|bzip2 > $path";
 	if (!$z) {
 		say "Cannot create BZ2 with path $path!";
 		MyTimer::count_error("Cannot create");
@@ -86,8 +86,8 @@ sub undump_bz2 {
 	
 	while($@) {
 		eval {
-			$z = IO::Uncompress::Bunzip2->new($path);
-			#open $z, "bunzip2 -c $path |";
+			#$z = IO::Uncompress::Bunzip2->new($path);
+			open $z, "bunzip2 -c $path |";
 		};
 		if ($@) {
 			say "KURVA WTF chyba";

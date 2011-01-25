@@ -14,4 +14,14 @@ $|=1;
 #All::resave_to_new();
 All::set_all_themes();
 
+my @r = All::review_all_final();
+
+for my $t (@r) {
+	my $f = $t->form;
+	
+	if ($f!~/\ /){
+		print $f."\n";
+	}
+} 
+
 say "end";
