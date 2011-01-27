@@ -9,7 +9,7 @@ use warnings;
 use Date;
 use Globals;
 use Zpravostroj::TectoServer;
-use RSS;
+use Zpravostroj::RSS;
 
 use Zpravostroj::Forker;
 
@@ -49,7 +49,7 @@ sub stop_tectomt {
 sub do_once_per_hour {
 	for my $f (<data/RSS/*>) {
 		my $RSS = undump_bz2($f);
-		$RSS->load_article_urls;
+		$RSS->refresh_urls;
 		dump_bz2($f, $RSS);
 	}
 }

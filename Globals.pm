@@ -34,6 +34,18 @@ sub if_undef {
 	}
 }
 
+sub isa_classname {
+	my $what = shift;
+	my $res;
+	eval {$res = $what->isa("UNIVERSAL");};
+	
+	if ($@) {
+		return 0;
+	} else {
+		return $res;
+	}
+}
+
 sub dump_bz2 {
 	my $path = shift;
 	my $ref = shift;
@@ -125,18 +137,28 @@ sub undump_bz2 {
 		return $v;
 	} else {
 		
+		my $should;
+		
 		if (exists $v->{"__CLASS__"}) {
 			
 			my $class = $v->{"__CLASS__"};
 			
+			if (isa_classname($class)) {
+				$should = 1;
+			} elsif (isa_classname("Zpravostroj::".$class)) {
+				$should = 1;
+				$v->{"__CLASS__"} = "Zpravostroj::".$class;
+			} else {
+				$should = 0;
+			}
+			
+		} 
+		
+		if ($should) {
 			my $r = $class->unpack($v); 
-			
-			
 			
 			return $r;
 		} else {
-			
-			
 			return $v;
 		}
 	}
