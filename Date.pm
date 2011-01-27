@@ -17,7 +17,6 @@ with Storage;
 
 use Article;
 use Globals;
-use MyTimer;
 
 my $ARTICLE_CLUSTER_SIZE = 10;
 
@@ -249,7 +248,6 @@ sub do_for_all {
 		my $subref = sub {
 		
 			say "Num $_";
-			MyTimer::start_timing("read article v DFA");
 			
 			my $a = $s->read_article($_);
 			
@@ -258,7 +256,6 @@ sub do_for_all {
 				@shared = $subr->($a, \$changed, @shared);
 				
 				if ($changed) {
-					MyTimer::start_timing("save article v DFA");
 					$s->save_article($a, $_)
 				}
 			
@@ -283,7 +280,6 @@ sub resave_to_new {
 	my $s = shift;
 	
 	$|=1;
-	MyTimer::start_timing("tvoreni ada");
 	
 	my $datearticles = new AllDateArticles(date=>$s);#, size=>$ARTICLE_CLUSTER_SIZE );
 	
@@ -301,7 +297,6 @@ sub get_and_save_themes {
 	my $count = shift;
 	my $total = shift;
 	
-	MyTimer::start_timing("delete_from_theme_files in date.pm");
 	
 	{
 		my $old_day_themes = $s->get_day_themes;
@@ -309,7 +304,6 @@ sub get_and_save_themes {
 	}
 	
 	
-	MyTimer::start_timing("tvorim ada");
 	my $datearticles = new AllDateArticles(date=>$s);#, size=>$ARTICLE_CLUSTER_SIZE);
 	
 	my $themhash = $datearticles->get_and_save_themes($count, $total);
@@ -349,13 +343,11 @@ sub get_and_save_themes {
 	
 	
 
-	MyTimer::start_timing("save day themes");
 	$s->save_day_themes($themhash);
 	
-	MyTimer::start_timing("add_to_theme_files in date.pm");
-	
+
 	All::add_to_theme_files($themhash, $s);
-	MyTimer::stop_timing();
+	
 }
 
 sub review_all {

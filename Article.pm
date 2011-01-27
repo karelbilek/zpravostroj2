@@ -84,7 +84,6 @@ sub get_and_save_themes {
 	my $count = shift;
 	my $total = shift;
 	
-	MyTimer::start_timing("tvoreni thash");
 	my $themhash:shared;
 	$themhash = shared_clone(new ThemeHash());
 	
@@ -101,17 +100,15 @@ sub get_and_save_themes {
 				
 				$urls{$a->url} = 1;
 			}
-			MyTimer::start_timing("count themes");
 		
 			$a->count_themes($total, $count);
 			
 		
-			MyTimer::start_timing("opetne nacitani");
+			
 		
 			my $themes = $a->themes;
 		
-			MyTimer::start_timing("zapisovani do day_themes hashe");
-		
+				
 			for (@$themes) {
 				{
 					lock($themhash);
@@ -149,24 +146,20 @@ sub do_for_all {
 		my $subref = sub {
 			
 			
-			MyTimer::start_timing("read article v art DFA");
 			
 			my $a = $s->load_article($art_name);
 			
-			MyTimer::start_timing("pred-subr kecy");
 			
 			if (defined $a) {
 				my ($art_changed, $res_a) = $subr->($a, $c);
 				
 				if ($art_changed>=1) {
-					MyTimer::start_timing("saving article v art DFA");
 					if ($art_changed==2) {
 						$a = $res_a;
 					}
 					
 					$s->save_article($art_name, $a);
 				} elsif ($art_changed==-1) {
-					MyTimer::start_timing("deleting article v art DFA");
 					
 					$s->remove_article($art_name);
 				}
@@ -320,7 +313,6 @@ sub get_all_subgroups {
 	return @res;
 }
 
-use MyTimer;
 
 
 sub count_themes {
@@ -333,12 +325,10 @@ sub count_themes {
 	
 	my %importance;
 	
-	MyTimer::start_timing("mazani counts");
 	
 	#!!!!!!tohle pak smazat, proboha
 	$s->clear_counts();
 	
-	MyTimer::start_timing("ziskavani counts");
 	
 	my $word_counts = $s->counts;
 	
@@ -346,7 +336,6 @@ sub count_themes {
 	
 	#http://en.wikipedia.org/wiki/Tf%E2%80%93idf
 	
-	MyTimer::start_timing("staveni importance");
 	
 	
 	for my $wordgroup (keys %{$word_counts}) {
@@ -366,12 +355,10 @@ sub count_themes {
 			
 	}
 	
-	MyTimer::start_timing("prvni sorteni");
 	
 	
 	my @sorted = (sort {$importance{$b}<=>$importance{$a}} keys %importance)[0..39];
 	
-	MyTimer::start_timing("filtrovani");
 	
 	for my $lemma (@sorted) {
 		if (exists $importance{$lemma}) {
@@ -389,7 +376,6 @@ sub count_themes {
 	}
 	
 	
-	MyTimer::start_timing("navraceni");
 	
 	my @newthemes_keys = (sort {$importance{$b}<=>$importance{$a}} keys %importance);
 	if (@newthemes_keys > 20) {

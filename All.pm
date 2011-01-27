@@ -18,7 +18,6 @@ use File::Slurp;
 use Data::Dumper;
 use Scalar::Util qw(blessed);
 
-use MyTimer;
 use Theme;
 
 $|=1;
@@ -174,14 +173,12 @@ sub get_total_themes {
 }
 
 sub set_all_themes {
-	MyTimer::start_timing("get all count");
+	
 	
 	my $count = All::get_count();
 	
-	MyTimer::start_timing("get total before count");
-
+	
 	my $total = All::get_total_before_count();
-	MyTimer::start_timing("prvni doforall priprava");
 	
 	#my $begin = new Date(day=>1, month=>7, year=>2010);
 	
@@ -191,7 +188,6 @@ sub set_all_themes {
 			$date->get_and_save_themes($count, $total);
 		#}
 	},1);
-	MyTimer::say_all();
 }
 
 sub resave_to_new {
