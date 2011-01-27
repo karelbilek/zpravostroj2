@@ -9,7 +9,7 @@ use All;
 
 use Zpravostroj::Forker;
 
-my $f = new Zpravostroj::Forker(size=>10, name=>"ArchiveDumper");
+my $f = new Zpravostroj::Forker(size=>10);
 
 All::run_tectomt();
 
