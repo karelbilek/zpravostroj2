@@ -10,7 +10,7 @@ package ReadabilityExtractor;
 #Readability (c) 2010 Arc90 Inc
 
 use 5.008;
-use Globals;
+use Zpravostroj::Globals;
 
 use Switch;
 

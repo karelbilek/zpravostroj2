@@ -25,7 +25,7 @@ package Zpravostroj::TectoServer;
 #Mozna by to slo i jinak. Ale priznam se, nejvic se mi libi, ze po zabiti forku se uvolni IHNED vsechny TectoMT zdroje.
 
 use 5.008;
-use Globals;
+use Zpravostroj::Globals;
 use strict;
 use warnings;
 use encoding 'utf8';

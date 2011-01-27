@@ -1,4 +1,4 @@
-package Globals;
+package Zpravostroj::Globals;
 use base 'Exporter';
 #pomocny modulik na vsechny funkce, co chci, aby byly videt vsude, ale nejsou samy o sobe prilis "chytre"
 #plus pres to sdilim vsechny konstanty, co chci videt vsude

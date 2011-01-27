@@ -7,7 +7,7 @@ use forks::shared;
 use strict;
 use warnings;
 use Date;
-use Globals;
+use Zpravostroj::Globals;
 use Zpravostroj::TectoServer;
 use Zpravostroj::RSS;
 

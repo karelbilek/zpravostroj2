@@ -1,5 +1,5 @@
 package AllDateArticles;
-use Globals;
+use Zpravostroj::Globals;
 use strict;
 use warnings;
 
@@ -192,7 +192,7 @@ use strict;
 use warnings;
 
 use Moose;
-use Globals;
+use Zpravostroj::Globals;
 use MooseX::StrictConstructor;
 use Moose::Util::TypeConstraints;
 use Zpravostroj::MooseTypes;

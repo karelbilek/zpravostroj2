@@ -23,7 +23,7 @@ use Moose;
 use MooseX::StrictConstructor;
 use Moose::Util::TypeConstraints;
 
-use Globals;
+use Zpravostroj::Globals;
 
 #mnozstvi povolenych threadu naraz
 #(muze se mozna stat, ze pobezi o 1 navic, ale mozna ne)

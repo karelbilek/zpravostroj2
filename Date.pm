@@ -1,7 +1,7 @@
 package Date;
  
 use 5.008;
-use Globals;
+use Zpravostroj::Globals;
 use forks;
 use forks::shared;
 
@@ -16,7 +16,7 @@ use MooseX::Storage;
 with Storage;
 
 use Article;
-use Globals;
+use Zpravostroj::Globals;
 
 my $ARTICLE_CLUSTER_SIZE = 10;
 

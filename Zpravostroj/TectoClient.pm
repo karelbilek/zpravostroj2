@@ -2,7 +2,7 @@ package Zpravostroj::TectoClient;
 #Klient k TectoServeru, co vytvari Zpravostroj::Word objekty z textu
 
 use 5.008;
-use Globals;
+use Zpravostroj::Globals;
 use Zpravostroj::Word;
 
 use IO::Socket::INET;

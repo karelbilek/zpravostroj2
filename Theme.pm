@@ -5,7 +5,7 @@ use warnings;
 use forks;
 use forks::shared;
 
-use Globals;
+use Zpravostroj::Globals;
 use Moose;
 use MooseX::StrictConstructor;
 use Moose::Util::TypeConstraints;

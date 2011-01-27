@@ -8,7 +8,7 @@ use strict;
 use warnings;
 
 use 5.008;
-use Globals;
+use Zpravostroj::Globals;
 
 use Encode;
 use HTML::Encoding 'encoding_from_http_message';

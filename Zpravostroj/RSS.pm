@@ -22,7 +22,7 @@ use MooseX::Storage;
 with Storage;
 
 
-use Globals;
+use Zpravostroj::Globals;
 use Date;
 use Zpravostroj::WebReader;
 use Zpravostroj::MooseTypes;
