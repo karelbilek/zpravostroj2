@@ -4,14 +4,25 @@ package Zpravostroj::TectoServer;
 
 #"Opacny" modul je TectoClient 
 
+#Je to delane tak, ze POCITAM s tim, ze to pobezi v samostatnem threadu (resp. forku)
+#tj. mam tu napr. globalni promenne, co ale inicializuji az kdyz je potrebuji
+#inicializuji se az v extra threadu, co potom zabiju (ja totiz vubec neverim perlimu garbage collectoru a resim uvolnovani
+#	pameti - mozna hloupe - pres forky a zabijeni, pamet se tak uvolni hned, jak ji nechci)
+#forky == modul forks
+
+#vypada to tak, ze fork se pusti, spusti se run(), ta si jeste pomoci forkeru pusti na kazdy prijmuty socket
+#vlastni fork, v kazdem z nich bezi tectomt zvlast a vraci vysledky, necha se to vsechno dobehnout,
+#pak prijde SIGUSR1, coz je "signal" pro to, aby fronta dobehla a thread sam sebe zabil.
+
+#------
 #Proc to delat pres server?
 #No, to je otazka. :)
 
 #Jednak jde o zjednoduseni - ze "hlavni" thread nemusi resit veci ohledne TectoMT a je to hezky "zapouzdrene" tady. Paklize uz TectoMT nepotrebuju, thread, kde mi tohle bezi, zabiju a vsechny TectoMT zdroje se uvolni
 
-#Druha vec je - v hlavnim programu mi bezi vic threadu na kazdy clanek. Thread se zablokuje, dokud ceka na socket od serveru, TectoServer ma frontu pozadavku, co postupne zpracovava.
+#Druha vec je - v hlavnim programu mi bezi vic threadu na kazdy clanek, tady mi zas muze bezet vic threadu na kazdy zpracovavany clanek.
 
-#Treti vec - server muze, diky Forkeru, zpracovavat vic pozadavku najednou.
+#Mozna by to slo i jinak. Ale priznam se, nejvic se mi libi, ze po zabiti forku se uvolni IHNED vsechny TectoMT zdroje.
 
 use 5.008;
 use Globals;
@@ -24,7 +35,7 @@ use TectoMT::Scenario;
 use TectoMT::Document;
 
 use forks;
-use forks::shared;
+
 use Zpravostroj::Forker;
 
 #TectoMT strasne rado pise hrozne moc blbosti ven. Muzu mu to zakazat nebo povolit.
@@ -33,20 +44,18 @@ my $SHUT_UP=0;
 
 $|=1;
 
-#TectoMT scenario je globalni promenna. Proc ne.
+#jak jsem psal vyse, tyto 3 promenne inicializuji az v initialize, az bude potreba
 my $scenario;
-
-#Serverovy socket je globalni
 my $sock;
-
 my $forker;
 
+#Pomocna procedura na utiseni TectoMT
 #Dostanu referenci na proceduru a bud ji jenom spustim, nebo ji spustim "tise", podle globalni $SHUT_UP
 #(na tohle byly nejake uz hotove moduly v CPANu, ale vsechny nejak rozbijely utf8)
 sub shut_up(&) {
 	
 	my $subre = shift;
-	if (1 or $SHUT_UP){
+	if ($SHUT_UP){
 		
 		#zkopiruju si STDOUT a STDERR
 		open my $oldout, ">&STDOUT"     or die "Can't dup STDOUT: $!";
@@ -70,6 +79,7 @@ sub shut_up(&) {
 
 
 #pokud neni scenario vytvorene, vytvori ho
+#stejne tak socket a forker
 #(chvili trva a je to "ukecana" procedura, proto shut_up)
 sub initialize {
 	if (!defined $scenario) {
@@ -92,10 +102,10 @@ sub initialize {
 			Proto => 'tcp',
 			Listen => 50,
 			Reuse => 1,
-			Timeout=>1
+			Timeout=>1 #Timeout MUSI byt, aby se nekdy spustil $forker->check_waiting()
 		);
 		
-		$forker = new Zpravostroj::Forker(size=>5, name=>"TectoServer");
+		$forker = new Zpravostroj::Forker(size=>10);
 	}
 }
 
@@ -180,16 +190,17 @@ sub tag {
 }
 
 
-use forks;
-#Spusti samotny server. Je nekonecna -> nekdo to musi zvenku zabit
+#Spusti samotny server. SIGUSR1 je znameni "uz neprijimej sockety a brzo zemri"
 sub run {
 	$|=1;
 	
 	my $should_run = 1;
 	
-	$SIG{'USR1'} = sub {print "yay usr1\n";$should_run = 0; };
+	#nevim, jak je bezpecne delat veci jako say v signal handleru [say je pritom volano z Zpravostroj::Globals]
+	#na druhou stranu, nejsme v C, ale v perlu...
+	$SIG{'USR1'} = sub {say "prijimam usr1";$should_run = 0; };
 	
-	print "Jsem tu - run\n";
+	say "Jsem tu - run";
 	
 	
 	initialize();
@@ -198,6 +209,8 @@ sub run {
 		say "Pred acceptuji spojeni.";
 		my $newsock = $sock->accept();
 		
+		#newsock muze nevyjit kvuli timeoutu
+		#(timeout tam naopak MUSI byt, aby se nekdy spustil $forker->check_waiting()!!)
 		if ($should_run and $newsock) {
 			say "Po akceptaci. Jdu do threadu.";
 		
@@ -244,7 +257,7 @@ sub run {
 			say "Poslano.";
 		} else {
 			if (!$should_run) {
-				say "Cekani spravne vyruseno usr1";
+				say "Cekani spravne vyruseno usr1"; #jenom debugovaci
 			}
 		}
 		$forker->check_waiting();

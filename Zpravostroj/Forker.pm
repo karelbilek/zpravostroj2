@@ -3,10 +3,19 @@ package Zpravostroj::Forker;
 
 #reknu mu, kolik chci maximalne spustit threadu, a pak mu strkam pres run reference na procedury a on je spousti
 
-#pricemz $f->run({...}) blokuje do doby, nez se thread SPUSTI, ale NEblokuje do doby, nez skonci
-#proto je na konci prace s Forkerem NUTNE spustit $f->wait(), coz pocka na dobehnuti vsech threadu
+#$forker->run(sub{...}) neblokuje, bud thread spusti, nebo prida (vcetne "closure") do fronty
+#je ale nutne z "vnejsku" bud obcas spustit $forker->check_waiting(), ktera zkontroluje frontu,
+#nebo rovnou $forker->wait(), ktera pocka, nez vsechny veci ve fronte dobehnou
 
-#jako jinde v programu, thready myslim ve skutecnosti forky z modulu forks, ale jelikoz jsou vsude klicova slova jako "threads", tak se mi o tom pise lip jako o threadech. plus, syntaxe zustava z perlich, jinak nepouzitelnych, ithreadu.
+#neni mozne napr. nechat perl "nekonecne" blokovat na nejake podmince a check_waiting() nespoustet, coz se mi
+#jednou povedlo - to se potom veci ve fronte nikdy nespusti
+
+#take neni mozno forker proste zahodit a nespustit "na konec" wait().
+
+
+
+#jako jinde v programu, thready myslim ve skutecnosti forky z modulu forks (proto forker), ale jelikoz jsou vsude klicova slova 
+#jako "threads", tak se mi o tom pise lip jako o threadech. plus, syntaxe zustava z perlich, jinak nepouzitelnych, ithreadu.
 
 use forks;
 
@@ -16,31 +25,27 @@ use Moose::Util::TypeConstraints;
 
 use Globals;
 
-#mnozstvi povolenych threadu
+#mnozstvi povolenych threadu naraz
+#(muze se mozna stat, ze pobezi o 1 navic, ale mozna ne)
 has 'size' => (
 	is=>'ro',
 	required=>1,
 	isa=>'Int'
 );
 
-has 'name' => (
-	is=>'ro',
-	required=>0,
-	isa=>'Str'
-);
-
+#bezici thready
 has 'threads' => (
 	is=>'rw',
 	isa=>'ArrayRef',
 	default=>sub{[]}
 );
 
+#cekajici subroutiny /s closures/
 has 'waiting_subs' => (
 	is=>'rw',
 	isa=>'ArrayRef',
 	default=>sub{[]}
 );
-
 
 
 #cekam na skonceni vseho = dokud je 0 bezicich threadu
@@ -53,36 +58,39 @@ sub wait {
 	}
 }
 
+#da pocet bezicich threadu
 sub get_curr_running {
 	my $s = shift;
 	
+	#procisti zombiky
 	my @threads = grep {$_->is_running()} @{$s->threads};
 	$s->threads(\@threads);
 	
 	return scalar @threads;
 }
 
+#vrati 1, kdyz uz neni treba nic delat
 sub is_all_completed {
 	my $s = shift;
 	
 	return (($s->get_curr_running == 0) and (scalar @{$s->waiting_subs} == 0));
 }
 
+#kolik jeste muze bezet threadu?
 sub how_many_free_to_run {
 	my $s = shift;
 	return ($s->size - $s->get_curr_running);
 }
 
-
+#spusti thread a prida ho do threads
 sub add_to_threads {
 	my $s = shift;
 	my $sub = shift;
-	#say "ADD TO THREADS ".$s->name;
 	
 	my $thread = threads->new(sub {
 		eval{$sub->();};
 		if ($@) {
-			print "Died with $@\n";
+			say "Died with $@";
 		}
 	});
 	$thread->detach();
@@ -90,13 +98,13 @@ sub add_to_threads {
 	say "Stvoril jsem novy thread s cislem ",$thread->tid();
 }
 
-
+#zkontroluje, jestli neni mozne pridat nove thready
+#(je spousteno casto)
 sub check_waiting {
 	my $s = shift;
 	
 	
 	my $subs = $s->how_many_free_to_run();
-	
 	
 	my $added=0;
 	
@@ -109,11 +117,14 @@ sub check_waiting {
 		} 
 	}
 	
+	#pokud jsem neco spustil, jdu to zkontrolovat znovu
+	#(nekdy to napr. hned zemre)
 	if ($added) {
 		$s->check_waiting();
 	} 
 }
 
+#"spusteni" == zarazeni na konec fronty
 sub run {
 	
 	my $s = shift;
@@ -122,19 +133,7 @@ sub run {
 	
 	say "In forker - jdu posilat";
 	
-	my $f = $s->how_many_free_to_run();
-	say "how many free to run vychazi na $f";
-	
-	if ($f>0) {
-		
-		say "Muzu tedy spustit.";
-		$s->add_to_threads($sub);
-		
-	} else {
-		
-		say "Ukladam do cekajicich.";
-		push @{$s->waiting_subs}, $sub;
-	}
+	push @{$s->waiting_subs}, $sub;
 	
 	
 	$s->check_waiting();
