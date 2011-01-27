@@ -45,6 +45,7 @@ sub run_tectomt {
 sub stop_tectomt {
 	$|=1;
 	say "Zastavuji tectoMT ve Stop_tectomt";
+	Zpravostroj::TectoServer::wait_before_killing();
 	$tecto_thread->kill('KILL')->detach();
 }
 

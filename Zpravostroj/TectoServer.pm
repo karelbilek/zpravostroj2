@@ -11,8 +11,7 @@ package Zpravostroj::TectoServer;
 
 #Druha vec je - v hlavnim programu mi bezi vic threadu na kazdy clanek. Thread se zablokuje, dokud ceka na socket od serveru, TectoServer ma frontu pozadavku, co postupne zpracovava.
 
-#Treti vec - puvodni idea byla, ze server muze zpracovavat vic textu najednou a bude se forkovat (pomoci modulu forks).
-#Tuhle ideu jsem nakonec zavrhnul, protoze se to prilis nezrychli, tj. nechal jsem to tak, ze se neforkuje tady nic a server zvlada pouze jeden text v dane chvili. Tj. teoreticky by TectoServer nebyl potreba, ale nechal jsem to takhle.
+#Treti vec - server muze, diky Forkeru, zpracovavat vic pozadavku najednou.
 
 use 5.008;
 use Globals;
@@ -23,6 +22,10 @@ use Encode;
 use IO::Socket;
 use TectoMT::Scenario;
 use TectoMT::Document;
+
+use forks;
+use forks::shared;
+use Zpravostroj::Forker;
 
 #TectoMT strasne rado pise hrozne moc blbosti ven. Muzu mu to zakazat nebo povolit.
 #Pokud je SHUT_UP 1, zakazu to, pokud 0, povolim
@@ -40,6 +43,8 @@ my $sock = new IO::Socket::INET (
 	Listen => 50,
 	Reuse => 1,
 );
+
+my $forker = shared_clone(new Zpravostroj::Forker(size=>5, name=>"TectoServer"));
 
 #Dostanu referenci na proceduru a bud ji jenom spustim, nebo ji spustim "tise", podle globalni $SHUT_UP
 #(na tohle byly nejake uz hotove moduly v CPANu, ale vsechny nejak rozbijely utf8)
@@ -181,39 +186,61 @@ sub run {
 		say "Acceptuji spojeni.";
 		my $newsock = $sock->accept();
 		
-		#nejsem si jist, jestli je nutne, ale UTF8 strasne rado blbne
-		binmode $newsock, ':utf8';
+		say "Po akceptaci. Jdu do threadu.";
+		
+		my $sref = sub {
+			
+			say "v threadu.";
+		
+			#nejsem si jist, jestli je nutne, ale UTF8 strasne rado blbne
+			binmode $newsock, ':utf8';
 		
 			
-		my $text;
+			my $text;
 	
-		while (<$newsock>) {
-			chomp;
-			if ($_ eq "ZPRAVOSTROJ KONEC ZPRAVOSTROJ KONEC") {
-				say "Je to ZKZK, koncim!";
-				last;
-			} else {
+			while (<$newsock>) {
+				chomp;
+				if ($_ eq "ZPRAVOSTROJ KONEC ZPRAVOSTROJ KONEC") {
+					say "Je to ZKZK, koncim!";
+					last;
+				} else {
 				
-				say "Neni to ZKZK, pripojuju.";
-				unless ($SHUT_UP) {say "Pro uplnost, je to $_";}
-					#tohle mam pro debugging - muze to byt velmi ukecane
+					say "Neni to ZKZK, pripojuju.";
+					unless ($SHUT_UP) {say "Pro uplnost, je to $_";}
+						#tohle mam pro debugging - muze to byt velmi ukecane
 				
-				$text.=$_;
+					$text.=$_;
+				}
+	
 			}
 	
-		}
+			#tohle uplne nevim, proc tu mam, ale nicemu to neskodi
+			binmode STDOUT, ':utf8';
 	
-		#tohle uplne nevim, proc tu mam, ale nicemu to neskodi
-		binmode STDOUT, ':utf8';
-	
-		for (tag($text)) {
-			print $newsock $_;
-			print $newsock "\n";
-		}
+			for (tag($text)) {
+				print $newsock $_;
+				print $newsock "\n";
+			}
 
-		close $newsock;
-		
+			close $newsock;
+		};
+		{
+			say "LOCK NU 1";
+			lock($forker);
+			$forker->run($sref);
+			say "END LOCK NU 1";
+			
+		}
 	}
 }
 
+sub wait_before_killing {
+	{
+					say "LOCK NU 2";
+		lock($forker);
+		$forker->wait();
+		say "END LOCK NU 2";
+		
+	}
+}
 1;
