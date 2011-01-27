@@ -446,7 +446,7 @@ sub set_latest_count {
 		}
 		if (defined $wcount) {
 			for (keys %$wcount) {
-				if ($wcount->{$_}>=$min_article_count_per_day) {
+				if ($wcount->{$_}>=$MIN_ARTICLE_COUNT_PER_DAY_WTF) {
 					$counts{$_}+=$wcount->{$_};
 				}
 			}

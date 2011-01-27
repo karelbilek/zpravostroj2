@@ -1,12 +1,13 @@
 package Globals;
-
 use base 'Exporter';
+#pomocny modulik na vsechny funkce, co chci, aby byly videt vsude, ale nejsou samy o sobe prilis "chytre"
+#plus pres to sdilim vsechny konstanty, co chci videt vsude
 
-our @EXPORT = qw(@todelete $not_beginning $min_article_count_per_day compare_dates get_date_from_file undump_bz2 dump_bz2 say if_undef);
+our @EXPORT = qw($SIMULTANEOUS_THREADS_TECTOSERVER $MIN_ARTICLE_COUNT_PER_DAY_WTF undump_bz2 dump_bz2 say if_undef);
 
-our @todelete = qw(strong b span a);
-our $not_beginning="[Pp][Rr][aA][hH][aA]";
-our $min_article_count_per_day = 8;
+our $MIN_ARTICLE_COUNT_PER_DAY_WTF = 8;
+
+our $SIMULTANEOUS_THREADS_TECTOSERVER=10;
 
 use IO::Uncompress::Bunzip2;
 use IO::Compress::Bzip2;
@@ -16,6 +17,9 @@ use YAML::XS;
 
 use 5.008;
 
+#v perlu 5.010 je vestavena funkce say, co automaticky prida \n na konec
+#tak jsem si na ni zvyknul, ze kdyz jsem prechazel /kvuli ufallabu/ zpatky na 5.008, musel jsem si ji nadefinovat
+#nakonec se mi to hodi, protoze jsem si k ni (aby se vubec daly thready hlidat) pridal na zacatek radku cislo threadu
 
 use forks;
 sub say(@) {
@@ -24,6 +28,9 @@ sub say(@) {
 	print $d;
 }
 
+
+#tohle je zase nahrada operatoru // z perlu 5.010
+#kdyz je prvni undef, vrati druhy, jinak prvni
 sub if_undef {
 	my $what = shift;
 	my $ifnull = shift;
@@ -34,6 +41,7 @@ sub if_undef {
 	}
 }
 
+#zjisti, jestli je nejaky string trida
 sub isa_classname {
 	my $what = shift;
 	my $res;
@@ -46,6 +54,13 @@ sub isa_classname {
 	}
 }
 
+
+#Vezme cestu a referenci na neco.
+#Pokud neco je jenom blby skalar/hash/..., ulozi ho pres Dump
+#pokud je to trida, co je Moose a "with Storage", ulozi si to pres ->pack a zdumpuje
+
+#je vtipne, ze se muze stat, ze kdyz jsou nektere argumenty "lazy" tak se ve skutecnosti spousta veci odehraje tady,
+#protoze az ->pack opravdu vola vsechny atributy. Ale ono to nicemu nevadi. Ale je dobre to vedet.
 sub dump_bz2 {
 	my $path = shift;
 	my $ref = shift;
@@ -62,7 +77,7 @@ sub dump_bz2 {
 	
 	my $to_dump;
 	if (blessed $ref and $ref->can("pack")) {
-		$to_dump = $ref->pack;
+		$to_dump = $ref->pack; #může trvat
 	} else {
 		
 		$to_dump = $ref;
@@ -75,6 +90,13 @@ sub dump_bz2 {
 	close($z);
 }
 
+#Snazi se vzit soubor z dane cesty a neco s nim udelat.
+#Pokud neexistuje -> undef.
+#Pokud nejde cist bunzipem -> undef.
+#Pokud existuje a je v nem neco, co nema __CLASS__ -> vrati to
+#pokud existuje a je v nem neco, co ma __CLASS__ a ta trida existuje -> postavi ji pomoci Storage
+#pokud existuje a je v nem neco, co ma __CLASS__ a ta trida neexistuje -> zkusi Zpravostroj::(ten nazev), protoze jsem 
+	#dost trid takhle prejmenovaval
 
 sub undump_bz2 {
 	my $path = shift;
@@ -92,7 +114,7 @@ sub undump_bz2 {
 			open $z, "bunzip2 -c $path |";
 		};
 		if ($@) {
-			say "KURVA WTF chyba";
+			say " WTF chyba";
 			say $@;
 		}
 	} 
@@ -110,7 +132,7 @@ sub undump_bz2 {
 			my $size = size($dumped);
 		};
 		if ($@) {
-			say "2 KURVA WTF chyba";
+			say "2 WTF chyba";
 			say $@;
 		}
 	}
