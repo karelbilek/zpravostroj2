@@ -19,11 +19,11 @@ use 5.008;
 
 use MyTimer;
 
-
+use forks;
 sub say(@) {
 	my @w = @_;
-	for (@w) {print $_}
-	print "\n";
+	my $d = join ("", threads->tid(), " - ", @w, "\n");
+	print $d;
 }
 
 sub if_undef {

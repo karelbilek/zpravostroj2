@@ -245,7 +245,7 @@ has 'words' => (
 	is=>'ro',
 	isa=>'ArrayRef[Zpravostroj::Word]',
 	lazy=>1,
-	default=>sub{my $t = ($_[0]->title)." ".($_[0]->article_contents); [ Zpravostroj::TectoClient::lemmatize($t) ]}
+	default=>sub{my $t = ($_[0]->title)." ".($_[0]->article_contents); say ("pred tectoclientem"); my $r= [ Zpravostroj::TectoClient::lemmatize($t) ]; say "za tectoclientem";$r}
 );
 
 has 'counts' => (

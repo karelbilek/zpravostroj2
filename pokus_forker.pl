@@ -1,11 +1,14 @@
 use warnings;
 use strict;
 
+use forks;
+use forks::shared;
+
 use Zpravostroj::Forker;
 
-my $forker = new Zpravostroj::Forker(size=>10);
+my $forker = (new Zpravostroj::Forker(size=>10));
 $|=1;
-for my $i (1..20) {
+for my $i (reverse(1..20)) {
 	print "v cyklu $i\n";
 	
 	my $sub = sub {

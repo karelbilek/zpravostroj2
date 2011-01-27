@@ -22,12 +22,14 @@ for my $page (reverse(1..1)) {
 	
 	while ($archiv_page=~/<h2>\s*<small>[^<]*<\/small><br \/><a href="([^"]*)" class="tahoma">[^<]*<\/a><\/h2>\s*<p class="author">Autor: <a href="[^"]*">[^<]*<\/a><\/p>\s*<p class="date">(..)\.(..)\.(201[01])/sg){
 		
+		my $url = "http://www.tyden.cz".$1;
+		
 		my $d = $2;
 		my $m = $3;
 		my $y = $4;
 		if ($y) {
 			$f->run(sub {
-				my $url = "http://www.tyden.cz".$1;
+				
 			
 			
 				say $url, " M: ",$m," D: ",$d," Y :",$y;
@@ -49,8 +51,11 @@ for my $page (reverse(1..1)) {
 	}
 }
 
+say "pred wait...";
 $f->wait;
 
+
+say "pred stop_tectomt...";
 All::stop_tectomt();
 
 say "end.";

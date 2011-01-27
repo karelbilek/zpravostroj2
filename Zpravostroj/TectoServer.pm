@@ -37,21 +37,16 @@ $|=1;
 my $scenario;
 
 #Serverovy socket je globalni
-my $sock = new IO::Socket::INET (
-	LocalPort => '7070',
-	Proto => 'tcp',
-	Listen => 50,
-	Reuse => 1,
-);
+my $sock;
 
-my $forker = shared_clone(new Zpravostroj::Forker(size=>5, name=>"TectoServer"));
+my $forker;
 
 #Dostanu referenci na proceduru a bud ji jenom spustim, nebo ji spustim "tise", podle globalni $SHUT_UP
 #(na tohle byly nejake uz hotove moduly v CPANu, ale vsechny nejak rozbijely utf8)
 sub shut_up(&) {
 	
 	my $subre = shift;
-	if ($SHUT_UP){
+	if (1 or $SHUT_UP){
 		
 		#zkopiruju si STDOUT a STDERR
 		open my $oldout, ">&STDOUT"     or die "Can't dup STDOUT: $!";
@@ -76,7 +71,7 @@ sub shut_up(&) {
 
 #pokud neni scenario vytvorene, vytvori ho
 #(chvili trva a je to "ukecana" procedura, proto shut_up)
-sub initialize_scenario {
+sub initialize {
 	if (!defined $scenario) {
 		shut_up {
 			 
@@ -91,6 +86,16 @@ sub initialize_scenario {
 				#nejlepsi posloupnost k nalezeni pojmenovanych instanci, myslim.
 				#sam vsem tem modulum uplne nerozumim, popravde, ale je to black box :)
 		};
+		
+		$sock = new IO::Socket::INET (
+			LocalPort => '7070',
+			Proto => 'tcp',
+			Listen => 50,
+			Reuse => 1,
+			Timeout=>1
+		);
+		
+		$forker = new Zpravostroj::Forker(size=>5, name=>"TectoServer");
 	}
 }
 
@@ -174,73 +179,83 @@ sub tag {
 	
 }
 
+
+use forks;
 #Spusti samotny server. Je nekonecna -> nekdo to musi zvenku zabit
 sub run {
 	$|=1;
+	
+	my $should_run = 1;
+	
+	$SIG{'USR1'} = sub {print "yay usr1\n";$should_run = 0; };
+	
 	print "Jsem tu - run\n";
 	
 	
-	initialize_scenario();
-	while (1) {
+	initialize();
+	while ($should_run) {
 		
-		say "Acceptuji spojeni.";
+		say "Pred acceptuji spojeni.";
 		my $newsock = $sock->accept();
 		
-		say "Po akceptaci. Jdu do threadu.";
+		if ($should_run and $newsock) {
+			say "Po akceptaci. Jdu do threadu.";
 		
-		my $sref = sub {
+			my $sref = sub {
 			
-			say "v threadu.";
+				say "v threadu.";
 		
-			#nejsem si jist, jestli je nutne, ale UTF8 strasne rado blbne
-			binmode $newsock, ':utf8';
+				#nejsem si jist, jestli je nutne, ale UTF8 strasne rado blbne
+				binmode $newsock, ':utf8';
 		
 			
-			my $text;
+				my $text;
 	
-			while (<$newsock>) {
-				chomp;
-				if ($_ eq "ZPRAVOSTROJ KONEC ZPRAVOSTROJ KONEC") {
-					say "Je to ZKZK, koncim!";
-					last;
-				} else {
+				while (<$newsock>) {
+					chomp;
+					if ($_ eq "ZPRAVOSTROJ KONEC ZPRAVOSTROJ KONEC") {
+						say "Je to ZKZK, koncim!";
+						last;
+					} else {
 				
-					say "Neni to ZKZK, pripojuju.";
-					unless ($SHUT_UP) {say "Pro uplnost, je to $_";}
-						#tohle mam pro debugging - muze to byt velmi ukecane
+						say "Neni to ZKZK, pripojuju.";
+						unless ($SHUT_UP) {say "Pro uplnost, je to $_";}
+							#tohle mam pro debugging - muze to byt velmi ukecane
 				
-					$text.=$_;
+						$text.=$_;
+					}
+	
 				}
 	
-			}
+				#tohle uplne nevim, proc tu mam, ale nicemu to neskodi
+				binmode STDOUT, ':utf8';
 	
-			#tohle uplne nevim, proc tu mam, ale nicemu to neskodi
-			binmode STDOUT, ':utf8';
-	
-			for (tag($text)) {
-				print $newsock $_;
-				print $newsock "\n";
-			}
+				for (tag($text)) {
+					print $newsock $_;
+					print $newsock "\n";
+				}
 
-			close $newsock;
-		};
-		{
-			say "LOCK NU 1";
-			lock($forker);
-			$forker->run($sref);
-			say "END LOCK NU 1";
-			
-		}
-	}
-}
-
-sub wait_before_killing {
-	{
-					say "LOCK NU 2";
-		lock($forker);
-		$forker->wait();
-		say "END LOCK NU 2";
+				close $newsock;
+			};
 		
+		
+			say "Posilam thread forkeru.";
+			$forker->run($sref);
+			say "Poslano.";
+		} else {
+			if (!$should_run) {
+				say "Cekani spravne vyruseno usr1";
+			}
+		}
+		$forker->check_waiting();
 	}
+	
+	say "Cekam...";
+	$forker->wait();
+	say "Docekal, koncim!";
+	
+	threads->exit();
 }
+
+
 1;

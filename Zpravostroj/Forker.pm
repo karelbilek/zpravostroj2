@@ -9,7 +9,6 @@ package Zpravostroj::Forker;
 #jako jinde v programu, thready myslim ve skutecnosti forky z modulu forks, ale jelikoz jsou vsude klicova slova jako "threads", tak se mi o tom pise lip jako o threadech. plus, syntaxe zustava z perlich, jinak nepouzitelnych, ithreadu.
 
 use forks;
-use forks::shared;
 
 use Moose;
 use MooseX::StrictConstructor;
@@ -30,10 +29,10 @@ has 'name' => (
 	isa=>'Str'
 );
 
-has 'currently_running' => (
+has 'threads' => (
 	is=>'rw',
-	isa=>'Int',
-	default=>0
+	isa=>'ArrayRef',
+	default=>sub{[]}
 );
 
 has 'waiting_subs' => (
@@ -41,18 +40,6 @@ has 'waiting_subs' => (
 	isa=>'ArrayRef',
 	default=>sub{[]}
 );
-
-sub BUILD {
-	my $self = shift;
-	say "SHARUJI V ".$self->name;
-	share($self->{currently_running});
-	say "SHARUJI V ".$self->name." DONE";
-	$self->{currently_running}=0;
-	my $w = is_shared($self->{currently_running});
-	say "IS SHARED V ".$self->name." JE ".$w;
-	
-	
-}
 
 
 
@@ -67,34 +54,16 @@ sub wait {
 }
 
 sub get_curr_running {
-	my $self = shift;
-	say "PTAM SE V ".$self->name;
+	my $s = shift;
 	
-	if (!is_shared($self->{currently_running})) {
-		say "OMG verze GCR - bylo ".$self->{currently_running};
-		share($self->{currently_running});
-		$self->{currently_running}=0;
-		share($self->{currently_running});
-		$self->{currently_running}=1;
-		share($self->{currently_running});
-		$self->{currently_running}=0;
-		share($self->{currently_running});
-	}
+	my @threads = grep {$_->is_running()} @{$s->threads};
+	$s->threads(\@threads);
 	
-	my $w = is_shared($self->{currently_running});
-	say "IS SHARED V ".$self->name." JE ".$w;
-	
-	
-	lock($self->{currently_running});
-	
-	say "PTAM SE V ".$self->name." DONE";
-	
-	return $self->currently_running;
+	return scalar @threads;
 }
 
 sub is_all_completed {
 	my $s = shift;
-	
 	
 	return (($s->get_curr_running == 0) and (scalar @{$s->waiting_subs} == 0));
 }
@@ -110,83 +79,66 @@ sub add_to_threads {
 	my $sub = shift;
 	#say "ADD TO THREADS ".$s->name;
 	
-	if (!is_shared($s->{currently_running})) {
-		say "OMG verze ADT - bylo ".$s->{currently_running};
-		share($s->{currently_running});
-	}
-	
-	{
-		lock($s->{currently_running});
-		$s->{currently_running}++;
-	}
-	
 	my $thread = threads->new(sub {
 		eval{$sub->();};
 		if ($@) {
-			say "ERROR ERROR ERROR - died with $@";
+			print "Died with $@\n";
 		}
-		lock($s->{currently_running});
-		$s->{currently_running}--;
 	});
-	#say "CREATED THREAD ".$s->name;
 	$thread->detach();
-	#say "DETACHED THREAD ".$s->name;	
+	push @{$s->threads}, $thread;
+	say "Stvoril jsem novy thread s cislem ",$thread->tid();
 }
 
 
-#projede thready a smaze mrtvolky
 sub check_waiting {
 	my $s = shift;
 	
+	
 	my $subs = $s->how_many_free_to_run();
+	
+	
+	my $added=0;
 	
 	for (1..$subs) {
 		if (scalar @{$s->waiting_subs} > 0) {
+			$added=1;
+			say "spoustim dalsi";
 			my $sub = shift @{$s->waiting_subs};
 			$s->add_to_threads($sub);
-		}
+		} 
 	}
 	
-	if ($subs>0 and scalar @{$s->waiting_subs} > 0) {
+	if ($added) {
 		$s->check_waiting();
-	}
+	} 
 }
 
 sub run {
 	
 	my $s = shift;
-	#say "LOCK RUN 2 ".$s->name;
 	
 	my $sub = shift;
-	#say "LOCK RUN 3".$s->name;
 	
-	{
+	say "In forker - jdu posilat";
 	
-		#say "LOCK RUN 4".$s->name;
+	my $f = $s->how_many_free_to_run();
+	say "how many free to run vychazi na $f";
 	
-		if ($s->how_many_free_to_run()>0) {
+	if ($f>0) {
 		
-			#say "LOCK RUN 5".$s->name;
+		say "Muzu tedy spustit.";
+		$s->add_to_threads($sub);
 		
-			$s->add_to_threads($sub);
-			
-			#say "LOCK RUN 6".$s->name;
-			
-		} else {
-			push @{$s->waiting_subs}, $sub;
-		}
+	} else {
 		
-		#say "LOCK RUN 7".$s->name;
-		
-		$s->check_waiting();
-			#check_waiting tady - MYSLIM - nutny neni, ale nicemu nevadi
-			
-			#say "LOCK RUN 8".$s->name;
-			
+		say "Ukladam do cekajicich.";
+		push @{$s->waiting_subs}, $sub;
 	}
 	
-	#say "LOCK RUN 9".$s->name;
-
+	
+	$s->check_waiting();
+	
 	
 }
 

@@ -28,16 +28,15 @@ my $tecto_thread;
 sub run_tectomt {
 	$|=1;
 	$tecto_thread = threads->new( sub {    
-		$|=1;
 		
-		
-		$SIG{'KILL'} = sub { threads->exit(); }; 
 		
 		
 		Zpravostroj::TectoServer::run;
 		
 		
 	} );
+	
+	$tecto_thread->detach()
 
 }
 
@@ -45,8 +44,7 @@ sub run_tectomt {
 sub stop_tectomt {
 	$|=1;
 	say "Zastavuji tectoMT ve Stop_tectomt";
-	Zpravostroj::TectoServer::wait_before_killing();
-	$tecto_thread->kill('KILL')->detach();
+	$tecto_thread->kill('SIGUSR1');
 }
 
 
