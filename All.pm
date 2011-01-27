@@ -3,7 +3,6 @@ package All;
 use 5.008;
 use forks;
 use forks::shared;
-# with 'ReturnsNewerCounts';
 
 use strict;
 use warnings;

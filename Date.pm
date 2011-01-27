@@ -21,9 +21,6 @@ use Globals;
 my $ARTICLE_CLUSTER_SIZE = 10;
 
 
-# with 'ReturnsNewerCounts';
-
-
 has 'day' => (
 	is=>'ro',
 	isa=>'Int',
