@@ -17,7 +17,7 @@ package Zpravostroj::Readability;
 #stranka projektu - http://code.google.com/p/arc90labs-readability/
 #Readability (c) 2010 Arc90 Inc
 
-#Nebudu ho prilis komentovat - tj vubec, protoze sam ne uplne vim, co kdy presne dela, byl jsem rad, ze jsem to rozbehal
+#Nebudu ho prilis komentovat - tj vubec, protoze sam ne uplne vim, co kdy presne dela, byl jsem rad, ze jsem to naportoval
 
 use 5.008;
 use Zpravostroj::Globals;

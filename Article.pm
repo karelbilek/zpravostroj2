@@ -197,7 +197,7 @@ use MooseX::StrictConstructor;
 use Moose::Util::TypeConstraints;
 use Zpravostroj::MooseTypes;
 use Zpravostroj::WebReader;
-use ReadabilityExtractor;
+use Zpravostroj::Readability;
 use Zpravostroj::TectoClient;
 use Zpravostroj::Word;
 
@@ -225,13 +225,13 @@ has 'html_contents' => (
 has 'article_contents' => (
 	is=>'ro',
 	lazy=>1,
-	default=>sub{extract_text($_[0]->html_contents)}
+	default=>sub{Zpravostroj::Readability::extract_text($_[0]->html_contents)}
 );
 
 has 'title' => (
 	is=>'ro',
 	lazy=>1,
-	default=>sub{extract_title($_[0]->html_contents)}
+	default=>sub{Zpravostroj::Readability::extract_title($_[0]->html_contents)}
 );
 
 has 'words' => (
