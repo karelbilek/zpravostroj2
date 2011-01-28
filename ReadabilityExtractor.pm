@@ -1,13 +1,23 @@
-package ReadabilityExtractor;
+package Zpravostroj::Readability;
+#Modul, co dostane HTML a vyplivne to, co si mysli, ze je clanek
+
+#je to delane pomerne chytre na zaklade pomeru odkazu/textu (to, co chci, ma minimalni pomer odkazu, to, co nechci, je samy odkaz)
+#a ruzne to traverzuje HTML::DOM
+
 
 #Package je temer PRIMYM portem JavaScriptoveho bookmarkletu Readability do perlu
-#(ano, opakuji, je to portovano z JavaScriptu do perlu)
-#hlavni nevyhoda - zatimco DOM v prohlizecich je RYCHLY, HTML::DOM je radove pomalejsi (je cely v peru)
+#(ano, opakuji, je to portovano z JavaScriptu do perlu... byl to zazitek)
+#hlavni nevyhoda - zatimco DOM v prohlizecich je RYCHLY (je v nat. kodu), HTML::DOM je radove pomalejsi (je cely v perlu)
 #je tu take obri nekonzistence se zbytkem kodu zpravostroje (napr. nazvy procedur jsou obcas CamelCase, obcas_nejsou; odsazeni je divne; apod.)
-#na druhou stranu, funguje to vyborne, az na tu ryc hlost
+
+#Kod je tedy, priznavam, trochu necitelny
+
+#na druhou stranu, funguje to vyborne, az na tu rychlost, resp. pomalost
 
 #stranka projektu - http://code.google.com/p/arc90labs-readability/
 #Readability (c) 2010 Arc90 Inc
+
+#Nebudu ho prilis komentovat - tj vubec, protoze sam ne uplne vim, co kdy presne dela, byl jsem rad, ze jsem to rozbehal
 
 use 5.008;
 use Zpravostroj::Globals;
@@ -19,10 +29,6 @@ use HTML::HeadParser;
 use HTML::DOM;
 use warnings;
 use strict;
-
-use base 'Exporter';
-our @EXPORT = qw(extract_title extract_text);
-
 
 sub extract_title {
 	my $text=shift;
@@ -210,18 +216,6 @@ sub cleanConditionally {
 			
 			$element->parentNode->removeChild($element);
 			
-			# if ($tag=~/div/i) {
-			# 	say "Smazano verze 2!";
-			# 	say "Co jsem mazal ma weight ", $weight, "a scores ref ", $contentScore;
-			# 	my $searchable = ($element->className||"").($element->className||"");
-			# 	say "Ta weight pochazi z :", $searchable;
-			# 	$searchable=~/($unlikely)/;
-			# 	say "Co to chytlo bylo ", $1;
-			# 	say "A jeho text je : ";
-			# 	say $wwwwwwww;
-			# 	say "E ma HTML:";
-			# 	say $e->innerHTML;
-			# }
 		} elsif ( getCharCount($element,',') < 10) {
 			
 			my $p      = getTagCount($element, "p");
@@ -234,21 +228,14 @@ sub cleanConditionally {
 			
 			
 			for my $embed (@embeds) {
-				#if ($embed->src=~/http:\/\/(www\.)?(youtube|vimeo)\.com/i) {
-					$embedCount++;
-				#}
+				$embedCount++;
+				
 			}
 			
 			
 			my $linkDensity   = getLinkDensity($element);
 			my $contentLength = length(getInnerText($element));
 			my $toRemove      = 0;
-			
-			# if ($tag=~/div/i) {
-			# 	say "Jdu na dalsi. Jeho text je:";
-			# 	say getTextContent($element);
-			# 	say "jeho LD je ", $linkDensity, ", jeho delka je ", $contentLength, "p je ",$p, ", img je ", $img, ", li je ", $li, "input je ", $input, "ec je ", $embedCount;
-			# }
 			
 
 			if ( $img > $p ) {
@@ -270,32 +257,14 @@ sub cleanConditionally {
 			
 			if($toRemove) {
 				my $prnt = $element->parentNode;
-				# 
-				# if ($tag=~/div/i) {
-				# 	say "Mazu!";
-				# 	say "Ten, co ho mazu, ma html:";
-				# 	say $element->innerHTML;
-				# 	say "Parent ma zatim HTML ";
-				# 	say $element->parentNode->innerHTML;
-				# }
+				
 				
 				$element->parentNode->removeChild($element);
 				
-				# if ($tag=~/div/i) {
-				# 	say "Smazano!";
-				# 	say "Otec ma ted HTML:";
-				# 	say $prnt->innerHTML;
-				# 	say "a E ma HTML:";
-				# 	say $e->innerHTML;
-				# }
 			}
 		}
 	}
 	
-	# if ($tag=~/div/i) {
-	# 	say "Uplne na konci ma e:";
-	# 	say $e->innerHTML;
-	# }
 	
 }
 
@@ -358,10 +327,10 @@ sub extract_text {
  	
 	
 	# say "AE je ", (scalar @allElements);
-    	my $node;
-    	my @nodesToScore;
-    	
-    	my $counter;
+	my $node;
+	my @nodesToScore;
+	
+	my $counter;
     	
 	for my $nodeIndex (0..$#allElements) {
 		
@@ -374,24 +343,20 @@ sub extract_text {
 
 			my $unlikelyMatchString = ($node->className()||"") . ($node->id()||"");
 			if ($unlikelyMatchString=~/$unlikely/i and $unlikelyMatchString!~/$likely/i and $node->tagName() ne "BODY") {
-				# say "Unlikely";
 				
 				
 				
 				$node->parentNode->removeChild($node);
-				# $nodeIndex--;
-				#TODO wtf?
+				
 				
 			} else {
 				if ($node->tagName eq "P" || $node->tagName eq "TD" || $node->tagName eq "PRE" ) {
-					# say "P, TD, PRE";
 					
 					push @nodesToScore, $node;
 				}
 				
 				if ($node->tagName eq "DIV") {
 					
-					# say "DIV";
 					
 					
 					my @childs = get_elements_by_tagnames($node, qw(a blockquote dl div img ol p pre table ul));
@@ -591,15 +556,8 @@ sub extract_text {
 	cleanTag($articleContent, "object");
 	cleanTag($articleContent, "h1");
 	
-	# my @h2s = $articleContent->getElementsByTagName('h2');
-	# 	if ((scalar @h2s) == 1) {
-	# 		cleanTag($articleContent, "h2"); 
-	# 	}
-	# me se zda tohle jako nesmysl Readability to tam ma, ja to davam pryc
 	
 	cleanTag($articleContent, "iframe");
-	
-	# say "Konci jednoduche cisteni";
 	
 	for my $headerIndex (3..7) {
 		my @headers = $articleContent->getElementsByTagName('h'.$headerIndex);
@@ -610,26 +568,15 @@ sub extract_text {
 		}
 	}
 	
-	# say "Konci cisteni hlav";
 	
 	
 	cleanConditionally(\%scores, $articleContent, "table");
 	cleanConditionally(\%scores, $articleContent, "ul");
 	
 	
-	# say "Konci vse krome DIVu";
 	
 	
 	cleanConditionally(\%scores, $articleContent, "div");
-		# say "Konci DIV";
-	
-	# say "===============";
-	# 	say "Tak, ted ma vysledek innerHTML:";
-	# 	say $articleContent->innerHTML;
-	# 	say "A getTextContent je:";
-	# 	say getTextContent($articleContent);
-	# 	
-	# 	die "?";
 	
 	
 	
@@ -643,7 +590,6 @@ sub extract_text {
 			$paragraph->parentNode->removeChild($paragraph);
 		}
 	}
-	# say "konci finalni procisteni";
 	
 
 	$res = getTextContent($articleContent);
