@@ -90,6 +90,8 @@ sub dump_bz2 {
 	close($z);
 }
 
+
+
 #Snazi se vzit soubor z dane cesty a neco s nim udelat.
 #Pokud neexistuje -> undef.
 #Pokud nejde cist bunzipem -> undef.
@@ -158,35 +160,68 @@ sub undump_bz2 {
 		
 		return $v;
 	} else {
-		
-		my $should;
+			
+		deep_renamer($v);
 		
 		if (exists $v->{"__CLASS__"}) {
 			
 			my $class = $v->{"__CLASS__"};
 			
+			
 			if (isa_classname($class)) {
-				$should = 1;
-			} elsif (isa_classname("Zpravostroj::".$class)) {
-				$should = 1;
-				$v->{"__CLASS__"} = "Zpravostroj::".$class;
+				my $r = $class->unpack($v); 
+
+				return $r;
 			} else {
-				$should = 0;
+				return $v;
 			}
 			
 		} 
-		
-		if ($should) {
-			my $r = $class->unpack($v); 
-			
-			return $r;
-		} else {
-			return $v;
-		}
 	}
 	
 	
 }
 
+#Mam tu 2 "prejmenovavaci" procedury
+#MooseX::Storage nebo pres co to vlastne loaduju potrebuje __CLASS__ jako nazev tridy
+#Já jsem ale svoje třídy všechny přejmenovával, abych se v nich vyznal
+#jmenují se všechny Zpravostroj::něco
+
+#tahle procedura projde celý hash a zjistí, jestli náhodou někde není blbý název, jestli je, tak ho předělá
+
+sub deep_renamer {
+	my $what;
+	if (exists $what->{"__CLASS__"}) {
+		my $c = $what->{"__CLASS__"};
+		if (!isa_classname($c) and isa_classname("Zpravostroj::$c")) {
+			$what->{"__CLASS__"} = "Zpravostroj::$c";
+		}
+	}
+	for my $k (keys %$what) {
+		if ($k!="__CLASS__") {
+			my $r = $what->{$k};
+			if (ref($r) eq 'HASH') {
+				deep_renamer($r);
+			}
+			if (ref($r) eq 'ARRAY') {
+				deep_renamer_array($r);
+			}
+		}
+	}
+}
+
+sub deep_renamer_array {
+	my $what;
+	for my $r (@$what) {
+		if (ref($r) eq 'HASH') {
+			deep_renamer($r);
+		}
+		
+		if (ref($r) eq 'ARRAY') {
+			deep_renamer_array($r);
+		}
+		
+	}
+}
 
 1;
