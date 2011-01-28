@@ -227,7 +227,7 @@ sub delete_from_theme_files{
 	my $theme_list = shift;
 	my $date = shift;
 	
-	if (((blessed $theme_list)||"") eq "ThemeHash") {
+	if (((blessed $theme_list)||"") eq "Zpravostroj::ThemeHash") {
 		#_change_theme_files(0,$theme_list, $date);
 		#ted ne, protoze smazano rucne
 	}

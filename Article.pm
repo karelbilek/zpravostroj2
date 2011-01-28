@@ -7,7 +7,7 @@ use List::Util qw(min);
 use forks;
 use forks::shared;
 
-
+use Zpravostroj::ThemeHash;
 use Zpravostroj::Forker;
 
 use Moose;
@@ -85,7 +85,7 @@ sub get_and_save_themes {
 	my $total = shift;
 	
 	my $themhash:shared;
-	$themhash = shared_clone(new ThemeHash());
+	$themhash = shared_clone(new Zpravostroj::ThemeHash());
 	
 	my %urls:shared;
 	
