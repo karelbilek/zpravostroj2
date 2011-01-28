@@ -139,7 +139,7 @@ sub do_for_all {
 	my $end = if_undef(shift, ($c-1));
 	$|=1;
 	
-	my $forker = new Forker(size=>$THREADS_SIZE);
+	my $forker = new Zpravostroj::Forker(size=>$THREADS_SIZE);
 	
 	for my $art_name (@art_names[$start..$end]) {
 	

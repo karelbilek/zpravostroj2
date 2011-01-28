@@ -17,7 +17,7 @@ use File::Slurp;
 use Data::Dumper;
 use Scalar::Util qw(blessed);
 
-use Theme;
+use Zpravostroj::Theme;
 
 $|=1;
 
@@ -52,6 +52,19 @@ sub do_once_per_hour {
 		$RSS->refresh_urls;
 		dump_bz2($f, $RSS);
 	}
+}
+
+sub just_load_all {
+	do_for_all(sub{
+		my $d = shift;
+		say "den ", $d->get_to_string;
+		my $datearticles = new AllDateArticles(date=>$d);
+		
+		$datearticles->do_for_all(sub{
+			say "yay!";
+			return (0, undef);
+		})
+	})
 }
 
 sub review_all {

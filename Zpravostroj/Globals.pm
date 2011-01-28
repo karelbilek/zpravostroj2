@@ -190,20 +190,20 @@ sub undump_bz2 {
 #tahle procedura projde celý hash a zjistí, jestli náhodou někde není blbý název, jestli je, tak ho předělá
 
 sub deep_renamer {
-	my $what;
+	my $what = shift;
 	if (exists $what->{"__CLASS__"}) {
 		my $c = $what->{"__CLASS__"};
 		if (!isa_classname($c) and isa_classname("Zpravostroj::$c")) {
 			$what->{"__CLASS__"} = "Zpravostroj::$c";
 		}
-	}
+	} 
 	for my $k (keys %$what) {
-		if ($k!="__CLASS__") {
+		if ($k ne "__CLASS__") {
 			my $r = $what->{$k};
-			if (ref($r) eq 'HASH') {
+			if (reftype($r) eq 'HASH') {
 				deep_renamer($r);
 			}
-			if (ref($r) eq 'ARRAY') {
+			if (reftype($r) eq 'ARRAY') {
 				deep_renamer_array($r);
 			}
 		}
@@ -211,13 +211,13 @@ sub deep_renamer {
 }
 
 sub deep_renamer_array {
-	my $what;
+	my $what = shift;
 	for my $r (@$what) {
-		if (ref($r) eq 'HASH') {
+		if (reftype($r) eq 'HASH') {
 			deep_renamer($r);
 		}
 		
-		if (ref($r) eq 'ARRAY') {
+		if (reftype($r) eq 'ARRAY') {
 			deep_renamer_array($r);
 		}
 		
