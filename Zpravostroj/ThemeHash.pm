@@ -25,7 +25,7 @@ with Storage;
 #key hashe je lemma, values jsou Zpravostroj::Theme
 has 'themes' => (
 	is => 'rw',
-	isa => 'HashRef[Theme]',
+	isa => 'HashRef[Zpravostroj::Theme]',
 	default => sub { {} }
 );
 

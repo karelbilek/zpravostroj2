@@ -203,7 +203,7 @@ use Zpravostroj::Word;
 
 use Date;
 
-use Theme;
+use Zpravostroj::Theme;
 
 use MooseX::Storage;
 
@@ -280,7 +280,7 @@ has 'counts' => (
 
 has 'themes' => (
 	is => 'rw',
-	isa=> 'ArrayRef[Theme]',
+	isa=> 'ArrayRef[Zpravostroj::Theme]',
 	predicate => 'has_themes'
 );
 
@@ -383,7 +383,7 @@ sub count_themes {
 	}
 	
 	
-	my @newthemes=(map {new Theme(form=>$word_counts->{$_}{back}, lemma=>$_, importance=>$importance{$_})} @newthemes_keys);
+	my @newthemes=(map {new Zpravostroj::Theme(form=>$word_counts->{$_}{back}, lemma=>$_, importance=>$importance{$_})} @newthemes_keys);
 	$s->themes(\@newthemes);
 	return;
 	

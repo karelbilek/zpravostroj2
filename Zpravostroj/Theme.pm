@@ -46,7 +46,7 @@ has 'importance' => (
 #vytvori stejne Theme, ale se skorem o 1 zvetsenym
 sub add_1{
 	my $this = shift;
-	return (new Theme(lemma=>$this->lemma, form=>$this->form, importance=>$this->importance+1));
+	return (new Zpravostroj::Theme(lemma=>$this->lemma, form=>$this->form, importance=>$this->importance+1));
 
 }
 
@@ -55,7 +55,7 @@ sub add_1{
 sub add_another {
 	my $this = shift;
 	my $that = shift;
-	return (new Theme(lemma=>$this->lemma, form=>$this->form, importance=>$this->importance+$that->importance));
+	return (new Zpravostroj::Theme(lemma=>$this->lemma, form=>$this->form, importance=>$this->importance+$that->importance));
 	
 }
 
@@ -63,7 +63,7 @@ sub add_another {
 sub same_with_1 {
 	my $this = shift;
 	
-	return (new Theme(lemma=>$this->lemma, form=>$this->form, importance=>1));
+	return (new Zpravostroj::Theme(lemma=>$this->lemma, form=>$this->form, importance=>1));
 }
 
 __PACKAGE__->meta->make_immutable;
