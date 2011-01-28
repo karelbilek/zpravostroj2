@@ -112,7 +112,7 @@ sub get_and_save_themes {
 			for (@$themes) {
 				{
 					lock($themhash);
-					$themhash->add_theme($_);
+					$themhash->add_theme($_, 1);
 				}
 			}
 		
