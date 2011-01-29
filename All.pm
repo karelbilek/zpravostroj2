@@ -20,22 +20,6 @@ use Scalar::Util qw(blessed);
 use Zpravostroj::Theme;
 
 
-sub review_all {
-	$|=1;
-	
-	Zpravostroj::TectoServer::run_tectoserver();
-	
-	do_for_all(sub{
-		my $d = shift;
-		#my $d = new Date(day=>13, month=>12, year=>2010);
-		if ($d->month >=3 and $d->year >= 2010) {
-		#if ($d->month ==7 and $d->year >= 2010) {	
-			$d->review_all();
-		}
-	},1);
-	
-	Zpravostroj::TectoServer::stop_tectoserver();
-}
 
 sub review_all_2 {
 	set_latest_count();
