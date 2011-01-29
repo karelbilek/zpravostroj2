@@ -96,26 +96,26 @@ sub is_the_same_as {
 
 sub is_older_than {
 	my ($s, $newer)=@_;
-	if ($newer->year > $s->year) {
-			return 1;
-		}
-		if ($newer->year < $s->year) {
-			return 0;
-		}
-		if ($newer->month > $s->month) {
-			return 1;
-		}
-		if ($newer->month < $s->month) {
-			return 0;
-		}
-		if ($newer->day > $s->day) {
-			return 1;
-		}
-		if ($newer->day < $s->day) {
-			return 0;
-		}
-		
+	if ($newer->{year} > $s->{year}) {
+		return 1;
+	}
+	if ($newer->{year} < $s->{year}) {
 		return 0;
+	}
+	if ($newer->{month} > $s->{month}) {
+		return 1;
+	}
+	if ($newer->{month} < $s->{month}) {
+		return 0;
+	}
+	if ($newer->{day} > $s->{day}) {
+		return 1;
+	}
+	if ($newer->{day} < $s->{day}) {
+		return 0;
+	}
+		
+	return 0;
 }
 
 sub daypath_themes {

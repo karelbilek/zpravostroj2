@@ -65,14 +65,14 @@ sub download_articles_count_and_themes {
 
 sub recount_all_themes {
 	
-	my $count = All::get_count();
+	my %count = AllWordCounts::get_count();
 	
 	
 	my $total = All::get_total_before_count();
 		
 	All::do_for_all(sub{
 		my $date = shift;
-		$date->get_and_save_themes($count, $total);
+		$date->get_and_save_themes(\%count, $total);
 	},1);
 }
 
