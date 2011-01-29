@@ -155,12 +155,15 @@ sub get_top_themes{
 	
 	my $themes = undump_bz2($path);
 	
-	
-	my @themes_top = $themes->top_themes($n);
+	if ($themes) {
+		my @themes_top = $themes->top_themes($n);
 	
 
 	
-	return @themes_top;
+		return @themes_top;
+	} else {
+		return ();
+	}
 }
 
 #localtime -> z casoscalaru pole

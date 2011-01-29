@@ -3,7 +3,7 @@ use base 'Exporter';
 #pomocny modulik na vsechny funkce, co chci, aby byly videt vsude, ale nejsou samy o sobe prilis "chytre"
 #plus pres to sdilim vsechny konstanty, co chci videt vsude
 
-our @EXPORT = qw($SIMULTANEOUS_THREADS_TECTOSERVER $MIN_ARTICLE_COUNT_PER_DAY_WTF undump_bz2 dump_bz2 say if_undef);
+our @EXPORT = qw($SIMULTANEOUS_THREADS_TECTOSERVER $MIN_ARTICLE_COUNT_PER_DAY_WTF undump_bz2 dump_bz2 say if_undef get_last_folder);
 
 our $MIN_ARTICLE_COUNT_PER_DAY_WTF = 8;
 
@@ -28,6 +28,12 @@ sub say(@) {
 	print $d;
 }
 
+#vrátí název posledního adresáře v celé adrese (tj. vše od posledního / do konce)
+sub get_last_folder {
+	my $w = shift;
+	$w=~/\/([^\/]*)$/;
+	return $1;
+}
 
 #tohle je zase nahrada operatoru // z perlu 5.010
 #kdyz je prvni undef, vrati druhy, jinak prvni

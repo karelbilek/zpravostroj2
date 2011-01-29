@@ -20,136 +20,6 @@ use Scalar::Util qw(blessed);
 use Zpravostroj::Theme;
 
 
-
-sub review_all_2 {
-	set_latest_count();
-}
-
-sub review_all_3 {
-	set_all_themes();
-}
-
-
-sub review_all_final {
-	
-	my %r = do_for_all(sub{
-		my $d = shift;
-		say "Day ", $d->get_to_string();
-		my %imp_themes = @_;
-		
-		
-		my @d_themes = $d->get_top_themes(100);
-		for my $theme (@d_themes) {
-			if (exists $imp_themes{$theme->lemma}) {
-				$imp_themes{$theme->lemma} = $theme->add_another($imp_themes{$theme->lemma});
-			} else {
-				$imp_themes{$theme->lemma} = $theme;
-				
-			}
-		}
-		
-		#my @res = map {$_->to_string()} values %imp_themes;
-		return %imp_themes;
-	}, 0);
-	
-	my @r_themes = values %r;
-	
-	@r_themes = sort {$b->importance <=> $a->importance} @r_themes;
-	
-	return @r_themes[0..100];
-}
-
-sub do_once_per_day {
-	$|=1;
-	
-	Zpravostroj::TectoServer::run_tectoserver();
-	
-	my @links;
-	my $date = new Date();
-	
-	for my $f (<data/RSS/*>) {
-		my $RSS = undump_bz2($f);
-		push (@links, $RSS->get_article_urls);
-		dump_bz2($f, $RSS);
-	}
-	
-	for my $link (@links) {
-		say "tvorim $link";
-		my $a = new Article(url=>$link); #the whole creation happens here
-		
-		say "ukladam $link";
-		$date->save_article($a);
-	}
-	
-	say "zastavuji tmt";
-	Zpravostroj::TectoServer::stop_tectoserver(); #so it doesn't mess the memory when I don't really need it
-	
-	say "set_latest_count (buhvi co to udela)";
-	set_latest_count(); #looks at the latest count, adds all younger stuff (which means all the new articles, basically)
-	
-	say "set_all_themes (modleme se)";
-	set_all_themes(); #goes through ALL the articles - including the new ones - and sets new themes, based on the new counts
-	
-	say "ze by... hotovo?!?";
-}
-
-sub get_total_themes {
-	my %res_all = do_for_all (sub {
-		my $d = shift;
-		my %all = @_;
-		
-		say "Delam den ", $d->get_to_string();
-		
-		my $ts = $d->get_day_themes;
-		
-		my @arr = (sort{$ts->{$b}->importance <=> $ts->{$a}->importance} keys %$ts)[0..300];
-		#my %ts_filtered = map {($_=>$ts->{$_})} @arr;
-		
-		for my $key (@arr) {
-			if (defined $key) {
-				if (exists $all{$key}) {
-					$all{$key} = $all{$key}->add_another($ts->{$key});
-				} else {
-					$all{$key} = $ts->{$key};
-				}
-			}
-		}
-		
-		return %all;
-	},1);
-	my @arr = sort{$b->importance <=> $a->importance} values %res_all;
-	dump_bz2("sem", \@arr);
-}
-
-sub set_all_themes {
-	
-	
-	my $count = All::get_count();
-	
-	
-	my $total = All::get_total_before_count();
-	
-	#my $begin = new Date(day=>1, month=>7, year=>2010);
-	
-	do_for_all(sub{
-		my $date = shift;
-		#if ($begin->is_older_than($date)) {
-			$date->get_and_save_themes($count, $total);
-		#}
-	},1);
-}
-
-sub resave_to_new {
-	my $begin = new Date(day=>17,year=>2010, month=>8);
-	do_for_all(sub{
-		my $date = shift;
-		if ($begin->is_older_than($date)) {
-			say "Du na den ",$date->get_to_string();
-			$date->resave_to_new();
-		}
-	},1);
-}
-
 sub get_theme_path{
 	my $n = shift;
 	$n=~s/[^a-zA-Z]//g;
@@ -270,12 +140,6 @@ sub _change_theme_files{
 	
 }
 
-sub _get_last_folder {
-	my $w = shift;
-	$w=~/\/([^\/]*)$/;
-	return $1;
-}
-
 
 sub get_all_dates {
 	if (!-d "data" or !-d "data/articles") {
@@ -283,12 +147,12 @@ sub get_all_dates {
 		return ();
 	} else {
 		my @res;
-		for (sort {_get_last_folder($a)<=>_get_last_folder($b)} <data/articles/*>) {
-			my $year = _get_last_folder($_);;
-			for (sort {_get_last_folder($a)<=>_get_last_folder($b)} <data/articles/$year/*>) {
-				my $month = _get_last_folder($_);
-				for (sort {_get_last_folder($a)<=>_get_last_folder($b)} <data/articles/$year/$month/*>) {
-					my $day = _get_last_folder($_);
+		for (sort {get_last_folder($a)<=>get_last_folder($b)} <data/articles/*>) {
+			my $year = get_last_folder($_);;
+			for (sort {get_last_folder($a)<=>get_last_folder($b)} <data/articles/$year/*>) {
+				my $month = get_last_folder($_);
+				for (sort {get_last_folder($a)<=>get_last_folder($b)} <data/articles/$year/$month/*>) {
+					my $day = get_last_folder($_);
 					push(@res,new Date(day=>$day, month=>$month, year=>$year));
 				}
 			}
@@ -316,7 +180,9 @@ sub do_for_all(&$) {
 			#@shared = $thread->join();
 			$thread->join();
 		} else {
+			
 			@shared = $subref->($_, @shared);
+			
 		}
 	}
 	return @shared;
@@ -432,18 +298,6 @@ sub set_last_saved {
 	$date->get_to_file("data/all/date_last_counted");
 	write_file("data/all/article_last_counted", $num);
 }
-
-# sub datestamp_path {
-	# mkdir "data";
-	# mkdir "data/all";
-	# return "data/all/datestamp";
-# }
-
-# sub lastcount_path {
-	# mkdir "data";
-	# mkdir "data/all";
-	# return "data/all/lastcount.bz2";
-# }
 
 
 1;

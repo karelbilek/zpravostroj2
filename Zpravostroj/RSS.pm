@@ -58,8 +58,12 @@ sub refresh_urls {
 		#mozna tu az prilis zabira staveni Date objektu,
 		#ale to je fuk, stejne to nikdy neni bottleneck
 		
-		if (Date::get_from_string($s->article_urls->{$_})->is_older_than($yesterday)) {
-			delete $s->article_urls->{$_};
+		my $datestr = $s->article_urls->{$_};
+		if ($datestr !~ /_read/) {
+		
+			if (Date::get_from_string($datestr)->is_older_than($yesterday)) {
+				delete $s->article_urls->{$_};
+			}
 		}
 	}
 	
