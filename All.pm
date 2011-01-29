@@ -20,28 +20,6 @@ use Scalar::Util qw(blessed);
 use Zpravostroj::Theme;
 
 
-
-sub do_once_per_hour {
-	for my $f (<data/RSS/*>) {
-		my $RSS = undump_bz2($f);
-		$RSS->refresh_urls;
-		dump_bz2($f, $RSS);
-	}
-}
-
-sub just_load_all {
-	do_for_all(sub{
-		my $d = shift;
-		say "den ", $d->get_to_string;
-		my $datearticles = new AllDateArticles(date=>$d);
-		
-		$datearticles->do_for_all(sub{
-			say "yay!";
-			return (0, undef);
-		})
-	})
-}
-
 sub review_all {
 	$|=1;
 	
