@@ -19,31 +19,6 @@ use Scalar::Util qw(blessed);
 
 use Zpravostroj::Theme;
 
-$|=1;
-
-my $tecto_thread;
-
-sub run_tectomt {
-	$|=1;
-	$tecto_thread = threads->new( sub {    
-		
-		
-		
-		Zpravostroj::TectoServer::run;
-		
-		
-	} );
-	
-	$tecto_thread->detach()
-
-}
-
-
-sub stop_tectomt {
-	$|=1;
-	say "Zastavuji tectoMT ve Stop_tectomt";
-	$tecto_thread->kill('SIGUSR1');
-}
 
 
 sub do_once_per_hour {
@@ -70,7 +45,7 @@ sub just_load_all {
 sub review_all {
 	$|=1;
 	
-	run_tectomt();
+	Zpravostroj::TectoServer::run_tectoserver();
 	
 	do_for_all(sub{
 		my $d = shift;
@@ -81,7 +56,7 @@ sub review_all {
 		}
 	},1);
 	
-	stop_tectomt();
+	Zpravostroj::TectoServer::stop_tectoserver();
 }
 
 sub review_all_2 {
@@ -125,7 +100,7 @@ sub review_all_final {
 sub do_once_per_day {
 	$|=1;
 	
-	run_tectomt();
+	Zpravostroj::TectoServer::run_tectoserver();
 	
 	my @links;
 	my $date = new Date();
@@ -145,7 +120,7 @@ sub do_once_per_day {
 	}
 	
 	say "zastavuji tmt";
-	stop_tectomt(); #so it doesn't mess the memory when I don't really need it
+	Zpravostroj::TectoServer::stop_tectoserver(); #so it doesn't mess the memory when I don't really need it
 	
 	say "set_latest_count (buhvi co to udela)";
 	set_latest_count(); #looks at the latest count, adds all younger stuff (which means all the new articles, basically)

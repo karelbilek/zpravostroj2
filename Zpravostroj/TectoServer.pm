@@ -271,4 +271,34 @@ sub run {
 }
 
 
+#tecto_thread je globalni promenna, co pouzivam pouze v run_tectoserver a stop_tectoserver
+#je v ni thread, kde bezi tectoserver
+#tj. run_tectoserver a stop_tectoserver spoustim VZDY z hlavniho threadu! ne z threadu s tectomt
+#(ackoliv mam pocit, ze stop_tectoserver by fungovalo. ale jist si nejsem. 
+#	run_tectoserver by nefungovalo proto, ze ten thread jeste neexistuje :) ) 
+my $tecto_thread;
+
+sub run_tectoserver {
+	$|=1;
+	$tecto_thread = threads->new( sub {    
+		
+		
+		
+		Zpravostroj::TectoServer::run;
+		
+		
+	} );
+	
+	$tecto_thread->detach()
+
+}
+
+
+sub stop_tectoserver {
+	$|=1;
+	say "Zastavuji tectoMT ve Stop_tectoserver";
+	$tecto_thread->kill('SIGUSR1');
+}
+
+
 1;
