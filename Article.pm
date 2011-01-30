@@ -100,10 +100,13 @@ sub get_and_save_themes {
 				
 				$urls{$a->url} = 1;
 			}
+			
+			say "----------------------JDU POCITAT THEMES-------";
 		
 			$a->count_themes($total, $count);
 			
-		
+			say "----------------------HOTOVO-------";
+
 			
 		
 			my $themes = $a->themes;
@@ -359,9 +362,9 @@ sub count_themes {
 	
 	my @sorted = (sort {$importance{$b}<=>$importance{$a}} keys %importance)[0..39];
 	
-	
+	#tohle je nejaka cypovina
 	for my $lemma (@sorted) {
-		if (exists $importance{$lemma}) {
+		if (exists $importance{if_undef($lemma)}) {
 			for my $subgroup (get_all_subgroups($lemma)) {
 				delete $importance{$subgroup};
 			}

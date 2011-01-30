@@ -88,12 +88,13 @@ sub add_to_threads {
 	my $sub = shift;
 	
 	my $thread = threads->new(sub {
+		threads->detach();
 		eval{$sub->();};
 		if ($@) {
 			say "Died with $@";
 		}
 	});
-	$thread->detach();
+	
 	push @{$s->threads}, $thread;
 	say "Stvoril jsem novy thread s cislem ",$thread->tid();
 }
@@ -131,7 +132,6 @@ sub run {
 	
 	my $sub = shift;
 	
-	say "In forker - jdu posilat";
 	
 	push @{$s->waiting_subs}, $sub;
 	

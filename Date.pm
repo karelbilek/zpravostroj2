@@ -17,6 +17,7 @@ with Storage;
 
 use Article;
 use Zpravostroj::Globals;
+use Zpravostroj::ThemeHistory;
 
 my $ARTICLE_CLUSTER_SIZE = 10;
 
@@ -300,53 +301,18 @@ sub get_and_save_themes {
 	
 	{
 		my $old_day_themes = $s->get_day_themes;
-		All::delete_from_theme_files($old_day_themes, $s);
+		Zpravostroj::ThemeHistory::delete_from_theme_files($old_day_themes, $s);
 	}
 	
 	
 	my $datearticles = new AllDateArticles(date=>$s);#, size=>$ARTICLE_CLUSTER_SIZE);
 	
-	my $themhash = $datearticles->get_and_save_themes($count, $total);
-	
-	# MyTimer::start_timing("tvorim themehash");
-	# 	my $themhash:shared;
-	# 	$themhash = shared_clone(new ThemeHash());
-	# 	
-	# 	MyTimer::start_timing("pred DFA");
-	# 	
-	# 	
-	# 	$s->do_for_all(sub {
-	# 		my $a = shift;
-	# 		my $changed = shift;
-	# 		
-	# 		
-	# 		MyTimer::start_timing("count themes");
-	# 		
-	# 		$a->count_themes($total, $count);
-	# 		
-	# 		MyTimer::start_timing("opetne nacitani");
-	# 		my $themes = $a->themes;
-	# 		
-	# 		MyTimer::start_timing("zapisovani do day_themes hashe");
-	# 		
-	# 		for (@$themes) {
-	# 			$themhash->add_theme($_);
-	# 		}
-	# 		
-	# 		$$changed = 1;
-	# 		
-	# 		return();
-	# 	},1
-	# 	);
-	
-	
-	
-	
+	my $themhash = $datearticles->get_and_save_themes($count, $total);	
 
 	$s->save_day_themes($themhash);
 	
 
-	All::add_to_theme_files($themhash, $s);
+	Zpravostroj::ThemeHistory::add_to_theme_files($themhash, $s);
 	
 }
 

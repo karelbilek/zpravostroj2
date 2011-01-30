@@ -37,6 +37,11 @@ sub null_all {
 	system("rm -r data/all_count/");
 }
 
+sub set_count {
+	my $w = shift;
+	dump_bz2("data/all_count/counts.bz2", $w);
+}
+
 sub get_count {
 	
 	
@@ -62,48 +67,6 @@ sub set_last_saved {
 	write_file("data/all_count/article_last_counted", $num);
 }
 
-sub set_latest_count {
-	
-	
-	my ($last_date_counted, $last_article_counted) = get_last_saved();
 
-	my %counts = get_count();
-	share(%counts); #in forks, it DOES keep its values after share, unlike in ithreads
-	
-	my $last_date_now = shared_clone(new Date());
-	
-	All::do_for_all(sub{
-		
-		my $d = shift;
-		
-		#!!!!!!!!!!!!!!!!!!SPATNE SPATNE SPATNE!!!!! MUSIM ZMENIT NA NECO, CO VRACI TRAVERSABLE, JE TO MIMO PORADI
-		$last_date_now = shared_clone($d);
-		
-		say "d je ".$d->get_to_string();
-		
-		
-		if (! $d->is_older_than($last_date_counted)) {
-			my $day_count = ($last_date_counted->is_the_same_as($d)) 
-							? (
-								{$d->get_count($last_article_counted+1)}
-							) : (
-								{$d->get_count(0)}
-							);
-			for (keys %$day_count) {
-				if ($day_count->{$_}>=$MIN_ARTICLES_PER_DAY_FOR_ALLWORDCOUNTS_INCLUSION) {
-					lock(%counts);
-					$counts{$_}=if_undef($counts{$_},0) + $day_count->{$_};
-				}
-			}
-		}
-		
-		say "done";
-		
-		return ();
-		
-	},1);
-	dump_bz2("data/all_count/counts.bz2", \%counts);
-	set_last_saved($last_date_now, $last_date_now->article_count-1);
-}
 
 1;

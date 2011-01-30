@@ -48,7 +48,8 @@ sub create_articles_from_URLs {
 	}
 }
 
-sub download_articles_count_and_themes {
+my $alldates=new Zpravostroj::AllDates;
+sub download_articles_counts_and_themes {
 	
 	Zpravostroj::TectoServer::run_tectoserver();
 		
@@ -58,40 +59,37 @@ sub download_articles_count_and_themes {
 	
 	Zpravostroj::TectoServer::stop_tectoserver(); #so it doesn't mess the memory when I don't really need it
 	
-	All::set_latest_count(); #looks at the latest count, adds all younger stuff (which means all the new articles, basically)
+	$alldates->set_latest_wordcount(); #looks at the latest count, adds all younger stuff (which means all the new articles, basically)
 	
 	recount_all_themes(); #goes through ALL the articles - including the new ones - and sets new themes, based on the new counts
 	
 }
 
-sub recount_all_themes {
-	
-	my %count = AllWordCounts::get_count();
-	
-	
-	my $total = All::get_total_before_count();
-		
-	All::do_for_all(sub{
-		my $date = shift;
-		$date->get_and_save_themes(\%count, $total);
-	},1);
+sub remove_unusable {
+	$alldates->delete_all_unusable();
 }
 
-sub get_total_count {
-	my $celkem:shared;
-	$celkem=0;
-	Zpravostroj::AllDates->traverse(sub {
-		my $d = shift;
-		say $d->get_to_string();
-		lock($celkem);
-		$celkem += $d->article_count();
-	}, 40);
-	say $celkem;
+sub recount_all_themes {
+	
+	say "==============================get_count===";
+	my %wordcount = Zpravostroj::AllWordCounts::get_count();
+	
+	say "==============================get_total_before_count===";
+
+	my $artcount = $alldates->get_total_article_count_before_last_wordcount();
+	
+	
+	say "==============================get_and_save_themes===";
+	
+	$alldates->traverse(sub{(shift)->get_and_save_themes(\%wordcount, $artcount)},2);
+	
+	
 }
+
 
 sub recount_all_articles {
 	$|=1;
-	
+
 	Zpravostroj::TectoServer::run_tectoserver();
 	
 	All::do_for_all(sub{

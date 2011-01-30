@@ -15,6 +15,8 @@ use IO::Compress::Bzip2;
 use Scalar::Util qw(blessed reftype);
 use YAML::XS;
 
+use forks;
+
 use 5.008;
 
 #v perlu 5.010 je vestavena funkce say, co automaticky prida \n na konec
@@ -67,15 +69,17 @@ sub isa_classname {
 
 #je vtipne, ze se muze stat, ze kdyz jsou nektere argumenty "lazy" tak se ve skutecnosti spousta veci odehraje tady,
 #protoze az ->pack opravdu vola vsechny atributy. Ale ono to nicemu nevadi. Ale je dobre to vedet.
+
+#bzip se nejdriv otevre do noveho souboru v .bz2 a az POTOM se presune jinam. Usetri to dost zbytecnych failu.
 sub dump_bz2 {
 	my $path = shift;
 	my $ref = shift;
 	
 	my $exp_class = shift || "";
 	
+	my $tmpath = "/tmp/zstroj".threads->tid().".bz2";
 	
-	#my $z = IO::Compress::Bzip2->new ($path);
-	open my $z, "|bzip2 > $path";
+	open my $z, "|bzip2 > $tmpath";
 	if (!$z) {
 		say "Cannot create BZ2 with path $path!";
 		return;
@@ -94,6 +98,7 @@ sub dump_bz2 {
 	print $z $w;
 	
 	close($z);
+	system("mv $tmpath $path");
 }
 
 
