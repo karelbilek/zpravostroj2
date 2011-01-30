@@ -4,7 +4,7 @@ use Zpravostroj::Globals;
 use Moose;
 use Date;
 
-with Traversable;
+with 'Zpravostroj::Traversable';
 
 sub _get_traversed_array {
 	shift;
@@ -21,9 +21,7 @@ sub _get_traversed_array {
 				my $month = get_last_folder($_);
 				for (sort {get_last_folder($a)<=>get_last_folder($b)} <data/articles/$year/$month/*>) {
 					my $day = get_last_folder($_);
-					if ($day=~/(\d\d\d\d)-(\d+)-(\d+)/) {
-						push(@res, $year."-".$month."-".$day);
-					}
+					push(@res, $year."-".$month."-".$day);
 				}
 			}
 		}
@@ -37,3 +35,9 @@ sub _get_object_from_string {
 }
 
 sub _after_traverse{}
+
+
+__PACKAGE__->meta->make_immutable;
+
+
+1;

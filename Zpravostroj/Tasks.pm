@@ -9,6 +9,7 @@ use warnings;
 use Zpravostroj::RSS;
 use Zpravostroj::Globals;
 use All;
+use Zpravostroj::AllDates;
 
 use forks;
 use forks::shared;
@@ -76,6 +77,17 @@ sub recount_all_themes {
 	},1);
 }
 
+sub get_total_count {
+	my $celkem:shared;
+	$celkem=0;
+	Zpravostroj::AllDates->traverse(sub {
+		my $d = shift;
+		say $d->get_to_string();
+		lock($celkem);
+		$celkem += $d->article_count();
+	}, 40);
+	say $celkem;
+}
 
 sub recount_all_articles {
 	$|=1;
