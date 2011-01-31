@@ -39,7 +39,7 @@ sub traverse(&$) {
 				
 				say "trversable - po subr.";
 
-				$s->_after_traverse(@res);
+				$s->_after_traverse($str,@res);
 			
 				say "trversable - po after traverse";
 

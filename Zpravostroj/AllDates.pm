@@ -39,7 +39,6 @@ sub _get_object_from_string {
 }
 
 sub _after_traverse{
-	say "after traverse";
 }
 
 sub set_latest_wordcount {

@@ -19,7 +19,6 @@ use Article;
 use Zpravostroj::Globals;
 use Zpravostroj::ThemeHistory;
 
-my $ARTICLE_CLUSTER_SIZE = 10;
 
 
 has 'day' => (

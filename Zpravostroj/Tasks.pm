@@ -64,6 +64,10 @@ sub download_articles_counts_and_themes {
 	
 }
 
+sub just_went_through_all {
+	$alldates->traverse(sub{},20);
+}
+
 sub remove_unusable {
 	$alldates->delete_all_unusable();
 }
