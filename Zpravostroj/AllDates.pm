@@ -35,7 +35,7 @@ sub _get_traversed_array {
 
 sub _get_object_from_string {
 	shift;
-	return Date::get_from_string(shift);
+	return new DateArticles(date=>Date::get_from_string(shift));
 }
 
 sub _after_traverse{
@@ -54,12 +54,10 @@ sub set_latest_wordcount {
 		
 		my $d = shift;
 		
-		
-		say "d je ".$d->get_to_string();
-		
-		if (! $d->is_older_than($last_date_counted)) {
+				
+		if (! $d->date->is_older_than($last_date_counted)) {
 			say "je novejsi, jdu pocitat counts";
-			my $day_count = ($last_date_counted->is_the_same_as($d)) 
+			my $day_count = ($last_date_counted->is_the_same_as($d->date)) 
 							? (
 								{$d->get_count_before_article($last_article_counted+1)}
 							) : (
@@ -101,10 +99,10 @@ sub get_total_article_count_before_last_wordcount {
 		my $d = shift;
 		
 		lock($total);
-		if ($last_date->is_the_same_as($d)) {
+		if ($last_date->is_the_same_as($d->date)) {
 			$total += $last_article+1;
 		}
-		if ($d->is_older_than($last_date)) {
+		if ($d->date->is_older_than($last_date)) {
 			$total += $d->article_count();
 		}
 		
@@ -136,7 +134,6 @@ sub get_top_themes {
 	
 	$s->traverse(sub{
 		my $d = shift;
-		say "Day ", $d->get_to_string();
 		
 		my @d_themes = $d->get_top_themes(100);
 		for my $theme (@d_themes) {

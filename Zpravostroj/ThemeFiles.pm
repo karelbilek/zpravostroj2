@@ -1,4 +1,4 @@
-package Zpravostroj::ThemeHistory;
+package Zpravostroj::ThemeFiles;
 #Modul na zpracovávání historií témat
 
 #Historie tématu je - možná bohužel - jenom "hnusný" hash hashů hashů
@@ -44,26 +44,26 @@ sub get_theme_path{
 
 #smaže historii s datem $date ze všech témat v theme_hash
 #(tj. jakoby to smaže všechna existující témata toho dne, abych mohl spočítat nová)
-sub delete_from_theme_files{
+sub delete_from_theme_history{
 
 	#theme_hash je Zpravostroj::ThemeHash
 	my $theme_hash = shift;
 	my $date = shift;
 	
 	if (((blessed $theme_hash)||"") eq "Zpravostroj::ThemeHash") {
-		_change_theme_files(0,$theme_hash, $date);
+		_change_theme_history(0,$theme_hash, $date);
 	}
 }
 
 #přidá do historie všechna témata s theme_hash s datem $date
 #přičemž v $theme->importance je vždycky počet článků 
-sub add_to_theme_files{
+sub add_to_theme_history{
 
 	#theme_hash je Zpravostroj::ThemeHash
 	my $theme_hash = shift;
 	my $date = shift;
 	
-	_change_theme_files(1,$theme_hash, $date);
+	_change_theme_history(1,$theme_hash, $date);
 }
 
 #pomocná procedura na smazani jednoho tematu z hashe
@@ -140,7 +140,7 @@ sub _change_one_theme {
 
 #pomocná procedura, co dostane themehash z nejakeho dne
 #a všechno popřidává nebo poubírá podle toho, jestli add je 1 nebo 0
-sub _change_theme_files{
+sub _change_theme_history{
 	my $add = shift;
 	my $theme_hash = shift;
 	
@@ -159,6 +159,36 @@ sub _change_theme_files{
 	
 	$forker->wait();
 	
+}
+
+sub _daypath_themes {
+	my $d = shift;
+	mkdir "data";
+	mkdir "data/daythemes";
+	my $year = int($d->year);
+	my $month = int($d->month);
+	my $day = int($d->day);
+	mkdir "data/daythemes/".$year;
+	mkdir "data/daythemes/".$year."/".$month;	
+	return "data/daythemes/".$year."/".$month."/".$day.".bz2";
+}
+
+
+sub save_day_themes {
+	my $d = shift;
+	my $themes = shift;
+
+	my $path = _daypath_themes($d);
+	say $path;
+	dump_bz2($path, $themes, "ThemeHash");
+}
+
+sub get_day_themes {
+	my $d = shift;
+	my $path = _daypath_themes($d);
+
+	my $themes = undump_bz2($path, "ThemeHash");
+	return $themes;
 }
 
 1;

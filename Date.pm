@@ -17,27 +17,60 @@ with Storage;
 
 use Article;
 use Zpravostroj::Globals;
-use Zpravostroj::ThemeHistory;
+use Zpravostroj::ThemeFiles;
 
-
+sub _get_day_info {
+	my $how_late = shift || 0;
+	my $date = shift;
+	my %starting_day_info;
+	if (!$day) {
+		my @a = localtime();
+		if (!$how_late) {
+			return ($a[3], $a[4]+1, $a[5]+1900);
+		}
+		$starting_day_info{day}=$a[3];
+		$starting_day_info{month}=$a[4];
+		$starting_day_info{year}=$a[5];
+	} else {
+		$starting_day_info{day}=$date->day;
+		$starting_day_info{month}=$d->month-1;
+		$starting_day_info{year}=$d->year;
+	}
+	
+	my $tme = timelocal(0,0,12,$d->day,$d->month-1,$d->year);
+	my @r = localtime($tme + $how_late * 86400);
+	return ($r[3], $r[4]+1, $r[5]+1900);
+}
 
 has 'day' => (
 	is=>'ro',
 	isa=>'Int',
-	default=>sub{getpartoftime(3)}
+	required=>1
 );
 
 has 'month' => (
 	is=>'ro',
 	isa=>'Int',
-	default=>sub{getpartoftime(4)+1}
+	required=>1
 );
 
 has 'year' => (
 	is=>'ro',
 	isa=>'Int',
-	default=>sub{getpartoftime(5)+1900}
+	required=>1
 );
+
+around BUILDARGS => sub {
+	my $orig  = shift;
+	my $class = shift;
+
+	if (scalar @_) {
+		return $class->$orig(@_);
+	} else {
+		my @info = _get_day_info();
+		return $class->$orig(day=>$info[0], month=>$info[1], year=>$info[2]);
+	}
+}; 
 
 sub get_from_string {
     my $d = shift; 
@@ -68,18 +101,17 @@ sub get_to_file {
 	close $f;
 }
 
-
 sub get_days_after {
 	my $s = shift;
 	my $h = shift;
-	my $d = new Date(year=>getpartoftime(5, $h, $s)+1900, month=>getpartoftime(4, $h, $s)+1, day=>getpartoftime(3, $h, $s));
+	my @info = _get_day_info($h, $s);
+	my $d = new Date(day=>$info[0], month=>$info[1], year=>$info[2]);
 	return $d;
 }
 
 sub get_days_after_today {
 	my $h = shift;
-	my $d = new Date(year=>getpartoftime(5, $h)+1900, month=>getpartoftime(4, $h)+1, day=>getpartoftime(3, $h));
-	return $d;
+	return ((new Date)->get_days_after($h));
 }
 
 sub get_days_before_today {
@@ -91,8 +123,6 @@ sub is_the_same_as {
 	my ($a, $b) = @_;
 	return($a->year == $b->year and $a->month eq $b->month and $a->day eq $b->day);
 }
-
-
 
 sub is_older_than {
 	my ($s, $newer)=@_;
@@ -118,34 +148,7 @@ sub is_older_than {
 	return 0;
 }
 
-sub daypath_themes {
-	my $s = shift;
-	mkdir "data";
-	mkdir "data/daythemes";
-	my $year = int($s->year);
-	my $month = int($s->month);
-	my $day = int($s->day);
-	mkdir "data/daythemes/".$year;
-	mkdir "data/daythemes/".$year."/".$month;	
-	return "data/daythemes/".$year."/".$month."/".$day.".bz2";
-}
 
-sub save_day_themes {
-	my $s = shift;
-	my $themes = shift;
-
-	my $path = $s->daypath_themes;
-	say $path;
-	dump_bz2($path, $themes, "ThemeHash");
-}
-
-sub get_day_themes {
-	my $s = shift;
-	my $path = $s->daypath_themes;
-
-	my $themes = undump_bz2($path, "ThemeHash");
-	return $themes;
-}
 
 sub get_top_themes{
 	my $s = shift;
@@ -165,10 +168,6 @@ sub get_top_themes{
 		return ();
 	}
 }
-
-#localtime -> z casoscalaru pole
-#time -> cas
-#?? -> 
 
 
 sub getpartoftime {
@@ -194,232 +193,6 @@ sub daypath {
 	return "data/articles/".$year."/".$month."/".$day;
 }
 
-
-
-
-sub article_count{
-	my $s=shift;
-	my $ds = $s->daypath;
-	my @s = <$ds/*>;
-	return scalar @s;
-
-}
-
-
-
-
-sub save_article {
-	my $s = shift;
-	my $a = shift;
-	my $c = if_undef(shift, $s->article_count());
-	
-	dump_bz2($s->daypath."/".$c.".bz2", $a);
-	
-}
-
-
-
-sub read_article {
-	my $s = shift;
-	my $n = shift;
-	return undump_bz2($s->daypath."/".$n.".bz2", "Article");
-	
-}
-
-
-
-sub do_for_all {
-	my $s=shift;
-	my $subr = shift;
-	my $do_thread = shift;
-	my $num = if_undef(shift,0);
-	my $c = $s->article_count;
-	my $endnum = if_undef(shift, ($c-1));
-	$|=1;
-	
-	#my @pseudoshared; - puvodni
-	my @shared;# - novy
-	if ($do_thread) {
-		share(@shared);
-	}
-	
-	for ($num..$endnum) {
-	
-		my $subref = sub {
-		
-			say "Num $_";
-			
-			my $a = $s->read_article($_);
-			
-			if (defined $a) {
-				my $changed;
-				@shared = $subr->($a, \$changed, @shared);
-				
-				if ($changed) {
-					$s->save_article($a, $_)
-				}
-			
-			} 
-		};
-		
-		if ($do_thread) {
-			my $thread = threads->new( {'context' => 'list'}, $subref);
-		
-			
-			$thread->join();
-			
-		} else {
-			$subref->();
-		}
-		
-	}
-	return @shared;
-}
-
-sub resave_to_new {
-	my $s = shift;
-	
-	$|=1;
-	
-	my $datearticles = new DateArticles(date=>$s);#, size=>$ARTICLE_CLUSTER_SIZE );
-	
-	$datearticles->resave_to_new();
-} 
-
-
-
-sub get_and_save_themes {
-	my $s = shift;
-	
-	$|=1;
-	say "Jdu na den ", $s->get_to_string;
-	
-	my $count = shift;
-	my $total = shift;
-	
-	
-	{
-		my $old_day_themes = $s->get_day_themes;
-		Zpravostroj::ThemeHistory::delete_from_theme_files($old_day_themes, $s);
-	}
-	
-	
-	my $datearticles = new DateArticles(date=>$s);#, size=>$ARTICLE_CLUSTER_SIZE);
-	
-	my $themhash = $datearticles->get_and_save_themes($count, $total);	
-
-	$s->save_day_themes($themhash);
-	
-
-	Zpravostroj::ThemeHistory::add_to_theme_files($themhash, $s);
-	
-}
-
-sub review_all {
-	my $d = shift;
-	$d->do_for_all(sub{
-		say "Zacinam review_all.";
-		my $a = shift;
-		my $changed = shift;
-		my $i = shift;
-		(defined $i) ? ($i++) : ($i=0);
-		my $has = $a->has_counts;
-		if (!$has) {
-			say "Nema has!";
-			$a->counts();
-		} else {
-			say "Ma has! Opakuju, je to den ", $d->get_to_string, " , cislo ",$i;
-		}
-		$$changed = !$has;
-		return $i;
-	},0);
-}
-
-sub get_count_before_article {
-	my $s = shift;
-	my $num = shift;
-	my %counts:shared;
-	
-	
-	$s->do_for_all(sub{
-		
-		my $a = shift;
-		my $changed = shift;
-		
-		
-		#tohle vrací poèty slov ve èlánku
-		my $wcount = $a->counts;
-		for (keys %$wcount) {
-			#pro každé slovo se pøiète pouze JEDNOU ZA ÈLÁNEK
-			#tj. je tam POÈET ÈLÁNKÙ
-			lock(%counts);
-			$counts{$_}++;
-		}
-		$$changed = 0;
-		
-		return ();
-	}, 0, $num);
-	
-	for (keys %counts) {
-		if ($counts{$_}<$MIN_ARTICLES_PER_DAY_FOR_ALLWORDCOUNTS_INCLUSION) {
-			delete $counts{$_};
-		}
-	}
-	#tady vyjde slovo->inverzní poèet èlánkù
-	return %counts;
-}
-
-sub delete_all_unusable {
-	my $s = shift;
-	my $ada = new DateArticles(date=>$s);
-	my $subr = shift;
-		
-
-	my $ps = $ada->pathname;
-			
-	for my $fname (<$ps/*>) {
-		my $delete = 0;
-		if ($fname !~ /\.bz2$/) {
-			$delete = 1;
-		} else {
-			my $s = -s $fname;
-			$delete = ($s < $MINIMAL_USABLE_BZ2_SIZE);
-		}
-		if ($delete) {
-			$fname =~ /^(.*)\/[^\/]*$/;
-			system "mkdir -p delete/$1";
-			system "mv $fname delete/$1";
-		}
-		
-	}
-}
-
-sub get_counts_parts {
-	my $s = shift;
-	my $c = $s->get_count;
-	
-	my @k = keys %$c;
-	say "naplno : ",scalar @k;
-	my $max=0;
-	for (@k) {if ($max<$c->{$_}) {$max=$c->{$_}}}
-	for my $i (1..$max) {
-		my @q = grep {$c->{$_}>=$i} @k;
-		my $podil = (scalar @q) / (scalar @k);
-		$podil *= 100;
-		
-		say $i," : ",$podil," %";
-	}
-}
-
-# sub lastcount_path {
-	# my $s = shift;
-	# return $s->daypath."/lastcount.bz2";
-# }
-
-# sub datestamp_path {
-	# my $s = shift;
-	# return $s->daypath."/datestamp";
-# }
 
 __PACKAGE__->meta->make_immutable;
 
