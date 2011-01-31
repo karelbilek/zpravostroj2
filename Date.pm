@@ -23,7 +23,7 @@ sub _get_day_info {
 	my $how_late = shift || 0;
 	my $date = shift;
 	my %starting_day_info;
-	if (!$day) {
+	if (!$date) {
 		my @a = localtime();
 		if (!$how_late) {
 			return ($a[3], $a[4]+1, $a[5]+1900);
@@ -33,11 +33,11 @@ sub _get_day_info {
 		$starting_day_info{year}=$a[5];
 	} else {
 		$starting_day_info{day}=$date->day;
-		$starting_day_info{month}=$d->month-1;
-		$starting_day_info{year}=$d->year;
+		$starting_day_info{month}=$date->month-1;
+		$starting_day_info{year}=$date->year;
 	}
 	
-	my $tme = timelocal(0,0,12,$d->day,$d->month-1,$d->year);
+	my $tme = timelocal(0,0,12,$starting_day_info{day},$starting_day_info{month},$starting_day_info{year});
 	my @r = localtime($tme + $how_late * 86400);
 	return ($r[3], $r[4]+1, $r[5]+1900);
 }
