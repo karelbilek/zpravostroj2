@@ -3,11 +3,13 @@ use base 'Exporter';
 #pomocny modulik na vsechny funkce, co chci, aby byly videt vsude, ale nejsou samy o sobe prilis "chytre"
 #plus pres to sdilim vsechny konstanty, co chci videt vsude
 
-our @EXPORT = qw($SIMULTANEOUS_THREADS_TECTOSERVER $MIN_ARTICLES_PER_DAY_FOR_ALLWORDCOUNTS_INCLUSION undump_bz2 dump_bz2 say if_undef get_last_folder);
+our @EXPORT = qw($SIMULTANEOUS_THREADS_TECTOSERVER $MIN_ARTICLES_PER_DAY_FOR_ALLWORDCOUNTS_INCLUSION $MINIMAL_USABLE_BZ2_SIZE undump_bz2 dump_bz2 say if_undef get_last_folder);
 
 our $MIN_ARTICLES_PER_DAY_FOR_ALLWORDCOUNTS_INCLUSION = 8;
 
 our $SIMULTANEOUS_THREADS_TECTOSERVER=10;
+
+our $MINIMAL_USABLE_BZ2_SIZE = 3000;
 
 use IO::Uncompress::Bunzip2;
 use IO::Compress::Bzip2;

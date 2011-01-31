@@ -58,20 +58,17 @@ sub set_latest_wordcount {
 		
 		say "d je ".$d->get_to_string();
 		
-		
 		if (! $d->is_older_than($last_date_counted)) {
 			say "je novejsi, jdu pocitat counts";
 			my $day_count = ($last_date_counted->is_the_same_as($d)) 
 							? (
-								{$d->get_count($last_article_counted+1)}
+								{$d->get_count_before_article($last_article_counted+1)}
 							) : (
-								{$d->get_count(0)}
+								{$d->get_count_before_article(0)}
 							);
 			for (keys %$day_count) {
-				if ($day_count->{$_}>=$MIN_ARTICLES_PER_DAY_FOR_ALLWORDCOUNTS_INCLUSION) {
-					lock(%counts);
-					$counts{$_}=if_undef($counts{$_},0) + $day_count->{$_};
-				}
+				lock(%counts);
+				$counts{$_}=if_undef($counts{$_},0) + $day_count->{$_};
 			}
 		}
 		
@@ -127,29 +124,7 @@ sub delete_all_unusable {
 	$count=0;
 	say "wtf";
 	$s->traverse(sub{
-		my $d = shift;
-		my $ada = new AllDateArticles(date=>$d);
-		my $subr = shift;
-		
-
-		my $ps = $ada->pathname;
-			
-		for my $fname (<$ps/*>) {
-			my $delete = 0;
-			if ($fname !~ /\.bz2$/) {
-				$delete = 1;
-			} else {
-				my $s = -s $fname;
-				$delete = ($s < 3000);
-			}
-			if ($delete) {
-				$fname =~ /^(.*)\/[^\/]*$/;
-				system "mkdir -p delete/$1";
-				system "mv $fname delete/$1";
-			}
-			
-		}
-		
+		(shift)->delete_all_unusable;		
 	}, 40);
 	say "Count je $count.";
 }

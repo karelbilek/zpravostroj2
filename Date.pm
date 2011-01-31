@@ -336,30 +336,63 @@ sub review_all {
 	},0);
 }
 
-sub get_count {
+sub get_count_before_article {
 	my $s = shift;
 	my $num = shift;
-	#my %counts:shared;
-	#my $i:shared;
+	my %counts:shared;
 	
-	my @c = $s->do_for_all(sub{
+	
+	$s->do_for_all(sub{
 		
 		my $a = shift;
 		my $changed = shift;
-		my $i = shift;
-		my %counts=@_;
-		say "i je $i -- inside get_count";
-		$i++;
+		
+		
+		#tohle vrací poèty slov ve èlánku
 		my $wcount = $a->counts;
 		for (keys %$wcount) {
+			#pro každé slovo se pøiète pouze JEDNOU ZA ÈLÁNEK
+			#tj. je tam POÈET ÈLÁNKÙ
+			lock(%counts);
 			$counts{$_}++;
 		}
 		$$changed = 0;
-		return ($i, %counts);
+		
+		return ();
 	}, 0, $num);
 	
-	shift @c;
-	return @c;
+	for (keys %counts) {
+		if ($counts{$_}<$MIN_ARTICLES_PER_DAY_FOR_ALLWORDCOUNTS_INCLUSION) {
+			delete $counts{$_};
+		}
+	}
+	#tady vyjde slovo->inverzní poèet èlánkù
+	return %counts;
+}
+
+sub delete_all_unusable {
+	my $s = shift;
+	my $ada = new AllDateArticles(date=>$s);
+	my $subr = shift;
+		
+
+	my $ps = $ada->pathname;
+			
+	for my $fname (<$ps/*>) {
+		my $delete = 0;
+		if ($fname !~ /\.bz2$/) {
+			$delete = 1;
+		} else {
+			my $s = -s $fname;
+			$delete = ($s < $MINIMAL_USABLE_BZ2_SIZE);
+		}
+		if ($delete) {
+			$fname =~ /^(.*)\/[^\/]*$/;
+			system "mkdir -p delete/$1";
+			system "mv $fname delete/$1";
+		}
+		
+	}
 }
 
 sub get_counts_parts {
