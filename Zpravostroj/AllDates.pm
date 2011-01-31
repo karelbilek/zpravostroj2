@@ -121,8 +121,7 @@ sub get_total_article_count_before_last_wordcount {
 }
 
 sub delete_all_unusable {
-$|=1;
-say "??????????????";
+	$|=1;
 	my $s = shift;
 	my $count:shared;
 	$count=0;
@@ -131,29 +130,61 @@ say "??????????????";
 		my $d = shift;
 		my $ada = new AllDateArticles(date=>$d);
 		my $subr = shift;
-				
-		my @art_names = $ada->article_names;
+		
+
+		my $ps = $ada->pathname;
 			
+		for my $fname (<$ps/*>) {
+			my $delete = 0;
+			if ($fname !~ /\.bz2$/) {
+				$delete = 1;
+			} else {
+				my $s = -s $fname;
+				$delete = ($s < 3000);
+			}
+			if ($delete) {
+				$fname =~ /^(.*)\/[^\/]*$/;
+				system "mkdir -p delete/$1";
+				system "mv $fname delete/$1";
+			}
+			
+		}
 		
-		my $forker = new Zpravostroj::Forker(size=>20);
-		
-		for my $art_name (@art_names) {
-		
-			my $subref = sub {
-				
-				my $a = $ada->load_article($art_name);
-				
-				if (!defined $a) {
-					lock($count);
-					$count++;
-				}
-			};				
-			$forker->run($subref);
-		} 
-		$forker->wait();
-	}, 10);
+	}, 40);
 	say "Count je $count.";
 }
+
+sub get_top_themes {
+
+	my $s = shift;
+	
+	my %themes : shared;
+	
+	$s->traverse(sub{
+		my $d = shift;
+		say "Day ", $d->get_to_string();
+		
+		my @d_themes = $d->get_top_themes(100);
+		for my $theme (@d_themes) {
+			
+			lock(%themes);
+			if (exists $themes{$theme->lemma}) {
+				$themes{$theme->lemma} = shared_clone($theme->add_another($themes{$theme->lemma}));
+			} else {
+				$themes{$theme->lemma} = shared_clone($theme);
+			}
+		}
+		
+		return ();
+	}, 10);
+	
+	my @r_themes = values %themes;
+	
+	@r_themes = sort {$b->importance <=> $a->importance} @r_themes;
+	
+	return @r_themes[0..100];
+}
+
 
 __PACKAGE__->meta->make_immutable;
 

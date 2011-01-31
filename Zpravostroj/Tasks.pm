@@ -92,10 +92,7 @@ sub recount_all_articles {
 
 	Zpravostroj::TectoServer::run_tectoserver();
 	
-	All::do_for_all(sub{
-		my $d = shift;
-		$d->review_all();
-	}, 1);
+	$alldates->traverse(sub{(shift)->review_all()}, 10);
 	
 	Zpravostroj::TectoServer::stop_tectoserver();
 }
@@ -108,33 +105,7 @@ sub say_all_top_themes {
 
 
 sub all_top_themes {
-	
-	my %themes : shared;
-	
-	say "Pred do_for_all";
-	All::do_for_all(sub{
-		my $d = shift;
-		say "Day ", $d->get_to_string();
-		
-		my @d_themes = $d->get_top_themes(100);
-		for my $theme (@d_themes) {
-			
-			lock(%themes);
-			if (exists $themes{$theme->lemma}) {
-				$themes{$theme->lemma} = shared_clone($theme->add_another($themes{$theme->lemma}));
-			} else {
-				$themes{$theme->lemma} = shared_clone($theme);
-			}
-		}
-		
-		return ();
-	}, 0);
-	
-	my @r_themes = values %themes;
-	
-	@r_themes = sort {$b->importance <=> $a->importance} @r_themes;
-	
-	return @r_themes[0..100];
+	return $alldates->get_top_themes;
 }
 
 1;
