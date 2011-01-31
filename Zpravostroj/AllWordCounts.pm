@@ -22,7 +22,6 @@ use warnings;
 use forks;
 use forks::shared;
 
-use All;
 use Zpravostroj::Globals;
 use Date;
 use File::Slurp;

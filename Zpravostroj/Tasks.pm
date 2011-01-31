@@ -8,7 +8,6 @@ use strict;
 use warnings;
 use Zpravostroj::RSS;
 use Zpravostroj::Globals;
-use All;
 use Zpravostroj::AllDates;
 
 use forks;
