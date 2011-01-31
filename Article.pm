@@ -1,4 +1,4 @@
-package AllDateArticles;
+package DateArticles;
 use Zpravostroj::Globals;
 use strict;
 use warnings;

@@ -282,7 +282,7 @@ sub resave_to_new {
 	
 	$|=1;
 	
-	my $datearticles = new AllDateArticles(date=>$s);#, size=>$ARTICLE_CLUSTER_SIZE );
+	my $datearticles = new DateArticles(date=>$s);#, size=>$ARTICLE_CLUSTER_SIZE );
 	
 	$datearticles->resave_to_new();
 } 
@@ -305,7 +305,7 @@ sub get_and_save_themes {
 	}
 	
 	
-	my $datearticles = new AllDateArticles(date=>$s);#, size=>$ARTICLE_CLUSTER_SIZE);
+	my $datearticles = new DateArticles(date=>$s);#, size=>$ARTICLE_CLUSTER_SIZE);
 	
 	my $themhash = $datearticles->get_and_save_themes($count, $total);	
 
@@ -372,7 +372,7 @@ sub get_count_before_article {
 
 sub delete_all_unusable {
 	my $s = shift;
-	my $ada = new AllDateArticles(date=>$s);
+	my $ada = new DateArticles(date=>$s);
 	my $subr = shift;
 		
 
