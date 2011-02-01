@@ -25,7 +25,7 @@ sub get_all_RSS {
 	my @links;
 	for my $f (<data/RSS/*>) {
 		my $RSS = undump_bz2($f);
-		push (@links, $RSS->get_article_urls);
+		push (@links, $RSS->get_urls);
 		dump_bz2($f, $RSS);
 	}
 	return @links;

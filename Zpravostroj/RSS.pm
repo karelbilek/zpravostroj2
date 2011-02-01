@@ -27,6 +27,9 @@ use Date;
 use Zpravostroj::WebReader;
 use Zpravostroj::MooseTypes;
 
+use Data::Validate::URI qw(is_http_uri);
+
+
 #URL feedu
 has 'url' => (
 	is=>'ro',
@@ -37,7 +40,7 @@ has 'url' => (
 #hash URL->datum
 has 'article_urls' => (
 	is=>'rw',
-	isa=>'HashRef[URL]',
+	isa=>'HashRef[Str]',
 	default=>sub { {} }
 );
 
@@ -59,11 +62,12 @@ sub refresh_urls {
 		#ale to je fuk, stejne to nikdy neni bottleneck
 		
 		my $datestr = $s->article_urls->{$_};
-		if ($datestr !~ /_read/) {
+		if ($datestr =~ /^(.*)_read$/) {
+			$datestr = $1;
+		}
 		
-			if (Date::get_from_string($datestr)->is_older_than($yesterday)) {
-				delete $s->article_urls->{$_};
-			}
+		if (Date::get_from_string($datestr)->is_older_than($yesterday)) {
+			delete $s->article_urls->{$_};
 		}
 	}
 	
