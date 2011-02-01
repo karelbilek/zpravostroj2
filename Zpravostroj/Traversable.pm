@@ -35,7 +35,7 @@ sub traverse(&$) {
 			
 			if (defined $obj) {
 				say "trversable - Pred subr.";
-				my @res = $subref->($obj);
+				my @res = $subref->($obj, $str);
 				
 				say "trversable - po subr.";
 

@@ -105,7 +105,7 @@ sub initialize {
 			Timeout=>1 #Timeout MUSI byt, aby se nekdy spustil $forker->check_waiting()
 		);
 		
-		$forker = new Zpravostroj::Forker(size=>10);
+		$forker = new Zpravostroj::Forker(size=>$FORKER_SIZES{TECTOSERVER});
 	}
 }
 

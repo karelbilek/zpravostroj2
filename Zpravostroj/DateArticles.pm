@@ -94,7 +94,19 @@ sub _after_traverse{
 	}
 }
 
-sub _just_get_and_save_themes {
+sub _should_delete_dup_url {
+	my $url = shift;
+	my $urls = shift;
+	lock ($urls);
+	if (exists $urls->{$a->url}) {
+		return 1;
+	} else {
+		$urls->{$a->url} = 1;
+		return 0;
+	}
+}
+
+sub _get_and_save_articles_themes {
 	my $s = shift;
 		
 	my $count = shift;
@@ -108,13 +120,9 @@ sub _just_get_and_save_themes {
 	$s->traverse(sub {
 		my $a = shift;
 		if (defined $a) {
-			{
-				lock(%urls);
-				if (exists $urls{$a->url}) {
-					return (-1);
-				}
-				
-				$urls{$a->url} = 1;
+		
+			if (_should_delete_dup_url($a->url, \%urls) {
+				return (-1);
 			}
 					
 			$a->count_themes($total, $count);
@@ -132,7 +140,7 @@ sub _just_get_and_save_themes {
 		} else {
 			return(0);
 		}
-	},10
+	},$FORKER_SIZES{THEMES_ARTICLES}
 	);	
 	return $themhash;
 }
@@ -149,7 +157,7 @@ sub get_and_save_themes_themefiles {
 		Zpravostroj::ThemeFiles::delete_from_theme_history($old_day_themes, $s->date);
 	}
 		
-	my $themhash = $s->_just_get_and_save_themes($count, $total);	
+	my $themhash = $s->_get_and_save_articles_themes($count, $total);	
 
 	Zpravostroj::ThemeFiles::save_day_themes($s->date, $themhash);
 	
@@ -169,21 +177,31 @@ sub review_all {
 		} else {
 			return (0);
 		}
-	},10);
+	},$FORKER_SIZES{REVIEW_ARTICLES});
 }
 
 
-sub get_count_before_article {
+sub get_wordcount_before_article {
 	my $s = shift;
 	my $num = shift;
 	my %counts:shared;
 	
+	my %urls:shared;
 	
 	$s->traverse(sub{
 		
 		my $a = shift;
-		my $changed = shift;
+		my $artname = shift;
+		$artname =~ /\/([0-9]*)\.bz2/;
+		if ($1 < $num) {
+			return (0);
+		}
 		
+		if (_should_delete_dup_url($a->url, \%urls) {
+			return (-1);
+		}
+		
+		my $had = $a->has_counts;
 		
 		#tohle vrací počty slov ve článku
 		my $wcount = $a->counts;
@@ -193,10 +211,13 @@ sub get_count_before_article {
 			lock(%counts);
 			$counts{$_}++;
 		}
-		$$changed = 0;
 		
-		return ();
-	}, 0, $num);
+		if ($had) {
+			return (0);
+		} else {
+			return (1);
+		}
+	}, $FORKER_SIZES{LATEST_WORDCOUNT_ARTICLES});
 	
 	for (keys %counts) {
 		if ($counts{$_}<$MIN_ARTICLES_PER_DAY_FOR_ALLWORDCOUNTS_INCLUSION) {
@@ -232,6 +253,7 @@ sub delete_all_unusable {
 		
 	}
 }
+
 
 
 __PACKAGE__->meta->make_immutable;

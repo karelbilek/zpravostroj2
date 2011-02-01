@@ -59,9 +59,9 @@ sub set_latest_wordcount {
 			say "je novejsi, jdu pocitat counts";
 			my $day_count = ($last_date_counted->is_the_same_as($d->date)) 
 							? (
-								{$d->get_count_before_article($last_article_counted+1)}
+								{$d->get_wordcount_before_article($last_article_counted+1)}
 							) : (
-								{$d->get_count_before_article(0)}
+								{$d->get_wordcount_before_article(0)}
 							);
 			for (keys %$day_count) {
 				lock(%counts);
@@ -73,7 +73,7 @@ sub set_latest_wordcount {
 		
 		return ();
 		
-	},10);
+	},$FORKER_SIZES{LATEST_WORDCOUNT_DAYS});
 	
 	my $l = Date::get_from_string($s->_last_accessed);
 	say "pred set count, last accessed je ",$l->get_to_string;
@@ -107,7 +107,7 @@ sub get_total_article_count_before_last_wordcount {
 		}
 		
 		return();		
-	},40);
+	},$FORKER_SIZES{ARTICLECOUNT});
 	
 	say "total je $total";
 	return $total;
@@ -122,7 +122,7 @@ sub delete_all_unusable {
 	say "wtf";
 	$s->traverse(sub{
 		(shift)->delete_all_unusable;		
-	}, 40);
+	}, $FORKER_SIZES{UNUSABLE});
 	say "Count je $count.";
 }
 
@@ -147,7 +147,7 @@ sub get_top_themes {
 		}
 		
 		return ();
-	}, 10);
+	}, $FORKER_SIZES{ALL_TOPTHEMES});
 	
 	my @r_themes = values %themes;
 	
@@ -155,6 +155,7 @@ sub get_top_themes {
 	
 	return @r_themes[0..100];
 }
+
 
 
 __PACKAGE__->meta->make_immutable;
