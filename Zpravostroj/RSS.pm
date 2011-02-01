@@ -51,7 +51,6 @@ sub refresh_urls {
 	my $s = shift;
 	my $today = new Date() -> get_to_string;
 	my $yesterday = Date::get_days_before_today(1);
-	my $html = Zpravostroj::WebReader::wread($s->url);
 	
 	say "RSS ".$s->url;
 	
@@ -71,6 +70,10 @@ sub refresh_urls {
 		}
 	}
 	
+	
+	#stahne nove
+	my $html = Zpravostroj::WebReader::wread($s->url);
+
 	#je to dirty, ale bohuzel, zadny pricetny RSS parser pro perl neexistuje
 	#vsechno je to SILENE KOMPLIKOVANE a pada to na kazdem nevalidnim XML /jsou vyjimky, ale nepouzitelne/
 	while ($html=~/<link>([^<]*)<\/link>/g) {
