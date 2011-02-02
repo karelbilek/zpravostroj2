@@ -1,4 +1,4 @@
-package Article;
+package Zpravostroj::Article;
 use 5.008;
 use strict;
 use warnings;
@@ -112,24 +112,6 @@ sub BUILD {
 	$s->counts;
 }
 
-sub get_all_subgroups {
-	my $w = shift;
-	my @all = split(/ /, $w);
-	my $s = scalar @all;
-	my @res;
-	while (@all) {
-		my @copy = @all;
-		while (@copy) {
-			if (scalar @copy!=$s) {
-				push @res, join(" ",@copy);
-			}
-			pop @copy;
-		}
-		shift @all;
-	}	
-	return @res;
-}
-
 
 
 sub count_themes {
@@ -143,9 +125,6 @@ sub count_themes {
 	my %importance;
 	
 	
-	#!!!!!!tohle pak smazat, proboha
-	$s->clear_counts();
-	
 	
 	my $word_counts = $s->counts;
 	
@@ -155,19 +134,12 @@ sub count_themes {
 	
 	
 	
-	for my $wordgroup (keys %{$word_counts}) {
+	for my $word (keys %{$word_counts}) {
 		
 			
-			my $d = 1 + ($count_hashref->{$wordgroup}||0);
-			if ($wordgroup =~ /\ /) {
-				my @a = split(/ /, $wordgroup);
-				for my $word (@a) {
-					$d += ($count_hashref->{$word}||0)/(4*@a);
-				}
-			}
+			my $d = 1 + ($count_hashref->{$word}||0);
 			
-			
-			$importance{$wordgroup} = ($word_counts->{$wordgroup}{counts} / $document_size) * log($all_count / ($d**1.3))if defined $wordgroup;
+			$importance{$word} = ($word_counts->{$word}{counts} / $document_size) * log($all_count / ($d**1.3))if defined $word;
 			
 			
 	}
@@ -176,14 +148,7 @@ sub count_themes {
 	
 	my @sorted = (sort {$importance{$b}<=>$importance{$a}} keys %importance)[0..39];
 	
-	#tohle je nejaka cypovina
-	for my $lemma (@sorted) {
-		if (exists $importance{if_undef($lemma)}) {
-			for my $subgroup (get_all_subgroups($lemma)) {
-				delete $importance{$subgroup};
-			}
-		}
-	}
+	
 	
 	for my $key (keys %importance) {
 		if (!exists $word_counts->{$key}{back}) {

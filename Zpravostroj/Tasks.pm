@@ -47,7 +47,7 @@ sub create_articles_from_URLs {
 		$forker->run(sub{
 			say "tvorim link";
 		
-			my $a = new Article(url=>$link); #the whole creation happens here
+			my $a = new Zpravostroj::Article(url=>$link); #the whole creation happens here
 		
 			say "ukladam $link";
 			my $n;

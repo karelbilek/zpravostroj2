@@ -15,7 +15,7 @@ use MooseX::Storage;
 
 with Storage;
 
-use Article;
+use Zpravostroj::Article;
 use Zpravostroj::Globals;
 use Zpravostroj::ThemeFiles;
 
@@ -182,12 +182,3 @@ __PACKAGE__->meta->make_immutable;
 
 1;
 
-
-# package main;
-# use Data::Dumper;
-
-# my $d = Date->new();
- # my $r = Article->new(url=>"http://aktualne.centrum.cz/domaci/volby/komunalni-volby/clanek.phtml?id=680222");
- # print "CREATION DONE!\n";
-
-# $d->save_article($r);
