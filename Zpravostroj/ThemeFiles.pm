@@ -15,7 +15,7 @@ use Zpravostroj::Globals;
 use Scalar::Util qw(blessed);
 
 use Zpravostroj::Forker;
-use Date;
+use Zpravostroj::Date;
 use Zpravostroj::Theme;
 
 #vrátí adresu pro soubor s historií
