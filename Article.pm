@@ -11,7 +11,7 @@ use Zpravostroj::WebReader;
 use Zpravostroj::Readability;
 use Zpravostroj::TectoClient;
 use Zpravostroj::Word;
-use Date;
+use Zpravostroj::Date;
 
 use Zpravostroj::Theme;
 
@@ -103,7 +103,7 @@ has 'themes' => (
 
 has 'last_themes_count' => (
 	is=>'rw',
-	isa=>'Date'	
+	isa=>'Zpravostroj::Date'	
 );
 
 
@@ -134,7 +134,7 @@ sub get_all_subgroups {
 
 sub count_themes {
 	my $s = shift;
-	$s->last_themes_count(new Date());
+	$s->last_themes_count(new Zpravostroj::Date());
 	my $all_count = shift;
 	my $count_hashref = shift;
 	

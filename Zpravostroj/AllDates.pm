@@ -2,7 +2,7 @@ package Zpravostroj::AllDates;
 
 use Zpravostroj::Globals;
 use Moose;
-use Date;
+use Zpravostroj::Date;
 use Zpravostroj::AllWordCounts;
 
 use Zpravostroj::ThemeFiles;
@@ -37,7 +37,7 @@ sub _get_traversed_array {
 
 sub _get_object_from_string {
 	shift;
-	return new Zpravostroj::DateArticles(date=>Date::get_from_string(shift));
+	return new Zpravostroj::DateArticles(date=>Zpravostroj::Date::get_from_string(shift));
 }
 
 sub _after_traverse{
@@ -77,7 +77,7 @@ sub set_latest_wordcount {
 		
 	},$FORKER_SIZES{LATEST_WORDCOUNT_DAYS});
 	
-	my $l = Date::get_from_string($s->_last_accessed);
+	my $l = Zpravostroj::Date::get_from_string($s->_last_accessed);
 	say "pred set count, last accessed je ",$l->get_to_string;
 	Zpravostroj::AllWordCounts::set_count(\%counts);
 	say "pred set last saved";
@@ -90,7 +90,7 @@ sub get_total_article_count_before_last_wordcount {
 	
 	my ($last_date, $last_article) = Zpravostroj::AllWordCounts::get_last_saved();
 	if (!$last_date) {
-		$last_date = new Date(day=>0, month=>0, year=>0);
+		$last_date = new Zpravostroj::Date(day=>0, month=>0, year=>0);
 	}
 	say "Last day je ".$last_date->get_to_string();
 	

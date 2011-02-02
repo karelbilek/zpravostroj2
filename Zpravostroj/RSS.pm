@@ -23,7 +23,7 @@ with Storage;
 
 
 use Zpravostroj::Globals;
-use Date;
+use Zpravostroj::Date;
 use Zpravostroj::WebReader;
 use Zpravostroj::MooseTypes;
 
@@ -49,8 +49,8 @@ has 'article_urls' => (
 #(pokud to tam uz je, tak to tam neda)
 sub refresh_urls {
 	my $s = shift;
-	my $today = new Date() -> get_to_string;
-	my $yesterday = Date::get_days_before_today(1);
+	my $today = new Zpravostroj::Date() -> get_to_string;
+	my $yesterday = Zpravostroj::Date::get_days_before_today(1);
 	
 	say "RSS ".$s->url;
 	
@@ -65,7 +65,7 @@ sub refresh_urls {
 			$datestr = $1;
 		}
 		
-		if (Date::get_from_string($datestr)->is_older_than($yesterday)) {
+		if (Zpravostroj::Date::get_from_string($datestr)->is_older_than($yesterday)) {
 			delete $s->article_urls->{$_};
 		}
 	}
@@ -93,7 +93,7 @@ sub refresh_urls {
 sub get_urls{
 	my $s = shift;
 	my $today = new Date() -> get_to_string;
-	my $yesterday = Date::get_days_before_today(1)-> get_to_string;
+	my $yesterday = Zpravostroj::Date::get_days_before_today(1)-> get_to_string;
 	
 
 	my @res;

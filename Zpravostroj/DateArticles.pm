@@ -15,12 +15,12 @@ use Moose::Util::TypeConstraints;
 
 with 'Zpravostroj::Traversable';
 
-use Date;
+use Zpravostroj::Date;
 
 has 'date' => (
 	is=>'ro',
 	required=>1,
-	isa=>'Date'
+	isa=>'Zpravostroj::Date'
 );
 
 has '_last_number' => (

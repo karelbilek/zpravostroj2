@@ -23,7 +23,7 @@ use forks;
 use forks::shared;
 
 use Zpravostroj::Globals;
-use Date;
+use Zpravostroj::Date;
 use File::Slurp;
 
 use Scalar::Util qw(reftype);
@@ -55,9 +55,9 @@ sub get_count {
 
 sub get_last_saved {
 	if (!-e "data/all_count/date_last_counted") {
-		return (new Date(day=>0, month=>0, year=>0), 0);
+		return (new Zpravostroj::Date(day=>0, month=>0, year=>0), 0);
 	}
-	return (Date::get_from_file("data/all_count/date_last_counted"), read_file("data/all_count/article_last_counted"));
+	return (Zpravostroj::Date::get_from_file("data/all_count/date_last_counted"), read_file("data/all_count/article_last_counted"));
 }
 
 sub set_last_saved {

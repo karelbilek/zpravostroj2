@@ -38,7 +38,7 @@ sub get_all_RSS {
 sub create_articles_from_URLs {
 	my @links = @_;
 	
-	my $datea = new Zpravostroj::DateArticles(date=>new Date());
+	my $datea = new Zpravostroj::DateArticles(date=>new Zpravostroj::Date());
 	my $forker = new Zpravostroj::Forker(size=>$FORKER_SIZES{ARTICLE_CREATION});
 	my $i : shared;
 	$i = $datea->get_last_number;

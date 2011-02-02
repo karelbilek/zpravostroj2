@@ -1,4 +1,4 @@
-package Date;
+package Zpravostroj::Date;
  
 use 5.008;
 use Zpravostroj::Globals;
@@ -75,7 +75,7 @@ around BUILDARGS => sub {
 sub get_from_string {
     my $d = shift; 
 	$d=~/(\d\d\d\d)-(\d+)-(\d+)/;
-	return new Date(day=>$3, month=>$2, year=>$1);
+	return new Zpravostroj::Date(day=>$3, month=>$2, year=>$1);
 }
 
 sub get_from_file {
@@ -105,7 +105,7 @@ sub get_days_after {
 	my $s = shift;
 	my $h = shift;
 	my @info = _get_day_info($h, $s);
-	my $d = new Date(day=>$info[0], month=>$info[1], year=>$info[2]);
+	my $d = new Zpravostroj::Date(day=>$info[0], month=>$info[1], year=>$info[2]);
 	return $d;
 }
 
