@@ -5,6 +5,8 @@ use Moose;
 use Date;
 use Zpravostroj::AllWordCounts;
 
+use Zpravostroj::ThemeFiles;
+
 with 'Zpravostroj::Traversable';
 
 use forks;
@@ -35,7 +37,7 @@ sub _get_traversed_array {
 
 sub _get_object_from_string {
 	shift;
-	return new DateArticles(date=>Date::get_from_string(shift));
+	return new Zpravostroj::DateArticles(date=>Date::get_from_string(shift));
 }
 
 sub _after_traverse{
@@ -79,7 +81,7 @@ sub set_latest_wordcount {
 	say "pred set count, last accessed je ",$l->get_to_string;
 	Zpravostroj::AllWordCounts::set_count(\%counts);
 	say "pred set last saved";
-	Zpravostroj::AllWordCounts::set_last_saved($l, $l->article_count-1);
+	Zpravostroj::AllWordCounts::set_last_saved($l, (new Zpravostroj::DateArticles(date=>$l))->get_last_number);
 	say "slc done";
 }
 
@@ -135,7 +137,7 @@ sub get_top_themes {
 	$s->traverse(sub{
 		my $d = shift;
 		
-		my @d_themes = $d->get_top_themes(100);
+		my @d_themes = Zpravostroj::ThemeFiles::get_top_themes($d, 100);
 		for my $theme (@d_themes) {
 			
 			lock(%themes);

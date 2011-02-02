@@ -23,12 +23,17 @@ has 'date' => (
 	isa=>'Date'
 );
 
-sub article_count{
-	my $s=shift;
-	my $ds = $s->date->daypath;
-	my @s = <$ds/*>;
-	return scalar @s;
+has '_last_number' => (
+	is => 'rw',
+	isa=>'Maybe[Int]',
+	default=>undef
+);
 
+
+sub filename {
+	my $s = shift;
+	my $n = shift;
+	return $s->pathname."/".$n.".bz2";
 }
 
 sub pathname {
@@ -49,6 +54,7 @@ sub save_article {
 	my $n = shift;
 	my $article = shift;
 	if (defined $article) {
+		say "Jdu dumpovat do $n. TECKA.";
 		dump_bz2($n, $article, "Article");
 	}
 }
@@ -60,6 +66,22 @@ sub remove_article {
 	say "Mazu $n.";
 	system ("rm $n");
 }
+
+sub get_last_number {
+	my $s = shift;
+	my @a = sort {$a<=>$b} map {/\/([0-9]*)\.bz2/; $1} $s->_get_traversed_array();
+	if (@a) {
+		return $a[-1];
+	} else {
+		return -1;
+	}
+}
+
+sub article_count {
+	my $s = shift;
+	return scalar ($s->_get_traversed_array());
+}
+
 
 sub _get_traversed_array {
 	my $s = shift;
@@ -78,10 +100,12 @@ sub _get_object_from_string {
 }
 
 sub _after_traverse{
+	say "Jsem v after traverse.";
 	my $s = shift;
 	my $art_name = shift;
+	my $a = shift;
 	my ($art_changed, $res_a) = @_;
-				
+					
 	if ($art_changed>=1) {
 		if ($art_changed==2) {
 			$a = $res_a;
@@ -98,10 +122,10 @@ sub _should_delete_dup_url {
 	my $url = shift;
 	my $urls = shift;
 	lock ($urls);
-	if (exists $urls->{$a->url}) {
+	if (exists $urls->{$url}) {
 		return 1;
 	} else {
-		$urls->{$a->url} = 1;
+		$urls->{$url} = 1;
 		return 0;
 	}
 }
@@ -121,10 +145,12 @@ sub _get_and_save_articles_themes {
 		my $a = shift;
 		if (defined $a) {
 		
-			if (_should_delete_dup_url($a->url, \%urls) {
+			if (_should_delete_dup_url($a->url, \%urls)) {
+				say "Vracim DUPLICATE";
 				return (-1);
 			}
-					
+			
+			say "Jdu pocitat temata.";
 			$a->count_themes($total, $count);
 
 			my $themes = $a->themes;
@@ -135,7 +161,8 @@ sub _get_and_save_articles_themes {
 					$themhash->add_theme($_, 1);
 				}
 			}
-		
+			
+			say "Vracim 1 -> UKLADEJ!";
 			return(1);
 		} else {
 			return(0);
@@ -153,11 +180,16 @@ sub get_and_save_themes_themefiles {
 	my $total = shift;
 	
 	{
+		say "Jdu vzit z themefiles.";
 		my $old_day_themes = Zpravostroj::ThemeFiles::get_day_themes($s->date);
+		say "Jdu mazat ze spousty souboru.";
 		Zpravostroj::ThemeFiles::delete_from_theme_history($old_day_themes, $s->date);
 	}
-		
-	my $themhash = $s->_get_and_save_articles_themes($count, $total);	
+	
+	say "Jsem pred _get_and_save_articles_themes";
+	my $themhash = $s->_get_and_save_articles_themes($count, $total);
+
+	say "jsem po _get_and_save_articles_themes";
 
 	Zpravostroj::ThemeFiles::save_day_themes($s->date, $themhash);
 	
@@ -197,7 +229,7 @@ sub get_wordcount_before_article {
 			return (0);
 		}
 		
-		if (_should_delete_dup_url($a->url, \%urls) {
+		if (_should_delete_dup_url($a->url, \%urls)) {
 			return (-1);
 		}
 		
@@ -231,7 +263,7 @@ sub get_wordcount_before_article {
 
 sub delete_all_unusable {
 	my $s = shift;
-	my $ada = new DateArticles(date=>$s);
+	my $ada = new Zpravostroj::DateArticles(date=>$s);
 	my $subr = shift;
 		
 
@@ -242,8 +274,8 @@ sub delete_all_unusable {
 		if ($fname !~ /\.bz2$/) {
 			$delete = 1;
 		} else {
-			my $s = -s $fname;
-			$delete = ($s < $MINIMAL_USABLE_BZ2_SIZE);
+			my $sze = -s $fname;
+			$delete = ($sze < $MINIMAL_USABLE_BZ2_SIZE);
 		}
 		if ($delete) {
 			$fname =~ /^(.*)\/[^\/]*$/;

@@ -112,6 +112,7 @@ sub _change_one_theme {
 	
 	return sub {
 		my $path = get_theme_path($theme->lemma);
+		say "Jsem v change one theme $path";
 		my $theme_file_load;
 		#theme_file_load je ten hash, co je v souboru s historií
 		
@@ -189,6 +190,24 @@ sub get_day_themes {
 
 	my $themes = undump_bz2($path, "ThemeHash");
 	return $themes;
+}
+
+sub get_top_themes{
+	my $d = shift;
+	my $n = shift;
+	my $path = _daypath_themes($d);
+	
+	
+	my $themes = undump_bz2($path);
+	
+	if ($themes) {
+		my @themes_top = $themes->top_themes($n);
+	
+	
+		return @themes_top;
+	} else {
+		return ();
+	}
 }
 
 1;

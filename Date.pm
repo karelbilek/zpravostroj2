@@ -150,24 +150,7 @@ sub is_older_than {
 
 
 
-sub get_top_themes{
-	my $s = shift;
-	my $n = shift;
-	my $path = $s->daypath_themes;
-	
-	
-	my $themes = undump_bz2($path);
-	
-	if ($themes) {
-		my @themes_top = $themes->top_themes($n);
-	
 
-	
-		return @themes_top;
-	} else {
-		return ();
-	}
-}
 
 
 sub getpartoftime {

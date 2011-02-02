@@ -34,12 +34,12 @@ sub traverse(&$) {
 			my $obj = $s->_get_object_from_string($str);
 			
 			if (defined $obj) {
-				say "trversable - Pred subr.";
+				say "trversable - Pred subr. $str";
 				my @res = $subref->($obj, $str);
 				
 				say "trversable - po subr.";
 
-				$s->_after_traverse($str,@res);
+				$s->_after_traverse($str,$obj, @res);
 			
 				say "trversable - po after traverse";
 

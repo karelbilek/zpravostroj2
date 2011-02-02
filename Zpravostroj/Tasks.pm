@@ -9,6 +9,10 @@ use warnings;
 use Zpravostroj::RSS;
 use Zpravostroj::Globals;
 use Zpravostroj::AllDates;
+use Zpravostroj::DateArticles;
+use Zpravostroj::TectoServer;
+use Zpravostroj::Forker;
+use Zpravostroj::AllWordCounts;
 
 use forks;
 use forks::shared;
@@ -34,8 +38,11 @@ sub get_all_RSS {
 sub create_articles_from_URLs {
 	my @links = @_;
 	
-	my $date = new Date();
+	my $datea = new Zpravostroj::DateArticles(date=>new Date());
 	my $forker = new Zpravostroj::Forker(size=>$FORKER_SIZES{ARTICLE_CREATION});
+	my $i : shared;
+	$i = $datea->get_last_number;
+	$i++;
 	for my $link (@links) {
 		$forker->run(sub{
 			say "tvorim link";
@@ -43,8 +50,13 @@ sub create_articles_from_URLs {
 			my $a = new Article(url=>$link); #the whole creation happens here
 		
 			say "ukladam $link";
-		
-			$date->save_article($a);
+			my $n;
+			{
+				lock($i);
+				$n=$i;
+				$i++;
+			}
+			$datea->save_article($datea->filename($n),$a);
 		});
 	}
 	$forker->wait();
@@ -52,6 +64,8 @@ sub create_articles_from_URLs {
 
 my $alldates=new Zpravostroj::AllDates;
 sub download_articles_counts_and_themes {
+	refresh_all_RSS();
+	
 	
 	say ">>>>>>>>>>>>>>RUN TEcTOSERVER";
 	Zpravostroj::TectoServer::run_tectoserver();
@@ -59,6 +73,7 @@ sub download_articles_counts_and_themes {
 	say ">>>>>>>>>>>>>>GET ALL RSS";
 
 	my @links = get_all_RSS;
+	for (@links){say "URL -> $_"}
 	
 	say ">>>>>>>>>>>>>>CREATE ARTICLES FROM URLS";
 
@@ -103,7 +118,7 @@ sub recount_all_themes {
 	
 	say "==============================get_and_save_themes===";
 	
-	$alldates->traverse(sub{(shift)->get_and_save_themes(\%wordcount, $artcount)},$FORKER_SIZES{THEMES_DAYS});
+	$alldates->traverse(sub{(shift)->get_and_save_themes_themefiles(\%wordcount, $artcount)},$FORKER_SIZES{THEMES_DAYS});
 	
 	
 }
