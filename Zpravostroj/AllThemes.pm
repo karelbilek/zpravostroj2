@@ -32,3 +32,5 @@ sub get_sorted {
 		return @r_themes[0..$c];
 	}
 }
+
+1;

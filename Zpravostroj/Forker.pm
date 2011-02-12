@@ -33,6 +33,14 @@ has 'size' => (
 	isa=>'Int'
 );
 
+has 'shut_up' => (
+	is=>'ro',
+	required=>0,
+	isa=>'Bool',
+	default=>0
+);
+
+
 #bezici thready
 has 'threads' => (
 	is=>'rw',
@@ -96,7 +104,7 @@ sub add_to_threads {
 	});
 	
 	push @{$s->threads}, $thread;
-	say "Stvoril jsem novy thread s cislem ",$thread->tid();
+	say "Stvoril jsem novy thread s cislem ",$thread->tid() unless $s->shut_up;
 }
 
 #zkontroluje, jestli neni mozne pridat nove thready
@@ -112,7 +120,6 @@ sub check_waiting {
 	for (1..$subs) {
 		if (scalar @{$s->waiting_subs} > 0) {
 			$added=1;
-			say "spoustim dalsi";
 			my $sub = shift @{$s->waiting_subs};
 			$s->add_to_threads($sub);
 		} 

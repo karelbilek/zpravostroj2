@@ -22,7 +22,7 @@ use forks::shared;
 
 sub save_all_top_themes {Zpravostroj::AllThemes::save}
 
-sub top_themes_from_file {return Zpravostroj::TopThemes::get_sorted(@_)}
+sub top_themes_from_file {return Zpravostroj::AllThemes::get_sorted(@_)}
 
 sub get_article {
 	my $daystr = shift;
@@ -315,6 +315,11 @@ sub get_sum_percentages{
 		}
 	}
 	
+}
+
+sub get_random_article {
+	my $a = $alldates->get_random_article();
+	print $a->title();
 }
 
 1;

@@ -12,6 +12,20 @@ with 'Zpravostroj::Traversable';
 use forks;
 use forks::shared;
 
+has '_all_article_names' => (
+	is => 'rw',
+	isa=> 'ArrayRef[Str]',
+	default=> sub{[]}
+);
+
+has '_taken'=> (
+	is=>'rw',
+	isa=>'HashRef[Undef]',
+	default=> sub{{}}
+);
+
+
+
 sub _get_traversed_array {
 	shift;
 	
@@ -112,7 +126,49 @@ sub _set_allwordcounts_from_last_accessed {
 	
 }
 
+sub get_all_date_addresses {
+	my $s = shift;
+	my @all : shared;
+	
+	$s->traverse(sub {
+		my $d = shift;
+		my @a = $d->_get_traversed_array;
+		lock(@all);
+		push @all, @a;
+	}, $FORKER_SIZES{GET_ALL_DATE_ADDRESSES}, shut_up=>1);
+	
+	
+	return @all;
+}
+
+
+
+sub get_random_article {
+	my $s = shift;
+	my $size = scalar @{$s->_all_article_names};
+	if (!$size) {
+		my @all = $s->get_all_date_addresses;
+		$s->_all_article_names(\@all);
+		$size = scalar @{$s->_all_article_names};
+	}
+	
+	my $rand_name;
+	
+ 	do {
+		my $r = rand $size;
+		$rand_name = $s->_all_article_names->[$r];
+	} while (exists $s->_taken->{$rand_name});
+	
+	$s->_taken->{$rand_name}=undef;
+	
+	return undump_bz2($rand_name);
+}
+
 sub get_total_article_count_before_last_wordcount {
+	say "Bacha, cheatuju v AllDates::get_total_article_count_before_last_wordcount !!!";
+	
+	return 63733;
+	
 	my $s = shift;
 	
 	my ($last_date, $last_article) = Zpravostroj::AllWordCounts::get_last_saved();
