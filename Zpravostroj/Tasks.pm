@@ -13,9 +13,71 @@ use Zpravostroj::DateArticles;
 use Zpravostroj::TectoServer;
 use Zpravostroj::Forker;
 use Zpravostroj::AllWordCounts;
+use Zpravostroj::Date;
+
+use Zpravostroj::AllThemes;
 
 use forks;
 use forks::shared;
+
+sub save_all_top_themes {Zpravostroj::AllThemes::save}
+
+sub top_themes_from_file {return Zpravostroj::TopThemes::get_sorted(@_)}
+
+sub get_article {
+	my $daystr = shift;
+	my $art = shift;
+	my $da = new Zpravostroj::DateArticles(date=>Zpravostroj::Date::get_from_string($daystr));
+	
+	my $path = $da->filename($art);
+	
+	return undump_bz2($path);
+}
+
+sub get_day {
+	my $daystr = shift;
+	my $da = new Zpravostroj::DateArticles(date=>Zpravostroj::Date::get_from_string($daystr));
+	return $da;
+}
+
+sub check_for_lemma_in_themes {
+	my $daystr = shift;
+	my $find_theme = shift;
+	
+	my $da = get_day($daystr);
+	$da->traverse(sub{
+		my $art = shift;
+		my $str = shift;
+		
+		for my $theme (@{$art->themes}) {
+			if ($theme->lemma eq $find_theme) {
+				say "MAM TO MAM TO - str $str";
+			}
+		}
+		
+	}, 20);
+}
+
+
+
+sub check_for_lemma_in_words {
+	my $daystr = shift;
+	my $find_theme = shift;
+	
+	my $da = get_day($daystr);
+	$da->traverse(sub{
+		my $art = shift;
+		my $str = shift;
+		
+		for my $word (@{$art->words}) {
+			if ($word->lemma eq $find_theme) {
+				say "MAM TO MAM TO - str $str";
+			}
+		}
+		
+	}, 20);
+}
+
 
 sub refresh_all_RSS {
 	for my $f (<data/RSS/*>) {
@@ -98,12 +160,38 @@ sub download_articles_counts_and_themes {
 	
 }
 
+sub cleanup_all_and_count_themes {
+	$alldates->cleanup_all();
+	Zpravostroj::Tasks::recount_all_themes();
+	get_percentages();
+}
+
+sub count_themes_say_top {
+	say "--------------------------------recount_all_themes---";
+	Zpravostroj::Tasks::recount_all_themes();
+	say "--------------------------------say_all_top_themes---";
+	
+	say_all_top_themes();
+}
+
+
 sub just_went_through_all {
 	$alldates->traverse(sub{},$FORKER_SIZES{MOOT});
 }
 
 sub remove_unusable {
 	$alldates->delete_all_unusable();
+}
+
+sub get_percentages {
+	say "Beru count...";
+	my $total  = $alldates->get_total_article_count_before_last_wordcount();
+	
+	say "Beru themes...";
+	my @tt = hundred_top_themes();
+	for (@tt) {
+		say $_->lemma," - ", ($_->importance / $total), "%";
+	}
 }
 
 sub recount_all_themes {
@@ -120,6 +208,31 @@ sub recount_all_themes {
 	
 	$alldates->traverse(sub{(shift)->get_and_save_themes_themefiles(\%wordcount, $artcount)},$FORKER_SIZES{THEMES_DAYS});
 	
+}
+
+sub recount_all_themes_since_day {
+	
+	my $daystr = shift;
+	my $d = Zpravostroj::Date::get_from_string($daystr);
+	
+	
+	
+	say "==============================get_count===";
+	my %wordcount = Zpravostroj::AllWordCounts::get_count();
+	
+	say "==============================get_total_before_count===";
+
+	my $artcount = $alldates->get_total_article_count_before_last_wordcount();
+	
+	
+	say "==============================get_and_save_themes===";
+	
+	$alldates->traverse(sub{
+		my $da = shift;
+		if ($d->is_older_than($da->date)) {
+			$da->get_and_save_themes_themefiles(\%wordcount, $artcount)
+		}
+	},$FORKER_SIZES{THEMES_DAYS});
 	
 }
 
@@ -135,14 +248,73 @@ sub recount_all_articles {
 }
 
 sub say_all_top_themes {
-	my @tt = all_top_themes();
+	my @tt = hundred_top_themes();
 	
 	for (@tt) {say $_->lemma}
 }
 
 
+sub hundred_top_themes {
+	return $alldates->get_top_themes(100);
+}
+
 sub all_top_themes {
-	return $alldates->get_top_themes;
+	my %w = $alldates->get_all_themes;
+	return (\%w);
+}
+
+sub get_percentages_from_file {
+	say "Beru count...";
+	my $total  = $alldates->get_total_article_count_before_last_wordcount();
+	
+	say "Beru themes...";
+	my @tt = top_themes_from_file(100);
+	for (@tt) {
+		say $_->lemma," - ", ($_->importance / $total), "%";
+	}
+}
+
+sub remove_banned {
+	say ">>>>>>>>>>>>>>run_tectoserver";
+	
+	Zpravostroj::TectoServer::run_tectoserver();
+	
+	say ">>>>>>>>>>>>>>remove_banned";
+	
+	$alldates->traverse(sub{(shift)->remove_banned()},$FORKER_SIZES{REVIEW_DAYS});
+	
+	say ">>>>>>>>>>>>>>stop_tectoserver";
+	
+	Zpravostroj::TectoServer::stop_tectoserver();
+	
+	say ">>>>>>>>>>>>>>set_latest_wordcount";
+	
+	$alldates->set_latest_wordcount(); 
+	
+	say ">>>>>>>>>>>>>>recount_all_themes";
+
+	Zpravostroj::Tasks::recount_all_themes();
+}
+
+sub get_sum_percentages{
+	
+	say "Beru count...";
+	my $total  = $alldates->get_total_article_count_before_last_wordcount();
+	
+	say "Beru themes...";
+	my @tt = top_themes_from_file(100);
+	my %forbidden = map {$_=>undef} qw(procento strana blesk * . inzerce cz);
+	
+	my $celkem=0;
+	my $i;
+	for my $t (@tt) {
+		if (!exists $forbidden{$t->lemma}) {
+			$celkem += ($t->importance / $total);
+			$i++;
+			say $i.". ". $t->lemma," - ", $celkem;
+		}
+	}
+	
 }
 
 1;

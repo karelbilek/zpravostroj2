@@ -96,7 +96,7 @@ sub _get_object_from_string {
 	my $s = shift;
 	my $n = shift;
 	
-	return undump_bz2($n, "Article");
+	return undump_bz2($n);
 }
 
 sub _after_traverse{
@@ -172,6 +172,19 @@ sub _get_and_save_articles_themes {
 	return $themhash;
 }
 
+sub remove_banned {
+	my $s = shift;
+	$s->traverse(sub{
+		my $a = shift;
+		my $str = shift;
+		my $was_changed = $a->remove_banned($str);
+		
+		if ($was_changed) {
+			say "Odstranil jsem ve $str.";
+		}
+		return ($was_changed);
+	},$FORKER_SIZES{REVIEW_ARTICLES});
+}
 
 sub get_and_save_themes_themefiles {
 	my $s = shift;
@@ -181,9 +194,9 @@ sub get_and_save_themes_themefiles {
 	
 	{
 		say "Jdu vzit z themefiles.";
-		my $old_day_themes = Zpravostroj::ThemeFiles::get_day_themes($s->date);
+		#my $old_day_themes = Zpravostroj::ThemeFiles::get_day_themes($s->date);
 		say "Jdu mazat ze spousty souboru.";
-		Zpravostroj::ThemeFiles::delete_from_theme_history($old_day_themes, $s->date);
+		#Zpravostroj::ThemeFiles::delete_from_theme_history($old_day_themes, $s->date);
 	}
 	
 	say "Jsem pred _get_and_save_articles_themes";
@@ -193,7 +206,7 @@ sub get_and_save_themes_themefiles {
 
 	Zpravostroj::ThemeFiles::save_day_themes($s->date, $themhash);
 	
-	Zpravostroj::ThemeFiles::add_to_theme_history($themhash, $s->date);
+	#Zpravostroj::ThemeFiles::add_to_theme_history($themhash, $s->date);
 	
 }
 
@@ -212,6 +225,31 @@ sub review_all {
 	},$FORKER_SIZES{REVIEW_ARTICLES});
 }
 
+sub cleanup_all_and_count_words {
+	my $s = shift;
+	
+	my %counts:shared;
+	my %urls:shared;
+
+	$s->traverse(sub{
+		my $a = shift;
+		if (_should_delete_dup_url($a->url, \%urls)) {
+			return (-1);
+		}
+		$a->cleanup();
+		
+		
+		my $wcount = $a->counts;
+
+		for (keys %$wcount) {
+			lock(%counts);
+			$counts{$_}++;
+		}
+		return (1);
+	}, $FORKER_SIZES{CLEANUP_ARTICLES});
+	
+	return \%counts;
+}
 
 sub get_wordcount_before_article {
 	my $s = shift;

@@ -1,7 +1,7 @@
 package Zpravostroj::MooseTypes;
 #nejake veci na Moose koercovani a subtypovani
 
-
+use Zpravostroj::Globals;
 use Moose::Util::TypeConstraints;
 use Data::Validate::URI qw(is_http_uri);
 
@@ -12,10 +12,7 @@ subtype 'Lemma'
 coerce 'Lemma'
 	=> from 'Str'
 	=> via {
-		s/^([^\-\.,_;\/\\\^\?:\(\)!"]*).*$/$1/;
-		s/^([\-\.,_;\/\\\^\?:\(\)!"]*)$//;
-		s/ +$//;
-		lc;
+		cleanup_lemma($_);
 	};
 
 

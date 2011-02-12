@@ -3,9 +3,13 @@ use base 'Exporter';
 #pomocny modulik na vsechny funkce, co chci, aby byly videt vsude, ale nejsou samy o sobe prilis "chytre"
 #plus pres to sdilim vsechny konstanty, co chci videt vsude
 
-our @EXPORT = qw(%FORKER_SIZES $MIN_ARTICLES_PER_DAY_FOR_ALLWORDCOUNTS_INCLUSION $MINIMAL_USABLE_BZ2_SIZE undump_bz2 dump_bz2 say if_undef get_last_folder);
+our @EXPORT = qw(%FORKER_SIZES $MIN_ARTICLES_PER_DAY_FOR_ALLWORDCOUNTS_INCLUSION $MINIMAL_USABLE_BZ2_SIZE cleanup_lemma undump_bz2 dump_bz2 say if_undef get_last_folder @banned_phrases);
 
 our $MIN_ARTICLES_PER_DAY_FOR_ALLWORDCOUNTS_INCLUSION = 8;
+
+use encoding utf8;
+
+our @banned_phrases = ("Publikování nebo jakékoliv jiné formy dalšího šíření obsahu serveru Blesk.cz jsou bez písemného souhlasu Ringier Axel Springer CZ a.s., zakázány.", "Blesk.cz využívá zpravodajství z databází ČTK, jejichž obsah je chráněn autorským zákonem. Přepis, šíření či další zpřístupňování tohoto obsahu či jeho části veřejnosti, a to jakýmkoliv způsobem, je bez předchozího souhlasu ČTK výslovně zakázáno.", "Připomínky a tipy pište na", "© 2001 - 2010 Copyright  Ringier Axel Springer CZ a.s. a dodavatelé obsahu. ISSN 1213-8991", "Publikování nebo jakékoliv jiné formy dalšího šíření obsahu serveru Blesk.cz jsou bez písemného souhlasu Ringier ČR, a. s., zakázány.");
 
 #our $SIMULTANEOUS_THREADS_TECTOSERVER=10;
 our %FORKER_SIZES;
@@ -13,14 +17,16 @@ $FORKER_SIZES{TECTOSERVER}=10;
 $FORKER_SIZES{ARTICLE_CREATION}=10;
 $FORKER_SIZES{LATEST_WORDCOUNT_DAYS}=2;
 $FORKER_SIZES{LATEST_WORDCOUNT_ARTICLES}=10;
-$FORKER_SIZES{ARTICLECOUNT}=40;
+$FORKER_SIZES{ARTICLECOUNT}=10;
 $FORKER_SIZES{THEMES_DAYS}=2;
 $FORKER_SIZES{THEMES_ARTICLES}=10;
 $FORKER_SIZES{REVIEW_DAYS}=2;
-$FORKER_SIZES{REVIEW_ARTICLES}=10;
+$FORKER_SIZES{REVIEW_ARTICLES}=20;
 $FORKER_SIZES{UNUSABLE}=40;
-$FORKER_SIZES{ALL_TOPTHEMES}=40;
+$FORKER_SIZES{ALL_TOPTHEMES}=20;
 $FORKER_SIZES{MOOT}=40;
+$FORKER_SIZES{CLEANUP_DAYS}=2;
+$FORKER_SIZES{CLEANUP_ARTICLES}=5;
 
 our $MINIMAL_USABLE_BZ2_SIZE = 3000;
 
@@ -41,8 +47,23 @@ use 5.008;
 use forks;
 sub say(@) {
 	my @w = @_;
-	my $d = join ("", threads->tid(), " - ", @w, "\n");
+	
+	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst)=localtime(time);
+	my $stmp = sprintf "%02d. %02d. %4d %02d:%02d:%02d", $mday, $mon+1, $year+1900,$hour,$min,$sec;
+	
+	
+	my $d = join ("", threads->tid(), " - ", $stmp, " - ", @w, "\n");
 	print $d;
+}
+
+sub cleanup_lemma {
+	my $w = shift;
+	$w=~s/^([^\-\.,_;\/\\\^\?:\(\)!"]*).*$/$1/;
+	$w=~s/^([\-\.,_;\/\\\^\?:\(\)!"]*)$//;
+	$w=~s/ +$//;
+	$w = lc($w);
+	
+	return $w;
 }
 
 #vrátí název posledního adresáře v celé adrese (tj. vše od posledního / do konce)
@@ -217,17 +238,22 @@ sub undump_bz2 {
 
 #tahle procedura projde celý hash a zjistí, jestli náhodou někde není blbý název, jestli je, tak ho předělá
 
+
 sub deep_renamer {
 	my $what = shift;
 	if (exists $what->{"__CLASS__"}) {
 		my $c = $what->{"__CLASS__"};
-		if (!isa_classname($c) and isa_classname("Zpravostroj::$c")) {
+		
+		if ((!isa_classname($c) or $c eq "Date") and isa_classname("Zpravostroj::$c")) {
 			$what->{"__CLASS__"} = "Zpravostroj::$c";
 		}
 	} 
 	for my $k (keys %$what) {
+		
 		if ($k ne "__CLASS__") {
 			my $r = $what->{$k};
+			
+			
 			if (reftype($r) eq 'HASH') {
 				deep_renamer($r);
 			}

@@ -41,6 +41,7 @@ has 'html_contents' => (
 
 has 'article_contents' => (
 	is=>'ro',
+	clearer   => 'clear_article_contents',
 	lazy=>1,
 	default=>sub{Zpravostroj::Readability::extract_text($_[0]->html_contents)}
 );
@@ -52,7 +53,8 @@ has 'title' => (
 );
 
 has 'words' => (
-	is=>'ro',
+	is=>'rw',
+	clearer   => 'clear_words',
 	isa=>'ArrayRef[Zpravostroj::Word]',
 	lazy=>1,
 	default=>sub{my $t = ($_[0]->title)." ".($_[0]->article_contents); say ("pred tectoclientem"); my $r= [ Zpravostroj::TectoClient::lemmatize($t) ]; say "za tectoclientem";$r}
@@ -112,7 +114,45 @@ sub BUILD {
 	$s->counts;
 }
 
+sub cleanup {
+	my $s = shift;
+	my @nw;
+	for my $w (@{$s->words}){
+		my $nw = $w->cleanup;
+		if ($nw->is_meaningful()) {
+			push @nw, $w->cleanup;
+		}
+	}
+	$s->clear_words;
+	$s->clear_counts;
+	$s->words(\@nw);
+	$s->counts;
+}
 
+sub remove_banned {
+	my $s = shift;
+	my $str = shift;
+	
+	my $has = 0;
+	for my $banned (@banned_phrases) {
+		if ($s->article_contents =~ /$banned/) {
+			say $str," ma ", $banned;
+			$has = 1;
+		} else {
+			say $str," nema ", $banned;
+		}
+	}
+	
+	if ($has) {
+		$s->clear_article_contents;
+		$s->clear_words;
+		$s->clear_counts;
+		$s->counts();
+		return 1;
+	} else {
+		return 0;
+	}
+}
 
 sub count_themes {
 	my $s = shift;
@@ -139,7 +179,7 @@ sub count_themes {
 			
 			my $d = 1 + ($count_hashref->{$word}||0);
 			
-			$importance{$word} = ($word_counts->{$word}{counts} / $document_size) * log($all_count / ($d**1.3))if defined $word;
+			$importance{$word} = ($word_counts->{$word}{counts} / $document_size) * log($all_count / ($d**1))if defined $word;
 			
 			
 	}

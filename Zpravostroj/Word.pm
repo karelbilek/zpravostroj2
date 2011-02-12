@@ -8,7 +8,7 @@ package Zpravostroj::Word;
 use Zpravostroj::MooseTypes;
 use Moose;
 use MooseX::StrictConstructor;
-
+use Zpravostroj::Globals;
 
 use MooseX::Storage;
 
@@ -45,7 +45,11 @@ sub is_meaningful {
 	}
 }
 
-
+sub cleanup {
+	my $s = shift;
+	return new Zpravostroj::Word(lemma=>cleanup_lemma($s->lemma), form=>$s->form, named_entity=>$s->named_entity);
+	
+}
 
 
 #"konstruktor" (around je Moose pseudo-klicove slovo)

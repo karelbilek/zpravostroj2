@@ -596,9 +596,15 @@ sub extract_text {
 
 	say $res;
 	
+	for my $banned (@banned_phrases) {
+		if ($res=~/$banned/) {
+			$res=~s/$banned//;
+		}
+	}
+	
 	say "Extractor hotovo";
 	
-
+	
         
 	return $res;
 }

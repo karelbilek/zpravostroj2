@@ -43,6 +43,28 @@ sub _get_object_from_string {
 sub _after_traverse{
 }
 
+sub cleanup_all {
+	my $s = shift;
+	
+	my %counts : shared;
+	$s->traverse(sub{
+		
+		my $d = shift;
+		my $c = $d->cleanup_all_and_count_words;
+		
+		for (keys %$c) {
+			no warnings 'uninitialized';
+			lock(%counts);
+			$counts{$_}+=  $c->{$_};
+		}
+		
+		return();
+	}, $FORKER_SIZES{CLEANUP_DAYS});
+
+	$s->_set_allwordcounts_from_last_accessed(\%counts);
+
+}
+
 sub set_latest_wordcount {
 	my $s=shift;
 	
@@ -66,8 +88,9 @@ sub set_latest_wordcount {
 								{$d->get_wordcount_before_article(0)}
 							);
 			for (keys %$day_count) {
+				no warnings 'uninitialized';
 				lock(%counts);
-				$counts{$_}=if_undef($counts{$_},0) + $day_count->{$_};
+				$counts{$_} += $day_count->{$_};
 			}
 		}
 		
@@ -77,12 +100,16 @@ sub set_latest_wordcount {
 		
 	},$FORKER_SIZES{LATEST_WORDCOUNT_DAYS});
 	
+	$s->_set_allwordcounts_from_last_accessed(\%counts);
+}
+
+sub _set_allwordcounts_from_last_accessed {
+	my $s = shift;
+	my $c = shift;
 	my $l = Zpravostroj::Date::get_from_string($s->_last_accessed);
-	say "pred set count, last accessed je ",$l->get_to_string;
-	Zpravostroj::AllWordCounts::set_count(\%counts);
-	say "pred set last saved";
+	Zpravostroj::AllWordCounts::set_count($c);
 	Zpravostroj::AllWordCounts::set_last_saved($l, (new Zpravostroj::DateArticles(date=>$l))->get_last_number);
-	say "slc done";
+	
 }
 
 sub get_total_article_count_before_last_wordcount {
@@ -97,17 +124,20 @@ sub get_total_article_count_before_last_wordcount {
 	my $total:shared;
 	$total=0;
 	$s->traverse(sub{
-				
+		
 		my $d = shift;
 		
-		lock($total);
+		my $add=0;;
+		
 		if ($last_date->is_the_same_as($d->date)) {
-			$total += $last_article+1;
+			$add = $last_article+1;
 		}
 		if ($d->date->is_older_than($last_date)) {
-			$total += $d->article_count();
+			$add = $d->article_count;
 		}
 		
+		lock($total);
+		$total += $add;
 		return();		
 	},$FORKER_SIZES{ARTICLECOUNT});
 	
@@ -132,12 +162,31 @@ sub get_top_themes {
 
 	my $s = shift;
 	
+	my $c = shift;
+	
+	my %themes = $s->get_all_themes();
+	
+	my @r_themes = values %themes;
+	
+	@r_themes = sort {$b->importance <=> $a->importance} @r_themes;
+	
+	if (!defined $c) {
+		return @r_themes;
+	} else {
+		return @r_themes[0..$c];
+	}
+}
+
+sub get_all_themes {
+	my $s = shift;
+	
+	
 	my %themes : shared;
 	
 	$s->traverse(sub{
 		my $d = shift;
 		
-		my @d_themes = Zpravostroj::ThemeFiles::get_top_themes($d, 100);
+		my @d_themes = Zpravostroj::ThemeFiles::get_top_themes($d->date, 100);
 		for my $theme (@d_themes) {
 			
 			lock(%themes);
@@ -151,11 +200,7 @@ sub get_top_themes {
 		return ();
 	}, $FORKER_SIZES{ALL_TOPTHEMES});
 	
-	my @r_themes = values %themes;
-	
-	@r_themes = sort {$b->importance <=> $a->importance} @r_themes;
-	
-	return @r_themes[0..100];
+	return %themes;
 }
 
 

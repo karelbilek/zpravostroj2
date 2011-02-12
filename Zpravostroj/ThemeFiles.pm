@@ -145,7 +145,7 @@ sub _change_theme_history{
 	my $add = shift;
 	my $theme_hash = shift;
 	
-	my $forker = new Zpravostroj::Forker(size=>40);
+	#my $forker = new Zpravostroj::Forker(size=>40);
 	
 	my $date = shift;
 	
@@ -154,11 +154,11 @@ sub _change_theme_history{
 		
 		if ($theme->importance > 7) {
 			my $subref = _change_one_theme($theme, $date, $add);
-			$forker->run($subref);
+			#$forker->run($subref);
 		}
 	}
 	
-	$forker->wait();
+	#$forker->wait();
 	
 }
 

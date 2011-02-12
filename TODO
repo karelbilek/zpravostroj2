@@ -1,0 +1,18 @@
+(1) vzít tolik témat, abych jimi pokryl 20 - 50 - 80% èlánkù (uvidí se)
+(2) celé texty tìch èlánkù vzít jako trénink na bayese
+
+poèet témat | prvních 5-10 èl	|
+			+------
+Neèas		|
+Rath		| .... | ......... <- testovací množina, každý èlánek ruènì zaøadit do 1 kategorie a oznaèit, jak snadná volba to byla
+|
+|
+
+
+naprogramovat
+---
+? kategorie z HTML
+? graf pomìrù kategorií v èase
+- trénování bayese, tj výbìr èlánkù do trénovací množiny
+- možno zaøadit testovací if do témat (?????????)
+-vpoersersgdft fsdfsšé z Bayesova pø(???)iøazení
