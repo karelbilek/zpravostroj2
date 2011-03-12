@@ -49,6 +49,12 @@ sub pathname {
 	return "data/articles/".$year."/".$month."/".$day;
 }
 
+sub get_article_from_number {
+	my $s = shift;
+	my $number = shift;
+	return $s->_get_object_from_string($s->pathname."/".$number.".bz2");
+}
+
 sub save_article {
 	my $s = shift;
 	my $n = shift;

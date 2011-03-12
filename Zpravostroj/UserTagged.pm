@@ -14,9 +14,6 @@ use Encode;
 
 use YAML::XS qw(Load Dump);
 
-sub get_tuples {
-	
-}
 
 sub get_possible_marks {
 	my $path =  "data/user_allmarks/allmarks.yaml";
@@ -101,6 +98,16 @@ sub mark_article {
 	my $num = get_user_done($person);
 	set_user_done($person, $num + 1);
 	
+}
+
+
+sub get_tuples {
+	for my $filename (<data/usermarks/*>) {
+		my $articlename = $filename;
+		$articlename =~ s/data\/usermarks\///;
+		
+		
+	}
 }
 
 1;

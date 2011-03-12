@@ -174,17 +174,27 @@ sub get_random_article {
 	
 	my $rand_name;
 	
- 	do {
-		my $r = rand $size;
-		$rand_name = $names[$r];
-	} while (exists $s->_taken->{$rand_name});
-	
-	$s->_taken->{$rand_name}=undef;
+	my $r = rand $size;
+	$rand_name = $names[$r];
 	
 	$rand_name =~ s/\//-/g;
+	$rand_name =~ s/data-articles-//g;
 	$rand_name =~ s/\.bz2//g;
 	
-	return (undump_bz2($rand_name), $rand_name);
+	return (get_from_article_id($rand_name), $rand_name);
+}
+
+sub get_from_article_id {
+	my $s = shift;
+	
+	my $id = shift;
+	if ($id =~ /(\d\d\d\d)-(\d+)-(\d+)-(\d+)/){
+		my $date = new Date(year=>$1, month=>$2, day=>$3);
+		my $article = (new DateArticles(date=>$date))->get_article_from_number($4);
+		return $article;
+	} else {
+		return undef;
+	}
 }
 
 sub get_total_article_count_before_last_wordcount {
