@@ -17,6 +17,10 @@ use Zpravostroj::Date;
 
 use Zpravostroj::AllThemes;
 
+use Zpravostroj::UserTagged::get_tuples;
+
+use Zpravostroj::Categorizer::TotallyRetarded;
+use Zpravostroj::Categorizer::Evaluator;
 
 use forks;
 use forks::shared;
@@ -379,5 +383,20 @@ sub get_random_article {
 	return ($a, $name);
 }
 
+sub evaluate_on_userdata {
+	my $classname = shift;
+	my @options = @_;
+	
+	my @tuples = Zpravostroj::UserTagged::get_tuples();
+	my ($a, $b) = Zpravostroj::Categorizer::Evaluator::evaluate($classname, \@tuples, @options);
+	#jedno je asi precision, jedno asi recall, ale nevim, co je co :(
+	
+	return ($a, $b);
+}
+
+sub try_retarded {
+	my ($a, $b) = evaluate_on_userdata(Zpravostroj::Categorizer::TotallyRetarded, "ODS");
+	print $a."\n".$b."\n";
+}
 
 1;
