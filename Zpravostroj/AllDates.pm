@@ -181,18 +181,20 @@ sub get_random_article {
 	$rand_name =~ s/data-articles-//g;
 	$rand_name =~ s/\.bz2//g;
 	
-	return (get_from_article_id($rand_name), $rand_name);
+	return ($s->get_from_article_id($rand_name), $rand_name);
 }
 
 sub get_from_article_id {
 	my $s = shift;
 	
 	my $id = shift;
-	if ($id =~ /(\d\d\d\d)-(\d+)-(\d+)-(\d+)/){
-		my $date = new Date(year=>$1, month=>$2, day=>$3);
-		my $article = (new DateArticles(date=>$date))->get_article_from_number($4);
+	if ($id =~ /^(\d\d\d\d)-(\d+)-(\d+)-(\d+)$/){
+		my $date = new Zpravostroj::Date(year=>$1, month=>$2, day=>$3);
+		my $article = (new Zpravostroj::DateArticles(date=>$date))->get_article_from_number($4);
+		
 		return $article;
 	} else {
+		
 		return undef;
 	}
 }

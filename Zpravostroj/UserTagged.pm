@@ -102,12 +102,30 @@ sub mark_article {
 
 
 sub get_tuples {
+	
+	my @tuples;
+	
 	for my $filename (<data/usermarks/*>) {
-		my $articlename = $filename;
-		$articlename =~ s/data\/usermarks\///;
+		my $id = $filename;
+		$id =~ s/data\/usermarks\///;
 		
+		my $article = (new Zpravostroj::AllDates)->get_from_article_id($id);
 		
+		my @tags;
+		open my $if, "<", $filename;
+		for my $line (<$if>) {
+			if ($line!=~/^PERSON:\d+$/) {
+				chomp($line);
+				push(@tags, $line);
+			}
+		}
+		
+		push @tuples, {article=>$article, tags=>\@tags};
 	}
+	
+	
+	
+	return @tuples;
 }
 
 1;
