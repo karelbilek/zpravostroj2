@@ -17,7 +17,6 @@ use Zpravostroj::Date;
 
 use Zpravostroj::AllThemes;
 
-use Zpravostroj::Categorizer;
 
 use forks;
 use forks::shared;
@@ -380,25 +379,5 @@ sub get_random_article {
 	return ($a, $name);
 }
 
-sub get_percentage_total {
-	
-	my %counts:shared;
-	
-	$alldates->traverse(sub{
-		my $ar = shift;
-		$ar->traverse(sub{
-			my $a = shift;
-			my @s = Zpravostroj::Categorizer::find_possible_superthemes($a);
-			say "VELIKOST JE ",scalar @s;
-			lock(%counts);
-			$counts{scalar @s} ++;
-			return (0);
-		}, 10);
-	}, 2);
-	
-	for (keys %counts) {
-		say $_, " - ", $counts{$_};
-	}
-}
 
 1;
