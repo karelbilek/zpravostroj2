@@ -12,11 +12,7 @@ with 'Zpravostroj::Traversable';
 use forks;
 use forks::shared;
 
-has '_taken'=> (
-	is=>'rw',
-	isa=>'HashRef[Undef]',
-	default=> sub{{}}
-);
+
 
 
 

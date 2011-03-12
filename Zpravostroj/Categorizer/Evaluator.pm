@@ -45,12 +45,16 @@ sub sets_complement_size {
 
 sub evaluate {
 	my $class = shift;
+		
+	my $articles_ref = shift;
 	
-	my @arr = @_;
+	my @options = @_;
+	
+	my @arr = @$articles_ref;
 	
 	my ($train, $eval) = chose_random_disjunct_subsets(0.9);
 	
-	my $categorizer = $class->new(@$train);
+	my $categorizer = $class->new($train, @options);
 	
 	my @to_tag = map {$_->{article}} @$eval;
 	
@@ -67,11 +71,11 @@ sub evaluate {
 	my $missing_tags = 0;
 	
 	for my $i (0..$#tagged) {
-		my $tagged_article = $tagged[$i];
-		my $original_article = $eval->[$i];
+		my $tagged_tuple = $tagged[$i];
+		my $original_tuple = $eval->[$i];
 		
-		my @categorizer_tags = $tagged_article->{tags};
-		my @original_tags = $original_article->{tags};
+		my @categorizer_tags = $tagged_tuple->{tags};
+		my @original_tags = $original_tuple->{tags};
 		
 		$original_tags_sum += unique_size(@original_tags);
 		$categorizer_tags_sum += unique_size(@categorizer_tags);
