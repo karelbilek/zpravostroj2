@@ -111,7 +111,7 @@ sub get_days_after {
 
 sub get_days_after_today {
 	my $h = shift;
-	return ((new Date)->get_days_after($h));
+	return ((new Zpravostroj::Date)->get_days_after($h));
 }
 
 sub get_days_before_today {

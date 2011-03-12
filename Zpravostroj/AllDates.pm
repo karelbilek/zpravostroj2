@@ -12,12 +12,6 @@ with 'Zpravostroj::Traversable';
 use forks;
 use forks::shared;
 
-has '_all_article_names' => (
-	is => 'rw',
-	isa=> 'ArrayRef[Str]',
-	default=> sub{[]}
-);
-
 has '_taken'=> (
 	is=>'rw',
 	isa=>'HashRef[Undef]',
@@ -142,26 +136,52 @@ sub get_all_date_addresses {
 }
 
 
+sub get_article_names {
+	my $s = shift;
+	if (-e "data/all_article_names/names") {
+		open my $anames, "<", "data/all_article_names/names";
+		my @all = <$anames>;
+		close $anames;
+		chomp(@all);
+		return @all;
+	} else {
+		$s->freeze_article_names;
+		return $s->get_article_names;
+	}
+}
+
+sub freeze_article_names {
+	my $s = shift;
+	my @all = $s->get_all_date_addresses;
+	mkdir "data/";
+	mkdir "data/all_article_names/";
+	open my $anames, ">", "data/all_article_names/names";
+	for (@all) {
+		print $anames $_."\n";
+	}
+	close $anames;
+}
+
 
 sub get_random_article {
 	my $s = shift;
-	my $size = scalar @{$s->_all_article_names};
-	if (!$size) {
-		my @all = $s->get_all_date_addresses;
-		$s->_all_article_names(\@all);
-		$size = scalar @{$s->_all_article_names};
-	}
+	
+	
+	my @names = $s->get_article_names;
+	my $size = scalar @names;
+	say "Size je $size.";
+	
 	
 	my $rand_name;
 	
  	do {
 		my $r = rand $size;
-		$rand_name = $s->_all_article_names->[$r];
+		$rand_name = $names[$r];
 	} while (exists $s->_taken->{$rand_name});
 	
 	$s->_taken->{$rand_name}=undef;
 	
-	return undump_bz2($rand_name);
+	return (undump_bz2($rand_name), $rand_name);
 }
 
 sub get_total_article_count_before_last_wordcount {

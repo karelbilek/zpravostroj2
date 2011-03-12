@@ -108,6 +108,20 @@ has 'last_themes_count' => (
 	isa=>'Zpravostroj::Date'	
 );
 
+has 'chosen_theme' =>(
+	is=>'rw',
+	isa=>'Str', #narozdil od temat predtim nema tady smysl delat lemma, form a importance
+	predicate => 'has_chosen_theme'
+);
+
+#Kdo to zatřídil
+has 'cathegorizing_person'=>(
+	is=>'rw',
+	isa=>'Int'
+);
+
+
+
 
 sub BUILD {
 	my $s = shift;

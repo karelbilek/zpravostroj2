@@ -26,6 +26,46 @@ sub save_all_top_themes {Zpravostroj::AllThemes::save}
 
 sub top_themes_from_file {return Zpravostroj::AllThemes::get_sorted(@_)}
 
+sub recount_usermarks {
+	my %themeshash;
+	my %userdone;
+	for my $fname (<data/usermarks/*>) {
+		open my $f, "<:utf8", $fname;
+		for my $fline (<$f>) {
+			chomp $fline;
+			if ($fline =~ /^PERSON:\d+$/) {
+				$userdone{$fline}++;
+			} else {
+				if ($fline =~ /PERSON/) {
+					die $fname;
+				}
+				if ($fline) {
+					$themeshash{$fline}++;
+				}
+			}
+		}
+		close $f;
+	}
+	
+	for my $user (keys %userdone) {
+		my $fname = "data/user_done/$user";
+		`rm -f $fname`;
+		open my $f, ">", $fname;
+		print $f $userdone{$user};
+		close $f;
+		`chmod 777 $fname`;
+	}
+	
+	require YAML::XS;
+	my $fname = "data/user_allmarks/allmarks.yaml";
+	`rm -f $fname`;
+	open my $f, ">:utf8", $fname;
+	print $f YAML::XS::Dump($fname, \%themeshash);
+	close $f;
+	`chmod 777 $fname`;
+	
+}
+
 sub get_article {
 	my $daystr = shift;
 	my $art = shift;
@@ -137,6 +177,7 @@ sub download_articles_counts_and_themes {
 	say ">>>>>>>>>>>>>>GET ALL RSS";
 
 	my @links = get_all_RSS;
+	@links = @links[0..1];
 	for (@links){say "URL -> $_"}
 	
 	say ">>>>>>>>>>>>>>CREATE ARTICLES FROM URLS";
@@ -320,22 +361,23 @@ sub get_sum_percentages{
 }
 
 sub say_top_themes {
-	my @tt = top_themes_from_file(200);
+	my @tt = top_themes_from_file(500);
 	say map {$_->lemma."\n"} @tt;
 }
 
 sub get_random_article {
-	my $a = $alldates->get_random_article();
-	say $a->url;
-	
-	say "--text:";
-	say $a->article_contents;
-	
-	say "--themes:";
-	say map {$_->lemma."\n"} @{$a->themes};
-	
-	say "--superthemes:";
-	say map {$_->lemma."\n"} Zpravostroj::Categorizer::find_possible_superthemes($a);
+	my ($a, $name) = $alldates->get_random_article();
+	# say $a->url;
+	# 
+	# say "--text:";
+	# say $a->article_contents;
+	# 
+	# say "--themes:";
+	# say map {$_->lemma."\n"} @{$a->themes};
+	# 
+	# say "--superthemes:";
+	# say map {$_->lemma."\n"} Zpravostroj::Categorizer::find_possible_superthemes($a);
+	return ($a, $name);
 }
 
 sub get_percentage_total {

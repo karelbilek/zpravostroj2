@@ -31,8 +31,8 @@ use warnings;
 use encoding 'utf8';
 use Encode;
 use IO::Socket;
-use TectoMT::Scenario;
-use TectoMT::Document;
+
+
 
 use forks;
 
@@ -82,6 +82,8 @@ sub shut_up(&) {
 #stejne tak socket a forker
 #(chvili trva a je to "ukecana" procedura, proto shut_up)
 sub initialize {
+	require TectoMT::Scenario;
+	require TectoMT::Document;
 	if (!defined $scenario) {
 		shut_up {
 			 

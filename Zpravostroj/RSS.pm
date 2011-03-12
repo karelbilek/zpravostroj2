@@ -92,7 +92,7 @@ sub refresh_urls {
 
 sub get_urls{
 	my $s = shift;
-	my $today = new Date() -> get_to_string;
+	my $today = new Zpravostroj::Date() -> get_to_string;
 	my $yesterday = Zpravostroj::Date::get_days_before_today(1)-> get_to_string;
 	
 

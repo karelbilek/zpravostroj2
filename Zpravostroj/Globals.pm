@@ -3,13 +3,15 @@ use base 'Exporter';
 #pomocny modulik na vsechny funkce, co chci, aby byly videt vsude, ale nejsou samy o sobe prilis "chytre"
 #plus pres to sdilim vsechny konstanty, co chci videt vsude
 
-our @EXPORT = qw(%FORKER_SIZES $MIN_ARTICLES_PER_DAY_FOR_ALLWORDCOUNTS_INCLUSION $MINIMAL_USABLE_BZ2_SIZE cleanup_lemma undump_bz2 dump_bz2 say if_undef get_last_folder @banned_phrases);
+our @EXPORT = qw(%FORKER_SIZES $MIN_ARTICLES_PER_DAY_FOR_ALLWORDCOUNTS_INCLUSION $MINIMAL_USABLE_BZ2_SIZE cleanup_lemma undump_bz2 dump_bz2 say if_undef get_last_folder @banned_phrases @selected_themes);
 
 our $MIN_ARTICLES_PER_DAY_FOR_ALLWORDCOUNTS_INCLUSION = 8;
 
 use encoding utf8;
 
 our @banned_phrases = ("Publikování nebo jakékoliv jiné formy dalšího šíření obsahu serveru Blesk.cz jsou bez písemného souhlasu Ringier Axel Springer CZ a.s., zakázány.", "Blesk.cz využívá zpravodajství z databází ČTK, jejichž obsah je chráněn autorským zákonem. Přepis, šíření či další zpřístupňování tohoto obsahu či jeho části veřejnosti, a to jakýmkoliv způsobem, je bez předchozího souhlasu ČTK výslovně zakázáno.", "Připomínky a tipy pište na", "© 2001 - 2010 Copyright  Ringier Axel Springer CZ a.s. a dodavatelé obsahu. ISSN 1213-8991", "Publikování nebo jakékoliv jiné formy dalšího šíření obsahu serveru Blesk.cz jsou bez písemného souhlasu Ringier ČR, a. s., zakázány.");
+
+our @selected_themes = ("ODS" , "ČSSD" , "soud" , "volby" , "Nečas" , "nehoda" , "policie" , "TOP09" , "vláda" , "Paroubek" , "řidič" , "poslanec" , "sněmovna" , "policista" , "dítě" , "ministr" , "leden" , "ministerstvo" , "sníh" , "Klaus" , "škola" , "prezident" , "milión" , "koalice" , "silnice" , "Česko" , "hasič" , "Fischer" , "volební" , "stupeň" , "nemocnice" , "koruna" , "návrh" , "březen" , "listopad" , "prosinec" , "voda" , "USA" , "zápas" , "Sobotka" , "rusko" , "Topolánek" , "teplota" , "srpen" , "banka" , "červenec" , "září" , "auto" , "únor" , "John" , "dálnice" , "haiti" , "sociální" , "VV" , "duben" , "Vancouver" , "plat" , "cena" , "veřejný" , "smlouva" , "říjen" , "státní" , "film" , "květen" , "červen" , "povodeň" , "volič" , "vlak" , "Zelený (Strana Zelených)" , "průzkum" , "hlas" , "Čech" , "město" , "projekt" , "útok" , "Evropa" , "Ostrava" , "Čína" , "euro" , "komise" , "pražský / Praha" , "rada" , "letiště" , "Kalousek" , "Americký" , "letadlo" , "požár", "tenis", "hokej", "fotbal", "sport");
 
 #our $SIMULTANEOUS_THREADS_TECTOSERVER=10;
 our %FORKER_SIZES;
@@ -46,6 +48,11 @@ use 5.008;
 #nakonec se mi to hodi, protoze jsem si k ni (aby se vubec daly thready hlidat) pridal na zacatek radku cislo threadu
 
 use forks;
+
+my $shutup=0;
+sub _shut_up {
+	$shutup=1;
+}
 sub say(@) {
 	my @w = @_;
 	
@@ -54,7 +61,7 @@ sub say(@) {
 	
 	
 	my $d = join ("", threads->tid(), " - ", $stmp, " - ", @w, "\n");
-	print $d;
+	print $d unless $shutup;
 }
 
 sub cleanup_lemma {
