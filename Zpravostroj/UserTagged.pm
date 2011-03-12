@@ -7,7 +7,6 @@ use utf8;
 use encoding 'utf8';
 
 
-use Zpravostroj::Tasks;
 use Zpravostroj::Globals;
 
 use Encode;

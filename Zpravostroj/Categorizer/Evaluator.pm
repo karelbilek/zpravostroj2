@@ -86,3 +86,5 @@ sub evaluate {
 	
 	return ($wrong_tags_by_categorizer/ $categorizer_tags_sum, $categorizer_tags_sum/$original_tags_sum);
 }
+
+1;

@@ -23,3 +23,5 @@ around BUILDARGS => sub {
 	my %h = _create(@arr);
 	return $class->$orig(%h);
 };
+
+1;

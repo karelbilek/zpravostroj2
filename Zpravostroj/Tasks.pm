@@ -17,7 +17,7 @@ use Zpravostroj::Date;
 
 use Zpravostroj::AllThemes;
 
-use Zpravostroj::UserTagged::get_tuples;
+use Zpravostroj::UserTagged;
 
 use Zpravostroj::Categorizer::TotallyRetarded;
 use Zpravostroj::Categorizer::Evaluator;
@@ -395,7 +395,7 @@ sub evaluate_on_userdata {
 }
 
 sub try_retarded {
-	my ($a, $b) = evaluate_on_userdata(Zpravostroj::Categorizer::TotallyRetarded, "ODS");
+	my ($a, $b) = evaluate_on_userdata("Zpravostroj::Categorizer::TotallyRetarded", "ODS");
 	print $a."\n".$b."\n";
 }
 
