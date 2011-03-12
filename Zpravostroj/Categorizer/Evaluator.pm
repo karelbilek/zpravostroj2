@@ -36,7 +36,7 @@ sub sets_complement_size {
 	my %complement = map {$_->undef} @$base;
 	
 	for my $subtracted_element (@$subtracted) {
-		delete %complement{$subtracted_element};
+		delete $complement{$subtracted_element};
 	}
 	
 	return (scalar keys %complement);
