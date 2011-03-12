@@ -14,6 +14,9 @@ use Encode;
 
 use YAML::XS qw(Load Dump);
 
+sub get_tuples {
+	
+}
 
 sub get_possible_marks {
 	my $path =  "data/user_allmarks/allmarks.yaml";
@@ -86,9 +89,6 @@ sub mark_article {
 	my @themes_array = split(/(\r|\n)+/,$themes);
 	@themes_array = grep {!/^\s*$/} @themes_array;
 	
-	
-	$article =~ s/\//-/g;
-	$article =~ s/\.bz2//g;
 		
 	{
 		open my $of, ">>:utf8", "data/usermarks/".$article or die $!;

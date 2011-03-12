@@ -181,6 +181,9 @@ sub get_random_article {
 	
 	$s->_taken->{$rand_name}=undef;
 	
+	$rand_name =~ s/\//-/g;
+	$rand_name =~ s/\.bz2//g;
+	
 	return (undump_bz2($rand_name), $rand_name);
 }
 

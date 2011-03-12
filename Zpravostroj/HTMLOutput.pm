@@ -7,7 +7,7 @@ use utf8;
 use encoding 'utf8';
 
 
-use Zpravostroj::Tasks;
+use Zpravostroj::AllDates;
 use Zpravostroj::Globals;
 use Zpravostroj::UserTagged;
 
@@ -304,7 +304,7 @@ sub generate_HTML {
 	
 	
 	
-	my ($a, $name) = Zpravostroj::Tasks::get_random_article();
+	my ($a, $name) = (new Zpravostroj::AllDates)->get_random_article();
 	print_article($a, $name, $person);
 	
 	
