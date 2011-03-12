@@ -102,3 +102,5 @@ sub mark_article {
 	set_user_done($person, $num + 1);
 	
 }
+
+1;
