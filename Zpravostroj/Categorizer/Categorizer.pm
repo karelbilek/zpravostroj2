@@ -20,7 +20,7 @@ around BUILDARGS => sub {
 	
 	my @arr = @_;
 	
-	my %h = _create(@arr);
+	my %h = %{$class->_create(@arr)};
 	return $class->$orig(%h);
 };
 

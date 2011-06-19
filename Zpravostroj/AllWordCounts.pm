@@ -1,4 +1,7 @@
 package Zpravostroj::AllWordCounts;
+#UPDATE - komentáře pod tím už uplně neplatí. třídim vnějšim třídenim :)
+
+
 #Package ke sledování celkových "reverzních" počtů
 
 #Co je tím myšleno. Pro každé slovo si držím počet článků, ve kterých je uvedeno.
@@ -24,46 +27,43 @@ use forks::shared;
 
 use Zpravostroj::Globals;
 use Zpravostroj::Date;
+use Zpravostroj::OutCounter;
+
 use File::Slurp;
 
 use Scalar::Util qw(reftype);
 
 
 mkdir "data";
-mkdir "data/all_count";
+#mkdir "data/all_count";
+
+my $outcounter = new Zpravostroj::OutCounter(name=>"data/idf/idf", delete_on_start=>0);
 
 sub null_all {
-	system("rm -r data/all_count/");
+	system("rm -r ".$outcounter->tempname);
 }
 
-sub set_count {
+sub add_to_count {
 	my $w = shift;
-	dump_bz2("data/all_count/counts.bz2", $w);
+	$outcounter->add_hash($w);
 }
 
 sub get_count {
+	return $outcounter->return_counted();
 	
-	
-	my $c = undump_bz2("data/all_count/counts.bz2");
-	
-	if (!$c or reftype($c) ne "HASH") {
-		return ();
-	} else {
-		return %$c;
-	}
 }
 
 sub get_last_saved {
-	if (!-e "data/all_count/date_last_counted") {
+	if (!-e "data/idf/date_last_counted") {
 		return (new Zpravostroj::Date(day=>0, month=>0, year=>0), 0);
 	}
-	return (Zpravostroj::Date::get_from_file("data/all_count/date_last_counted"), read_file("data/all_count/article_last_counted"));
+	return (Zpravostroj::Date::get_from_file("data/idf/date_last_counted"), read_file("data/idf/article_last_counted"));
 }
 
 sub set_last_saved {
 	my ($date, $num) = @_;
-	$date->get_to_file("data/all_count/date_last_counted");
-	write_file("data/all_count/article_last_counted", $num);
+	$date->get_to_file("data/idf/date_last_counted");
+	write_file("data/idf/article_last_counted", $num);
 }
 
 

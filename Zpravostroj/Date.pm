@@ -17,7 +17,6 @@ with Storage;
 
 use Zpravostroj::Article;
 use Zpravostroj::Globals;
-use Zpravostroj::ThemeFiles;
 
 sub _get_day_info {
 	my $how_late = shift || 0;
@@ -91,6 +90,12 @@ sub get_to_string {
 	my $s = shift;
 	return $s->year."-".$s->month."-".$s->day;
 }
+
+sub get_to_nice_string {
+	my $s = shift;
+	return $s->day.". ".$s->month.". ".$s->year;
+}
+
 
 sub get_to_file {
 	my $s = shift;

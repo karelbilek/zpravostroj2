@@ -9,8 +9,12 @@ use encoding 'utf8';
 
 use Zpravostroj::AllDates;
 use Zpravostroj::Globals;
-use Zpravostroj::UserTagged;
+use Zpravostroj::ManualCategorization::Unlimited;
+use Zpravostroj::ManualCategorization::NewsTopics;
 
+
+my $UNLIMITED=1;
+#jinak news topics
 
 use Facebook::Graph;
 
@@ -200,14 +204,16 @@ sub print_article {
 	
 	print "<div class=\"hodnoceni\" id=\"hodnoceni\">";
 	
-	print '<div class="status">zatím zatříděno '.Zpravostroj::UserTagged::get_user_done($id).'</div>';
 	
 	
 	print '<h3 id="vybraneh3"></h3>
 	<div id="themesdiv"></div>';
 	
 	print "<h3 id=\"oblibh3\">Oblíbené kategorie</h3><div>";
-	for (("prázdný článek", Zpravostroj::UserTagged::get_possible_marks())) {
+	my @possible_categories = $UNLIMITED ? (Zpravostroj::ManualCategorization::Unlimited::get_possible_categories()) 
+											: (Zpravostroj::ManualCategorization::NewsTopics::get_possible_categories());
+	
+	for (@possible_categories) {
 		print polozka($_, "addtheme('$_')");
 	}
 	
@@ -263,7 +269,12 @@ sub generate_HTML {
 		#samotne oznackovani :)
 		
 		my $encoded = Encode::decode_utf8( $c->param("themes") );
-		Zpravostroj::UserTagged::mark_article($c->param("article"), $c->param("person"),  $encoded);
+		if ($UNLIMITED) {
+			Zpravostroj::ManualCategorization::Unlimited::add_article_to_categories($c->param("article"), $encoded);
+		} else {
+			Zpravostroj::ManualCategorization::NewsTopics::add_article_to_categories($c->param("article"), $encoded);
+			
+		}
 	}
 	
 	if (!$c->cookie('token')) {
@@ -303,8 +314,11 @@ sub generate_HTML {
 	
 	
 	
-	
-	my ($a, $name) = (new Zpravostroj::AllDates)->get_random_article();
+	my ($a, $name) = $UNLIMITED ? 
+				(Zpravostroj::ManualCategorization::Unlimited::get_random_article()) 
+				: 
+				(Zpravostroj::ManualCategorization::NewsTopics::get_random_article());
+				
 	print_article($a, $name, $person);
 	
 	

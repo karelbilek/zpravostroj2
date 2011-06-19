@@ -3,6 +3,9 @@ package Zpravostroj::Tasks;
 
 #vsechno by se melo teoreticky volat "pres" Tasks
 
+#Zpravostroj::Tasks::recount_one_article_themes_without_saving("2010-11-3", 35);
+#Zpravostroj::Tasks::recount_one_article_themes_without_saving("2010-5-12", 91);
+
 use 5.008;
 use strict;
 use warnings;
@@ -15,49 +18,44 @@ use Zpravostroj::Forker;
 use Zpravostroj::AllWordCounts;
 use Zpravostroj::Date;
 
-use Zpravostroj::AllThemes;
 
 use Zpravostroj::UserTagged;
 
 use Zpravostroj::Categorizer::TotallyRetarded;
+
+use Zpravostroj::Categorizer::TotallyRetardedTrained;
 use Zpravostroj::Categorizer::Evaluator;
+
+use AI::Categorizer::Learner::NaiveBayes;
+
+use AI::Categorizer::Learner::DecisionTree;
+use AI::Categorizer::Learner::SVM;
+
+use Zpravostroj::Categorizer::AICategorizer;
+use Zpravostroj::Categorizer::FreqThemes;
+use Zpravostroj::Categorizer::StopThemes;
+use Zpravostroj::Categorizer::TfIdfThemes;
 
 use forks;
 use forks::shared;
 
-sub save_all_top_themes {Zpravostroj::AllThemes::save}
 
-sub top_themes_from_file {return Zpravostroj::AllThemes::get_sorted(@_)}
-
-sub recount_usermarks {
+sub _recount_usermarks {
 	my %themeshash;
-	my %userdone;
 	for my $fname (<data/usermarks/*>) {
 		open my $f, "<:utf8", $fname;
 		for my $fline (<$f>) {
 			chomp $fline;
-			if ($fline =~ /^PERSON:\d+$/) {
-				$userdone{$fline}++;
-			} else {
-				if ($fline =~ /PERSON/) {
-					die $fname;
-				}
-				if ($fline) {
-					$themeshash{$fline}++;
-				}
+			
+			if ($fline) {
+				$themeshash{$fline}++;
 			}
+			
 		}
 		close $f;
 	}
 	
-	for my $user (keys %userdone) {
-		my $fname = "data/user_done/$user";
-		`rm -f $fname`;
-		open my $f, ">", $fname;
-		print $f $userdone{$user};
-		close $f;
-		`chmod 777 $fname`;
-	}
+	
 	
 	require YAML::XS;
 	my $fname = "data/user_allmarks/allmarks.yaml";
@@ -240,10 +238,39 @@ sub get_percentages {
 	}
 }
 
+sub recount_one_article_themes_without_saving {
+	my $datestring = shift;
+	my $article = shift;
+	
+	
+	my $wordcount = Zpravostroj::AllWordCounts::get_count();
+	my $artcount = $alldates->get_total_article_count_before_last_wordcount();
+
+	
+	my $ar = get_article($datestring, $article);
+	$ar->count_themes($artcount, $wordcount);
+	
+	my @t = sort {$b->{importance} <=> $a->{importance}} @{$ar->themes};
+	
+	for (@t) {
+		print '\texttt{';
+		print $_->{lemma};
+		print '}';
+		
+		print " & ";
+		my $s = sprintf ("%.2f", $_->{importance});
+		$s=~s/e-(\d\d)/\\times 10\^{-$1}/;
+		print "\$$s\$";
+		
+		print ' \\\\ \hline';
+		print "\n";
+	}
+}
+
 sub recount_all_themes {
 	
 	say "==============================get_count===";
-	my %wordcount = Zpravostroj::AllWordCounts::get_count();
+	my $wordcount = Zpravostroj::AllWordCounts::get_count();
 	
 	say "==============================get_total_before_count===";
 
@@ -252,7 +279,7 @@ sub recount_all_themes {
 	
 	say "==============================get_and_save_themes===";
 	
-	$alldates->traverse(sub{(shift)->get_and_save_themes_themefiles(\%wordcount, $artcount)},$FORKER_SIZES{THEMES_DAYS});
+	$alldates->traverse(sub{(shift)->get_and_save_themes_themefiles($wordcount, $artcount)},$FORKER_SIZES{THEMES_DAYS});
 	
 }
 
@@ -283,14 +310,17 @@ sub recount_all_themes_since_day {
 }
 
 
-sub recount_all_articles {
+sub review_all {
 	$|=1;
+	my $wordcount = Zpravostroj::AllWordCounts::get_count();
+	my $artcount = $alldates->get_total_article_count_before_last_wordcount();
 
-	Zpravostroj::TectoServer::run_tectoserver();
 	
-	$alldates->traverse(sub{(shift)->review_all()}, $FORKER_SIZES{REVIEW_DAYS});
+	#Zpravostroj::TectoServer::run_tectoserver();
 	
-	Zpravostroj::TectoServer::stop_tectoserver();
+	$alldates->review_all($wordcount, $artcount);
+	
+	#Zpravostroj::TectoServer::stop_tectoserver();
 }
 
 sub say_all_top_themes {
@@ -318,28 +348,6 @@ sub get_percentages_from_file {
 	for (@tt) {
 		say $_->lemma," - ", ($_->importance / $total), "%";
 	}
-}
-
-sub remove_banned {
-	say ">>>>>>>>>>>>>>run_tectoserver";
-	
-	Zpravostroj::TectoServer::run_tectoserver();
-	
-	say ">>>>>>>>>>>>>>remove_banned";
-	
-	$alldates->traverse(sub{(shift)->remove_banned()},$FORKER_SIZES{REVIEW_DAYS});
-	
-	say ">>>>>>>>>>>>>>stop_tectoserver";
-	
-	Zpravostroj::TectoServer::stop_tectoserver();
-	
-	say ">>>>>>>>>>>>>>set_latest_wordcount";
-	
-	$alldates->set_latest_wordcount(); 
-	
-	say ">>>>>>>>>>>>>>recount_all_themes";
-
-	Zpravostroj::Tasks::recount_all_themes();
 }
 
 sub get_sum_percentages{
@@ -383,20 +391,115 @@ sub get_random_article {
 	return ($a, $name);
 }
 
-sub evaluate_on_userdata {
-	my $classname = shift;
-	my @options = @_;
-	
-	my @tuples = Zpravostroj::UserTagged::get_tuples();
-	my ($a, $b) = Zpravostroj::Categorizer::Evaluator::evaluate($classname, \@tuples, @options);
-	#jedno je asi precision, jedno asi recall, ale nevim, co je co :(
-	
-	return ($a, $b);
-}
+
+# sub evaluate_on_userdata {
+# 	my $classname = shift;
+# 	my $fake_classifier = shift;
+# 	my @options = @_;
+# 	
+# 	my @tuples = Zpravostroj::UserTagged::get_tuples(undef, 1);
+# 	
+# 	
+# 	
+# 	my @res = Zpravostroj::Categorizer::Evaluator::evaluate($classname, \@tuples, $fake_classifier ? 0 : 10, @options);
+# 	
+# 	
+# 	print (join (" ", map {"& ".sprintf ("%.2f", $_*100)." \\%"} @res));
+# 
+# #	print '$micro_pi_sum, $micro_ro_sum, microF, $macro_pi_sum, $macro_ro_sum, macroF';
+# 	print "\n";
+# }
 
 sub try_retarded {
-	my ($a, $b) = evaluate_on_userdata("Zpravostroj::Categorizer::TotallyRetarded", "ODS");
-	print $a."\n".$b."\n";
+	Zpravostroj::Categorizer::Evaluator::evaluate_on_manual_categories("Zpravostroj::Categorizer::TotallyRetarded",1, 0, undef, "ODS");
+}
+
+sub try_f {
+	evaluate_on_userdata("Zpravostroj::Categorizer::FreqThemes",1, 0);
+}
+
+sub try_tf_idf {
+	evaluate_on_userdata("Zpravostroj::Categorizer::TfIdfThemes", 1, 0, undef, 10);
+}
+
+
+sub try_s {
+	evaluate_on_userdata("Zpravostroj::Categorizer::StopThemes",1, 0, undef);
+}
+
+sub try_bayes {
+	my $all_themes_as_features = shift;
+	evaluate_on_userdata("Zpravostroj::Categorizer::AICategorizer", 0, 1, undef, {name=>"AI::Categorizer::Learner::NaiveBayes", all_themes_as_features=>$all_themes_as_features});
+}
+
+
+sub try_svm {
+	my $all_themes_as_features = shift;
+	evaluate_on_userdata("Zpravostroj::Categorizer::AICategorizer", 0, {name=>"AI::Categorizer::Learner::SVM", all_themes_as_features=>$all_themes_as_features});
+}
+
+sub try_dectree {
+	my $all_themes_as_features = shift;
+	evaluate_on_userdata("Zpravostroj::Categorizer::AICategorizer", 0, {name=>"AI::Categorizer::Learner::DecisionTree", all_themes_as_features=>$all_themes_as_features});
+}
+
+
+sub total_wordcount_dump {
+	$alldates->total_wordcount_dump();
+}
+
+
+sub get_top_ten_lemmas_all {
+	$alldates->get_top_ten_lemmas_all();
+}
+
+sub get_top_lemmas_all {
+	$alldates->get_top_lemmas_all();
+}
+
+sub get_top_ten_lemmas_stop {
+	$alldates->get_top_ten_lemmas_stop();
+}
+
+sub print_podils {
+	$alldates->print_podils();
+}
+
+sub mnozina {
+	$alldates->mnozina();
+}
+
+sub print_pocty_cochci {
+	$alldates->print_pocty_cochci();
+}
+
+sub print_dny {
+	$alldates->print_dny();
+}
+
+sub print_pocty_noviny {
+	$alldates->print_pocty_noviny();
+}
+
+sub count_and_get_top_tfidf {
+	my $wordcount = Zpravostroj::AllWordCounts::get_count();
+	my $artcount = $alldates->get_total_article_count_before_last_wordcount();
+	
+	$alldates->count_and_get_top_tfidf($wordcount, $artcount);
+	
+}
+
+sub count_and_get_news_source {
+	$alldates->count_and_get_news_source();
+	
+}
+
+
+sub mydailywtf {
+	my $article = get_article("2010-11-3", 35);
+	my @r = $article->stop_themes;
+	print @r;
+	
 }
 
 1;

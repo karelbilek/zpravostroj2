@@ -3,7 +3,7 @@ use base 'Exporter';
 #pomocny modulik na vsechny funkce, co chci, aby byly videt vsude, ale nejsou samy o sobe prilis "chytre"
 #plus pres to sdilim vsechny konstanty, co chci videt vsude
 
-our @EXPORT = qw(%FORKER_SIZES $MIN_ARTICLES_PER_DAY_FOR_ALLWORDCOUNTS_INCLUSION $MINIMAL_USABLE_BZ2_SIZE cleanup_lemma undump_bz2 dump_bz2 say if_undef get_last_folder @banned_phrases @selected_themes);
+our @EXPORT = qw(%FORKER_SIZES $MIN_ARTICLES_PER_DAY_FOR_ALLWORDCOUNTS_INCLUSION $MINIMAL_USABLE_BZ2_SIZE $FREQUENCY_THEMES_SIZE $STOP_THEMES_SIZE $TF_IDF_THEMES_SIZE cleanup_lemma undump_bz2 dump_bz2 say if_undef get_last_folder @banned_phrases @selected_themes);
 
 our $MIN_ARTICLES_PER_DAY_FOR_ALLWORDCOUNTS_INCLUSION = 8;
 
@@ -20,8 +20,12 @@ $FORKER_SIZES{ARTICLE_CREATION}=10;
 $FORKER_SIZES{LATEST_WORDCOUNT_DAYS}=2;
 $FORKER_SIZES{LATEST_WORDCOUNT_ARTICLES}=10;
 $FORKER_SIZES{ARTICLECOUNT}=10;
+
+
 $FORKER_SIZES{THEMES_DAYS}=2;
-$FORKER_SIZES{THEMES_ARTICLES}=10;
+$FORKER_SIZES{THEMES_ARTICLES}=5;
+
+
 $FORKER_SIZES{REVIEW_DAYS}=2;
 $FORKER_SIZES{REVIEW_ARTICLES}=20;
 $FORKER_SIZES{UNUSABLE}=40;
@@ -31,7 +35,20 @@ $FORKER_SIZES{CLEANUP_DAYS}=2;
 $FORKER_SIZES{CLEANUP_ARTICLES}=5;
 $FORKER_SIZES{GET_ALL_DATE_ADDRESSES}=15;
 
+$FORKER_SIZES{TOPLEMMAS_ARTICLES}=15;
+$FORKER_SIZES{TOPLEMMAS_DAY}=3;
+
+$FORKER_SIZES{STOP_TOPTHEMES_DAYS}=3;
+$FORKER_SIZES{STOP_TOPTHEMES_ARTICLES}=30;
+
+$FORKER_SIZES{NEWS_SOURCE_DAYS}=3;
+$FORKER_SIZES{NEWS_SOURCE_ARTICLES}=15;
+
+
 our $MINIMAL_USABLE_BZ2_SIZE = 3000;
+our $FREQUENCY_THEMES_SIZE = 10;
+our $STOP_THEMES_SIZE = 10;
+our $TF_IDF_THEMES_SIZE = 20;
 
 use IO::Uncompress::Bunzip2;
 use IO::Compress::Bzip2;
@@ -121,7 +138,8 @@ sub dump_bz2 {
 	
 	my $exp_class = shift || "";
 	
-	my $tmpath = "/tmp/zstroj".threads->tid().".bz2";
+	
+	my $tmpath = "tmp/zstroj".threads->tid().".bz2";
 	
 	open my $z, "|bzip2 > $tmpath";
 	if (!$z) {
@@ -145,7 +163,13 @@ sub dump_bz2 {
 	system("mv $tmpath $path");
 }
 
-
+sub most_frequent_lemmas {
+	open my $f, "<:utf8", "data/most_frequent_lemmas" or die "No such file most_frequent_lemmas";
+	my @arr = <$f>;
+	chomp(@arr);
+	my %res = map {($_=>undef)} @arr;
+	return %res;
+}
 
 #Snazi se vzit soubor z dane cesty a neco s nim udelat.
 #Pokud neexistuje -> undef.
@@ -216,7 +240,11 @@ sub undump_bz2 {
 		return $v;
 	} else {
 		
-		deep_renamer($v);
+		#deep_renamer($v);
+		
+		#delete $v->{counts};
+		#delete $v->{date};
+		#delete $v->{themes};
 		
 		if (exists $v->{"__CLASS__"}) {
 			

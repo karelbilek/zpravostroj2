@@ -10,6 +10,8 @@ has 'tag'=> (
 );
 
 sub _create {
+	shift;
+	
 	my $array = shift;
 	my $tag = shift;
 	

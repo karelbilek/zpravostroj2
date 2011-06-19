@@ -1,18 +1,66 @@
-(1) vzít tolik témat, abych jimi pokryl 20 - 50 - 80% èlánkù (uvidí se)
-(2) celé texty tìch èlánkù vzít jako trénink na bayese
+TODO na DVD
+----
+- co tam je
+- jak vypada ZS a co to umi a neumi
 
-poèet témat | prvních 5-10 èl	|
-			+------
-Neèas		|
-Rath		| .... | ......... <- testovací množina, každý èlánek ruènì zaøadit do 1 kategorie a oznaèit, jak snadná volba to byla
-|
-|
+-PREDELAT
+- divny pocitani f-temat
+	- jednak divny veci v daycounters, jednak divny veci v total_neco
+- zrusil jsem PERSON u kategorie, takze je dobre zrusit i $person
+- vypocet poctu pomoci all_article_names
 
+-----------
 
-naprogramovat
----
-? kategorie z HTML
-? graf pomìrù kategorií v èase
-- trénování bayese, tj výbìr èlánkù do trénovací množiny
-- možno zaøadit testovací if do témat (?????????)
--vpoersersgdft fsdfsšé z Bayesova pø(???)iøazení
+- secitac.pl dela prasacky ty procenta
+
+- co JE OK:
+ - archivedumpers: skriptiky na stahovani z archivu - vyzkousim
+ - data: samotna data
+   - all_article_names - nazvy vsech clanku, pouziva se k vypoctu velikosti (bude) a náhodných èlánkù (je)
+		- get_article_names, freeze_article_names
+   
+   - idf 
+
+   - allresults - vyslecky vsech "all" counteru
+   - articles: duh
+   - daycounters: vysledky vsech "daycounteru" - zjistit
+		- tfidf
+			- v DateArticles do daycounteru ZAPISUJU - "trivialne" => nactu do hashe, vypisu
+			- v AllDates nacitam, vypisuju do allcounteru
+		- takhle funguji i ostatni
+		
+			
+   - RSS: RSSko nastroj
+   - user_allmarks: vsechny marky, asi
+   - usemarks: duh
+   - usermarks_oneword: duh
+   - total_* - nevim, zjistit
+ - tmp: adresar, co pouzivam jako tmp, protoze na ufalu jsem do /tmp/ prestal mit pristup
+ - Zpravostroj: zdrojaky
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ ===============================
+ 
+ - co to jako ma vsechno umet
+	- stahnout nove veci z RSSka a pridat je do novych clanku
+		- neprida to ale do IDF apod
+		- nezmeni to pocet clanku
+		- nezmeni to, samozrejme, statistiky
+	* s
+	
+	- totez s archivem
+	- updatovat matici v IDF, updatovat pocty
+	- updatovat temata vsude /dloooouhe/
+	- vypsat konkretni F-temata, stop-temata, tf-idf temata, kategoricka temata k jednomu clanku
+	- vypsat nejcastejsi lemmata v celem textu
+	- vypsat historii konkretnich F-temat, stop-temat, kategorickych temat + base_urls
+	- celá ta facebook hraèka
+	
+======= co to umi NAVIC
+- prepocitat nepresnosti ve jmenech kategorii recount_usermarks
+- 

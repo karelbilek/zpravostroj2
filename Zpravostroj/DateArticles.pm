@@ -12,6 +12,7 @@ use Zpravostroj::Forker;
 use Moose;
 use MooseX::StrictConstructor;
 use Moose::Util::TypeConstraints;
+use Zpravostroj::OutCounter;
 
 with 'Zpravostroj::Traversable';
 
@@ -60,6 +61,8 @@ sub save_article {
 	my $n = shift;
 	my $article = shift;
 	if (defined $article) {
+		$article->clear_article_number();
+		$article->clear_date();
 		say "Jdu dumpovat do $n. TECKA.";
 		dump_bz2($n, $article, "Article");
 	}
@@ -102,10 +105,17 @@ sub _get_object_from_string {
 	my $s = shift;
 	my $n = shift;
 	
-	return undump_bz2($n);
+	$n=~/\/([0-9]*)\.bz2$/;
+	my $num = $1;
+	my $article = undump_bz2($n);
+	if (defined $article) {
+		$article->date($s->date);
+		$article->article_number($num);
+	}
+	return $article;
 }
 
-sub _after_traverse{
+sub _after_subroutine{
 	say "Jsem v after traverse.";
 	my $s = shift;
 	my $art_name = shift;
@@ -135,6 +145,8 @@ sub _should_delete_dup_url {
 		return 0;
 	}
 }
+
+
 
 sub _get_and_save_articles_themes {
 	my $s = shift;
@@ -168,6 +180,8 @@ sub _get_and_save_articles_themes {
 				}
 			}
 			
+			$a->date($s->date);
+			
 			say "Vracim 1 -> UKLADEJ!";
 			return(1);
 		} else {
@@ -178,18 +192,86 @@ sub _get_and_save_articles_themes {
 	return $themhash;
 }
 
-sub remove_banned {
+
+sub count_and_get_news_source {
+	
+	
 	my $s = shift;
-	$s->traverse(sub{
+	
+	my %count:shared;
+	
+	$s->traverse(sub {
 		my $a = shift;
-		my $str = shift;
-		my $was_changed = $a->remove_banned($str);
+		if (defined $a) {
+	
+			$count{$a->news_source}++;
+
+		} 
+		return(0);
+	},$FORKER_SIZES{NEWS_SOURCE_ARTICLES}
+	);	
+	
+	
+	say "Pisu do data/daycounters/tfidf_".$s->date->get_to_string;
+	open my $of, ">:utf8", "data/daycounters/news_source_".$s->date->get_to_string;
+	for (sort {$count{$b}<=>$count{$a}} keys %count) {
+		print $of $_."\t".$count{$_}."\n";
+	}
+	
+	close $of;
+	
+	
+	return \%count;
+}
+
+
+
+sub count_and_get_top_tfidf {
+	
+	
+	my $s = shift;
 		
-		if ($was_changed) {
-			say "Odstranil jsem ve $str.";
+	my $idfcount = shift;
+	my $total = shift;
+	
+	my %count:shared;
+	
+	$s->traverse(sub {
+		my $a = shift;
+		if (defined $a) {
+	
+			$a->count_themes($total, $idfcount);
+
+			my $themes = $a->themes;
+			
+			for (@$themes) {
+				my $lemma = $_->lemma;
+				
+				lock(%count);
+				if (exists $count{$lemma}) {
+					$count{$lemma}++;
+				} else {
+					$count{$lemma}=1;
+				}
+			}
+			return(1);
+		} else {
+			return(0);
 		}
-		return ($was_changed);
-	},$FORKER_SIZES{REVIEW_ARTICLES});
+	},$FORKER_SIZES{THEMES_ARTICLES}
+	);	
+	
+	
+	say "Pisu do data/daycounters/tfidf_".$s->date->get_to_string;
+	open my $of, ">:utf8", "data/daycounters/tfidf_".$s->date->get_to_string;
+	for (sort {$count{$b}<=>$count{$a}} keys %count) {
+		print $of $_."\t".$count{$_}."\n";
+	}
+	
+	close $of;
+	
+	
+	return \%count;
 }
 
 sub get_and_save_themes_themefiles {
@@ -198,36 +280,25 @@ sub get_and_save_themes_themefiles {
 	my $count = shift;
 	my $total = shift;
 	
-	{
-		say "Jdu vzit z themefiles.";
-		#my $old_day_themes = Zpravostroj::ThemeFiles::get_day_themes($s->date);
-		say "Jdu mazat ze spousty souboru.";
-		#Zpravostroj::ThemeFiles::delete_from_theme_history($old_day_themes, $s->date);
-	}
-	
-	say "Jsem pred _get_and_save_articles_themes";
 	my $themhash = $s->_get_and_save_articles_themes($count, $total);
 
 	say "jsem po _get_and_save_articles_themes";
 
-	Zpravostroj::ThemeFiles::save_day_themes($s->date, $themhash);
 	
-	#Zpravostroj::ThemeFiles::add_to_theme_history($themhash, $s->date);
 	
 }
 
 sub review_all {
 	my $s = shift;
+	
+	my $idfcount = shift;
+	my $total = shift;
+	
 	$s->traverse(sub{
 		my $a = shift;
-		my $has = $a->has_counts;
-		if (!$has) {
-			say "Nema counts! pocitam";
-			$a->counts();
-			return (1);
-		} else {
-			return (0);
-		}
+		$a->counts();
+		$a->count_tf_idf_themes($total, $idfcount);
+		return(1);
 	},$FORKER_SIZES{REVIEW_ARTICLES});
 }
 
@@ -257,9 +328,90 @@ sub cleanup_all_and_count_words {
 	return \%counts;
 }
 
+sub get_top_lemmas_all {
+	my $s = shift;
+	
+	my %count:shared;
+	
+	$s->traverse(sub{
+		my $ar = shift;
+		my $wcount = $ar->counts;
+		
+		while (my($f, $s)=each %$wcount) {
+			if (exists $count{$f}) {
+				$count{$f}+=$s->{counts};
+			} else {
+				$count{$f}=$s->{counts};
+			}
+		}
+		
+		return (0);
+	}, $FORKER_SIZES{TOPLEMMAS_ARTICLES});
+	
+	return %count;
+}
+
+sub get_top_ten_lemmas_stop {
+	my $s = shift;
+
+	my %count:shared;
+	
+	$s->traverse(sub{
+		my $ar = shift;	
+		
+		my @topten = $ar->stop_themes;
+		{
+			lock(%count);
+			for (@topten) {
+				$count{$_}++
+			}
+		}
+		
+		return (0);
+	}, $FORKER_SIZES{STOP_TOPTHEMES_ARTICLES});
+
+	open my $of, ">:utf8", "data/daycounters/stop_".$s->date->get_to_string;
+	for (sort {$count{$b}<=>$count{$a}} keys %count) {
+		print $of $_."\t".$count{$_}."\n";
+	}
+	
+	close $of;
+	
+	return \%count;
+}
+
+sub get_top_ten_lemmas_all {
+	my $s = shift;
+
+	my $daycounter = new Zpravostroj::OutCounter(name=>"data/daycounters/".$s->date->get_to_string);
+	
+	$s->traverse(sub{
+		my $ar = shift;
+		my $wcount = $ar->counts;
+		
+		
+		
+		my @topten = sort {
+			$wcount->{$b}{counts} <=> $wcount->{$a}{counts};
+		} keys %$wcount;
+		
+		@topten = @topten[0..9];
+		my %hashten = map {if ($_) {($_ => 1)}} @topten;
+		
+		$daycounter->add_hash(\%hashten);
+		
+		return (0);
+	}, $FORKER_SIZES{LATEST_WORDCOUNT_ARTICLES});
+
+	$daycounter->count_it();
+	
+	return $daycounter;
+}
+
 sub get_wordcount_before_article {
 	my $s = shift;
 	my $num = shift;
+	my $unlimited = shift;
 	my %counts:shared;
 	
 	my %urls:shared;
@@ -277,6 +429,7 @@ sub get_wordcount_before_article {
 			return (-1);
 		}
 		
+		
 		my $had = $a->has_counts;
 		
 		#tohle vrací počty slov ve článku
@@ -288,6 +441,7 @@ sub get_wordcount_before_article {
 			$counts{$_}++;
 		}
 		
+		
 		if ($had) {
 			return (0);
 		} else {
@@ -296,7 +450,7 @@ sub get_wordcount_before_article {
 	}, $FORKER_SIZES{LATEST_WORDCOUNT_ARTICLES});
 	
 	for (keys %counts) {
-		if ($counts{$_}<$MIN_ARTICLES_PER_DAY_FOR_ALLWORDCOUNTS_INCLUSION) {
+		if ((!$unlimited) and $counts{$_}<$MIN_ARTICLES_PER_DAY_FOR_ALLWORDCOUNTS_INCLUSION) {
 			delete $counts{$_};
 		}
 	}

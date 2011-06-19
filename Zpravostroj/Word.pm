@@ -35,6 +35,11 @@ has 'named_entity' => (
 	default => 0
 );
 
+has 'score' => (
+	is => 'rw',
+	isa => 'Num'
+);
+
 #kontroluje, jestli má smyslplné lemma
 sub is_meaningful {
 	my $s = shift;
@@ -89,6 +94,19 @@ around BUILDARGS => sub {
 	
 	#vsechny cesty volaji defaultni konstruktor, aby se koercovalo lemma a kontrolovaly typy
 };
+
+sub add_score{
+	my $this = shift;
+	my $what = shift;
+	$this->score(($this->score)+$what);
+}
+
+sub copy_with_score {
+	my $this = shift;
+	my $score = shift;
+	return (new Zpravostroj::Word(lemma=>$this->lemma, form=>$this->form, score=>$score));
+
+}
 
 __PACKAGE__->meta->make_immutable;
 

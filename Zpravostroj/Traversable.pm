@@ -6,62 +6,87 @@ use Moose::Role;
 use Zpravostroj::Forker;
 use Zpravostroj::Globals;
 
+#neco, co vrati pole, ktere predstavuje to, pres co se bude traverzovat
+#nejsou to zadne objekty, ale retezce
 requires '_get_traversed_array';
+
+#tohle naopak z retezce, co vraci ta vec nahore, vrati objekt
 requires '_get_object_from_string';
-requires '_after_traverse';
 
-has '_last_accessed' => (
-	is => 'rw',
-	isa=> 'Str'
-);
+#tohle je neco, co se spusti na kazdy objekt po subrutine
+#preda se mu to, co vratila ta subroutine
+#(prakticky - ukladani souboru)
+#((pozor na vraceni veci z forku. obcas to dela neplechu, kdyz se predava objekt, co se odalokuje smrti forku))
+requires '_after_subroutine';
 
+#Vezme vsechny veci z _get_traversed_array, rozbali je pres _get_object_from_string a spusti na ne _after_subroutine
 sub traverse(&$) {
+	#samotny objekt
 	my $s = shift;
+	
+	#ukazatel na subroutinu, co budu spoustet na kazdy "podobjekt"
 	my $subref = shift;
+	
+	#kolik se muze spustit forku najednou (0 nebo 1 = nespousti se nic)
 	my $size = shift;
 	
-	my %opts = @_;
+	#Jestli nema byt potichu (undef == mluv normalne, 1==shut up)
+	my $shut_up = shift;
 	
-	my $forker = $size? new Zpravostroj::Forker(size=>$size, shut_up=>1) : undef;
+	#jestli se ma vubec forkovat (1 nebo 0 = neforkuje)
+	my $should_fork = ($size <=1);
+	
+	#Vytvoreni noveho "forkeru"
+	my $forker = $should_fork ? new Zpravostroj::Forker(size=>$size, shut_up=>1) : undef;
 
-	say "pred get traversed array" unless $opts{shut_up};
+	#Zazadam si o to samotne pole
+	say "pred get traversed array" unless $shut_up;
 	my @array = $s->_get_traversed_array();
+	say "array je velky ",scalar @array unless $shut_up;
 	
-	say "array je velky ",scalar @array unless $opts{shut_up};
-	for my $str (@array) {
-		say "str $str" unless $opts{shut_up};
+	#Vezmi kazdy string z toho pole.
+	for my $string (@array) {
+		say "string $string" unless $shut_up;
 		
+		#Tady se vytvori jeste JEDNA subroutina, do ktere se "zavre" ta subroutina, kterou jsem dostal
+		#a az TA se preda forkeru ke spusteni
+		#(aby se i otevirani a pripadne ukladani pustilo v separatnim forku)
 		my $big_subref = sub {
 			
-			my $obj = $s->_get_object_from_string($str);
+			#nacte objekt
+			my $object = $s->_get_objectect_from_string($string);
 			
-			if (defined $obj) {
-				say "trversable - Pred subr. $str" unless $opts{shut_up};
-				my @res = $subref->($obj, $str);
+			#Muze se stat, ze se nenacte, proto test na defined
+			if (defined $object) {
 				
-				say "trversable - po subr." unless $opts{shut_up};
-
-				$s->_after_traverse($str,$obj, @res);
-			
-				say "trversable - po after traverse" unless $opts{shut_up};
+				#Spusti to tu subrutinu a vysledek nacte do @res
+				say "trversable - Pred subr. $string" unless $shut_up;
+				my @res = $subref->($object, $string);
+				
+				#....a nakonec spusti _after_subroutine (tj. ukladani)
+				say "trversable - po subr." unless $shut_up;
+				$s->_after_subroutine($string,$object, @res);
+				
+				say "trversable - po after traverse" unless $shut_up;
 
 			} 
 			
-			say "trversable - KONCIM SUBRUTINU!!!!" unless $opts{shut_up};
+			say "trversable - KONCIM SUBRUTINU!!!!" unless $shut_up;
 		};
-		if ($size) {
+		
+		#Podle toho, jestli je nebo neni >1 tak bud spusti ve forkeru
+		if ($should_fork) {
 			$forker->run($big_subref);
 		} else {
 			$big_subref->();
 		}
 	}
-	if (scalar @array) {
-		$s->_last_accessed($array[-1]);
-	}
-	if ($size) {
-		say "cekam na forker..." unless $opts{shut_up};
+	
+	#Pokud je to forker, tak na nej musim pockat.
+	if ($should_fork) {
+		say "cekam na forker..." unless $shut_up;
 		$forker->wait();
-		say "done" unless $opts{shut_up};
+		say "done" unless $shut_up;
 	}
 }
 

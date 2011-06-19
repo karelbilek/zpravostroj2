@@ -1,10 +1,11 @@
+#Objekt, co představuje článek sám o sobě.
+#Přímo v něm jsou uložené věci, jako url, 
 package Zpravostroj::Article;
 use 5.008;
 use strict;
 use warnings;
+use utf8;
 
-
-use Zpravostroj::DateArticles;
 use Zpravostroj::Globals;
 use Zpravostroj::MooseTypes;
 use Zpravostroj::WebReader;
@@ -13,7 +14,9 @@ use Zpravostroj::TectoClient;
 use Zpravostroj::Word;
 use Zpravostroj::Date;
 
-use Zpravostroj::Theme;
+use Zpravostroj::ManualCategorization::Unlimited;
+use Zpravostroj::ManualCategorization::NewsTopics;
+
 
 
 use Moose;
@@ -57,68 +60,119 @@ has 'words' => (
 	clearer   => 'clear_words',
 	isa=>'ArrayRef[Zpravostroj::Word]',
 	lazy=>1,
-	default=>sub{my $t = ($_[0]->title)." ".($_[0]->article_contents); say ("pred tectoclientem"); my $r= [ Zpravostroj::TectoClient::lemmatize($t) ]; say "za tectoclientem";$r}
+	default=>sub{my $t = ($_[0]->title)." ".($_[0]->article_contents); my $r = [ Zpravostroj::TectoClient::lemmatize($t) ]; $r}
+);
+
+has 'date' => (
+	is=>'rw',
+	clearer => 'clear_date',
+	isa=>'Zpravostroj::Date'
+);
+
+has 'article_number' => (
+	is=>'rw',
+	clearer => 'clear_article_number',
+	isa=>'Int'
 );
 
 has 'counts' => (
 	is=>'ro',
 	isa=>'HashRef',
-	clearer   => 'clear_counts',
-	lazy=>1,
+	clearer => 'clear_counts',
+	lazy => 1,
 	predicate => 'has_counts',
 	default=>sub{
-		my $a = shift;
+		my $s = shift;
 
-		my %mycounts;
+		my %this_counts;
 
-		my @words = grep {$_->lemma ne ''} @{$a->words};
+		my @words = grep {$_->lemma ne ''} @{$s->words};
 				
 		for my $word (@words) {
-			my $l = $word->lemma;
+			my $lemma = $word->lemma;
 			
 			my $prirustek = ($word->named_entity)?2:1;
-			if ($l=~/^[0-9 ]*$/) {
+			if ($lemma=~/^[0-9 ]*$/) {
 				$prirustek = 0.33;
 			}
 			
-			$mycounts{$l}{counts}+=$prirustek;
-			
-			my $f = $word->form;
-			
-			$mycounts{$l}{back}=$f;
-			
-		
+			if (exists $this_counts{$lemma}) {
+				$this_counts{$lemma}->add_score($prirustek);
+			} else {
+				$this_counts{$lemma}=$word->copy_with_score($prirustek);
+			}
 		}
-		
-
-		return \%mycounts;
+		return \%this_counts;
 	}
 );
 
 
-
-has 'themes' => (
+has 'tf_idf_themes' => (
 	is => 'rw',
-	isa=> 'ArrayRef[Zpravostroj::Theme]',
-	predicate => 'has_themes'
+	isa=> 'ArrayRef[Zpravostroj::Word]',
+	predicate => 'has_tf_idf_themes'
 );
 
-has 'last_themes_count' => (
-	is=>'rw',
-	isa=>'Zpravostroj::Date'	
-);
+sub news_source {
+	my $s = shift;
+	my $u = $s->url;
+	
+	$u = lc($u);
+	
+	if ($u !~ /^http:\/\/([^\.]*)\.?([^\.]*)\.cz/) {
+		
+		$u =~ /^http:\/\/([^\.]*)\.[^\.]*\.([^\.]*)\.cz/;
+		if ($2 ne "centrum") {
+			say "Podezrele - $u";
+		}
+		
+		return $1;
+				
+	} else {
+		say "1 je $1, 2 je $2";
+	}
+	
+	if ($2 ne "centrum") {
+		return $2;
+	} else {
+		return $1;
+	}
+}
+sub frequency_themes {
+	my $s = shift;
+	my $c = $s->counts;
+	my @res = sort {$c->{$b}->score() <=> $c->{$a}->score()} keys %$c;
+	
+	my $max = $FREQUENCY_THEMES_SIZE; 
+	
 
-has 'chosen_theme' =>(
-	is=>'rw',
-	isa=>'Str', #narozdil od temat predtim nema tady smysl delat lemma, form a importance
-	predicate => 'has_chosen_theme'
-);
+	if (scalar @res > $max) {
+		@res = @res[0..$max-1];
+	}
 
-#Kdo to zatřídil
-has 'cathegorizing_person'=>(
-	is=>'rw',
-	isa=>'Int'
-);
+	return @{$c}{@res};
+}
+
+my %most_frequent_lemmas = Zpravostroj::Globals::most_frequent_lemmas;
+
+
+sub stop_themes {
+	my $s = shift;
+	my $c = $s->counts;
+	
+	my @without_stopwords = grep {!(exists $most_frequent_lemmas{$_})} keys %$c;
+	
+	my @res = sort {$c->{$b}->score() <=> $c->{$a}->score()} @without_stopwords;
+	
+	my $max = $STOP_THEMES_SIZE; 
+	
+	if (scalar @res > $max) {
+		@res = @res[0..$max-1];
+	}
+	
+	return @{$c}{@res};
+
+}
 
 
 
@@ -128,57 +182,29 @@ sub BUILD {
 	$s->counts;
 }
 
-sub cleanup {
+sub count_tf_idf_themes {
 	my $s = shift;
-	my @nw;
-	for my $w (@{$s->words}){
-		my $nw = $w->cleanup;
-		if ($nw->is_meaningful()) {
-			push @nw, $w->cleanup;
-		}
-	}
-	$s->clear_words;
-	$s->clear_counts;
-	$s->words(\@nw);
-	$s->counts;
-}
-
-sub remove_banned {
-	my $s = shift;
-	my $str = shift;
-	
-	my $has = 0;
-	for my $banned (@banned_phrases) {
-		if ($s->article_contents =~ /$banned/) {
-			say $str," ma ", $banned;
-			$has = 1;
-		} else {
-			say $str," nema ", $banned;
-		}
-	}
-	
-	if ($has) {
-		$s->clear_article_contents;
-		$s->clear_words;
-		$s->clear_counts;
-		$s->counts();
-		return 1;
-	} else {
-		return 0;
-	}
-}
-
-sub count_themes {
-	my $s = shift;
-	$s->last_themes_count(new Zpravostroj::Date());
 	my $all_count = shift;
 	my $count_hashref = shift;
 	
-	my $document_size = scalar $s->words;
+	my $themes = $s->tf_idf($all_count, $count_hashref, $TF_IDF_THEMES_SIZE);
+	$s->tf_idf_themes($themes);
+}
+
+sub tf_idf {
+	my $s = shift;
+	my $all_count = shift;
+	my $count_hashref = shift;
+	
+	if (!defined $all_count) {
+		die "neni all count";
+	}
+	
+	my $count = shift;
+	
+	my $document_size = scalar @{$s->words};
 	
 	my %importance;
-	
-	
 	
 	my $word_counts = $s->counts;
 	
@@ -188,24 +214,26 @@ sub count_themes {
 	
 	
 	
-	for my $word (keys %{$word_counts}) {
-		
+	for my $word (values %{$word_counts}) {
 			
-			my $d = 1 + ($count_hashref->{$word}||0);
+			my $lemma = $word->lemma;
 			
-			$importance{$word} = ($word_counts->{$word}{counts} / $document_size) * log($all_count / ($d**1))if defined $word;
+			my $d = ($count_hashref->{$lemma}||0);
+			$d = 1 if ($d==0);
 			
+			if (defined $lemma) {
+				my $tf = $word->score() / $document_size;
+				my $idf = log($all_count / $d);
+			
+				$importance{$lemma} = $tf * $idf;
+			}
 			
 	}
 	
 	
 	
-	my @sorted = (sort {$importance{$b}<=>$importance{$a}} keys %importance)[0..39];
-	
-	
-	
 	for my $key (keys %importance) {
-		if (!exists $word_counts->{$key}{back}) {
+		if (!defined $word_counts->{$key}->form()) {
 			say "Vadny key $key. Mazu.";
 			delete $importance{$key};
 		}
@@ -213,17 +241,32 @@ sub count_themes {
 	
 	
 	
-	my @newthemes_keys = (sort {$importance{$b}<=>$importance{$a}} keys %importance);
-	if (@newthemes_keys > 20) {
-		@newthemes_keys = @newthemes_keys[0..19];
+	my @sorted_lemmas = (sort {$importance{$b}<=>$importance{$a}} keys %importance);
+	
+	if (defined $count) {
+		@sorted_lemmas = @sorted_lemmas[0..$count-1] if (scalar(@sorted_lemmas) > $count);
 	}
 	
-	
-	my @newthemes=(map {new Zpravostroj::Theme(form=>$word_counts->{$_}{back}, lemma=>$_, importance=>$importance{$_})} @newthemes_keys);
-	$s->themes(\@newthemes);
-	return;
+	my @res=(map {new Zpravostroj::Word(form=>$word_counts->{$_}->form, lemma=>$_, score=>$importance{$_})} @sorted_lemmas);
+	return \@res;
 	
 
+}
+
+sub unlimited_manual_tags {
+	my $s = shift;
+	
+	my $id = $s->date->year."-".$s->date->month."-".$s->date->day."-".$s->article_number;
+	
+	return Zpravostroj::ManualCategorization::Unlimited::get_article_categories($id);
+}
+
+sub news_topics_manual_tags {
+	my $s = shift;
+	
+	my $id = $s->date->year."-".$s->date->month."-".$s->date->day."-".$s->article_number;
+	
+	return Zpravostroj::ManualCategorization::NewsTopics::get_article_categories($id);
 }
 
 __PACKAGE__->meta->make_immutable;
