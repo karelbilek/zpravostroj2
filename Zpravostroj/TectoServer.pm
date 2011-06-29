@@ -28,7 +28,7 @@ use 5.008;
 use Zpravostroj::Globals;
 use strict;
 use warnings;
-use encoding 'utf8';
+use utf8;
 use Encode;
 use IO::Socket;
 

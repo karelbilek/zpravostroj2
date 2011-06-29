@@ -7,8 +7,7 @@ our @EXPORT = qw(%FORKER_SIZES $MIN_ARTICLES_PER_DAY_FOR_ALLWORDCOUNTS_INCLUSION
 
 our $MIN_ARTICLES_PER_DAY_FOR_ALLWORDCOUNTS_INCLUSION = 8;
 
-use encoding utf8;
-
+use utf8;
 our @banned_phrases = ("Publikování nebo jakékoliv jiné formy dalšího šíření obsahu serveru Blesk.cz jsou bez písemného souhlasu Ringier Axel Springer CZ a.s., zakázány.", "Blesk.cz využívá zpravodajství z databází ČTK, jejichž obsah je chráněn autorským zákonem. Přepis, šíření či další zpřístupňování tohoto obsahu či jeho části veřejnosti, a to jakýmkoliv způsobem, je bez předchozího souhlasu ČTK výslovně zakázáno.", "Připomínky a tipy pište na", "© 2001 - 2010 Copyright  Ringier Axel Springer CZ a.s. a dodavatelé obsahu. ISSN 1213-8991", "Publikování nebo jakékoliv jiné formy dalšího šíření obsahu serveru Blesk.cz jsou bez písemného souhlasu Ringier ČR, a. s., zakázány.");
 
 our @selected_themes = ("ODS" , "ČSSD" , "soud" , "volby" , "Nečas" , "nehoda" , "policie" , "TOP09" , "vláda" , "Paroubek" , "řidič" , "poslanec" , "sněmovna" , "policista" , "dítě" , "ministr" , "leden" , "ministerstvo" , "sníh" , "Klaus" , "škola" , "prezident" , "milión" , "koalice" , "silnice" , "Česko" , "hasič" , "Fischer" , "volební" , "stupeň" , "nemocnice" , "koruna" , "návrh" , "březen" , "listopad" , "prosinec" , "voda" , "USA" , "zápas" , "Sobotka" , "rusko" , "Topolánek" , "teplota" , "srpen" , "banka" , "červenec" , "září" , "auto" , "únor" , "John" , "dálnice" , "haiti" , "sociální" , "VV" , "duben" , "Vancouver" , "plat" , "cena" , "veřejný" , "smlouva" , "říjen" , "státní" , "film" , "květen" , "červen" , "povodeň" , "volič" , "vlak" , "Zelený (Strana Zelených)" , "průzkum" , "hlas" , "Čech" , "město" , "projekt" , "útok" , "Evropa" , "Ostrava" , "Čína" , "euro" , "komise" , "pražský / Praha" , "rada" , "letiště" , "Kalousek" , "Americký" , "letadlo" , "požár", "tenis", "hokej", "fotbal", "sport");
@@ -35,8 +34,12 @@ $FORKER_SIZES{CLEANUP_DAYS}=2;
 $FORKER_SIZES{CLEANUP_ARTICLES}=5;
 $FORKER_SIZES{GET_ALL_DATE_ADDRESSES}=15;
 
-$FORKER_SIZES{TOPLEMMAS_ARTICLES}=15;
-$FORKER_SIZES{TOPLEMMAS_DAY}=3;
+$FORKER_SIZES{LEMMAS_ARTICLES}=15;
+$FORKER_SIZES{LEMMAS_DAYS}=3;
+
+$FORKER_SIZES{F_THEMES_ARTICLES}=15;
+$FORKER_SIZES{F_THEMES_DAYS}=3;
+
 
 $FORKER_SIZES{STOP_TOPTHEMES_DAYS}=3;
 $FORKER_SIZES{STOP_TOPTHEMES_ARTICLES}=30;
@@ -209,8 +212,7 @@ sub undump_bz2 {
 			while (<$z>) {
 				$dumped = $dumped.$_;
 			}
-			use Devel::Size qw(size);
-			my $size = size($dumped);
+			
 		};
 		if ($@) {
 			say "2 WTF chyba";

@@ -17,7 +17,7 @@ sub evaluate_on_manual_categories {
 	
 	my @options = @_;
 	
-	my @articles = $unlimited ? Zpravostroj::ManualCategorization::Unlimited::get_articles : Zpravostroj::ManualCategorization::NewsTopics::get_articles;
+	my @articles = $unlimited_categories ? Zpravostroj::ManualCategorization::Unlimited::get_articles : Zpravostroj::ManualCategorization::NewsTopics::get_articles;
 	
 	my @tuples;
 	

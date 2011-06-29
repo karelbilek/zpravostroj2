@@ -4,7 +4,7 @@ use 5.008;
 use strict;
 use warnings;
 use utf8;
-use encoding 'utf8';
+binmode STDOUT, ":utf8"; 
 
 
 use Zpravostroj::AllDates;
@@ -314,10 +314,12 @@ sub generate_HTML {
 	
 	
 	
-	my ($a, $name) = $UNLIMITED ? 
-				(Zpravostroj::ManualCategorization::Unlimited::get_random_article()) 
+	my $a = $UNLIMITED ? 
+				Zpravostroj::ManualCategorization::Unlimited::get_random_article() 
 				: 
-				(Zpravostroj::ManualCategorization::NewsTopics::get_random_article());
+				Zpravostroj::ManualCategorization::NewsTopics::get_random_article();
+	
+	my $name = $a->ID;
 				
 	print_article($a, $name, $person);
 	

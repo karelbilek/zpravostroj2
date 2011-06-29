@@ -192,8 +192,21 @@ sub _get_and_save_articles_themes {
 	return $themhash;
 }
 
+sub print_sorted_hash_to_file {
+	my $s = shift;
+	my $hash = shift;
+	my $name = shift;
+	
+	open my $of, ">:utf8", "data/daycounters/".$name."_".$s->date->get_to_string;
+	for (sort {$hash->{$b}<=>$hash->{$a}} keys %$hash) {
+		print $of $_."\t".$hash->{$_}."\n";
+	}
+	
+	close $of;
+	
+}
 
-sub count_and_get_news_source {
+sub get_statistics_news_source {
 	
 	
 	my $s = shift;
@@ -212,13 +225,8 @@ sub count_and_get_news_source {
 	);	
 	
 	
-	say "Pisu do data/daycounters/tfidf_".$s->date->get_to_string;
-	open my $of, ">:utf8", "data/daycounters/news_source_".$s->date->get_to_string;
-	for (sort {$count{$b}<=>$count{$a}} keys %count) {
-		print $of $_."\t".$count{$_}."\n";
-	}
+	$s->print_sorted_hash_to_file(\%count, "news_source");
 	
-	close $of;
 	
 	
 	return \%count;
@@ -328,7 +336,7 @@ sub cleanup_all_and_count_words {
 	return \%counts;
 }
 
-sub get_top_lemmas_all {
+sub get_most_frequent_lemmas {
 	my $s = shift;
 	
 	my %count:shared;
@@ -339,15 +347,16 @@ sub get_top_lemmas_all {
 		
 		while (my($f, $s)=each %$wcount) {
 			if (exists $count{$f}) {
-				$count{$f}+=$s->{counts};
+				$count{$f}+=$s->score;
 			} else {
-				$count{$f}=$s->{counts};
+				$count{$f}=$s->score;
 			}
 		}
 		
 		return (0);
-	}, $FORKER_SIZES{TOPLEMMAS_ARTICLES});
+	}, $FORKER_SIZES{LEMMAS_ARTICLES});
 	
+	say "jsem na konci DateArticles::get_most_frequent_lemmas , vracim count";
 	return %count;
 }
 
@@ -380,32 +389,34 @@ sub get_top_ten_lemmas_stop {
 	return \%count;
 }
 
-sub get_top_ten_lemmas_all {
+
+
+sub get_statistics_f_themes {
 	my $s = shift;
 
-	my $daycounter = new Zpravostroj::OutCounter(name=>"data/daycounters/".$s->date->get_to_string);
+	my %count:shared;
 	
 	$s->traverse(sub{
 		my $ar = shift;
-		my $wcount = $ar->counts;
 		
+		my @f_themes = $ar->frequency_themes();
 		
+		{
+			lock(%count);
+			for (@f_themes) {
+				$count{$_->lemma()}++
+			}
+		}
 		
-		my @topten = sort {
-			$wcount->{$b}{counts} <=> $wcount->{$a}{counts};
-		} keys %$wcount;
-		
-		@topten = @topten[0..9];
-		my %hashten = map {if ($_) {($_ => 1)}} @topten;
-		
-		$daycounter->add_hash(\%hashten);
 		
 		return (0);
-	}, $FORKER_SIZES{LATEST_WORDCOUNT_ARTICLES});
-
-	$daycounter->count_it();
+	}, $FORKER_SIZES{F_THEMES_ARTICLES});
 	
-	return $daycounter;
+	
+	$s->print_sorted_hash_to_file(\%count, "f_themes");
+	
+	
+	return \%count;
 }
 
 sub get_wordcount_before_article {

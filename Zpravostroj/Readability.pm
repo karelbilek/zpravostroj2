@@ -6,7 +6,7 @@ package Zpravostroj::Readability;
 
 
 #Package je temer PRIMYM portem JavaScriptoveho bookmarkletu Readability do perlu
-#(ano, opakuji, je to portovano z JavaScriptu do perlu... byl to zazitek)
+
 #hlavni nevyhoda - zatimco DOM v prohlizecich je RYCHLY (je v nat. kodu), HTML::DOM je radove pomalejsi (je cely v perlu)
 #je tu take obri nekonzistence se zbytkem kodu zpravostroje (napr. nazvy procedur jsou obcas CamelCase, obcas_nejsou; odsazeni je divne; apod.)
 

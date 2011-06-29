@@ -77,7 +77,7 @@ has 'article_number' => (
 
 has 'counts' => (
 	is=>'ro',
-	isa=>'HashRef',
+	isa=>'HashRef[Zpravostroj::Word]',
 	clearer => 'clear_counts',
 	lazy => 1,
 	predicate => 'has_counts',
@@ -253,10 +253,15 @@ sub tf_idf {
 
 }
 
+sub ID {
+	my $s = shift;
+	return $s->date->year."-".$s->date->month."-".$s->date->day."-".$s->article_number;
+}
+
 sub unlimited_manual_tags {
 	my $s = shift;
 	
-	my $id = $s->date->year."-".$s->date->month."-".$s->date->day."-".$s->article_number;
+	my $id = $s->ID;
 	
 	return Zpravostroj::ManualCategorization::Unlimited::get_article_categories($id);
 }
@@ -264,7 +269,7 @@ sub unlimited_manual_tags {
 sub news_topics_manual_tags {
 	my $s = shift;
 	
-	my $id = $s->date->year."-".$s->date->month."-".$s->date->day."-".$s->article_number;
+	my $id = $s->ID;
 	
 	return Zpravostroj::ManualCategorization::NewsTopics::get_article_categories($id);
 }

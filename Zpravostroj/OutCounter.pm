@@ -43,9 +43,14 @@ sub sortname {
 	return $s->name."_sorted";
 }
 
-sub resname {
+sub countedname {
 	my $s = shift;
 	return $s->name."_counted";
+}
+
+sub sorted_by_frequencyname {
+	my $s = shift;
+	return $s->name."_counted_sorted_by_frequency";
 }
 
 sub BUILD {
@@ -66,7 +71,7 @@ sub return_counted {
 		
 	my %res;
 	
-	open my $if, "<:utf8", $s->resname;
+	open my $if, "<:utf8", $s->countedname;
 	
 	for (<$if>) {
 		/(.*)\t(.*)\n/;
@@ -79,23 +84,37 @@ sub return_counted {
 }
 
 sub add_hash {
+	say "Na zacatku.";
 	my $s = shift;
 	
 	my $hash = shift;
 	
-	while (!mkdir $s->lockname) {usleep(10000)}
+	say "Shiftnul jsem hash. Jdu se pokouset o zalozeni.";
+	
+	while (!mkdir $s->lockname) {
+		say "Zakladam neuspesne, spim.";
+		usleep(10000);
+	}
+	
+	say "Zalozeno.";
 	
 	open my $of, ">>:utf8", $s->tempname;
+	
+	say "Otevreno. Jdu vypisovat. Velikost je ".scalar (keys %$hash);
 	
 	while (my ($word, $value) = each %$hash) {
 		print $of $word."\t".$value."\n";
 	}
 	
+	
 	close $of;
+	
+	say "Dopsano, zavreno.";
 	
 	$s->counted(0);
 	
 	system("rm -r ".$s->lockname);
+	say "Smazano, hotovo.";
 }
 
 sub add_another {
@@ -105,7 +124,7 @@ sub add_another {
 	my $if;
 	
 	if ($another->counted) {
-		open $if, "<:utf8", $another->resname;
+		open $if, "<:utf8", $another->countedname;
 	} else {
 		open $if, "<:utf8", $another->tempname;
 	}
@@ -124,14 +143,22 @@ sub add_another {
 	
 }
 
+sub count_and_sort_it {
+	my $s = shift;
+	$s->count_it;
+	
+	system("sort -n -r -T tmp/ +1 -2 ".$s->countedname." > ".$s->sorted_by_frequencyname);
+	
+}
+
 sub count_it {
 	my $s = shift;
 	
 	if (!$s->counted) {
-		system("sort +0 -1 ".$s->tempname." > ".$s->sortname);
+		system("sort -T tmp/ +0 -1 ".$s->tempname." > ".$s->sortname);
 		
 		open my $if, "<:utf8", $s->sortname;
-		open my $of, ">:utf8", $s->resname;
+		open my $of, ">:utf8", $s->countedname;
 
 		my $last="";
 		my $sofar = 0;

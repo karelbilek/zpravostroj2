@@ -19,7 +19,6 @@ use Zpravostroj::AllWordCounts;
 use Zpravostroj::Date;
 
 
-use Zpravostroj::UserTagged;
 
 use Zpravostroj::Categorizer::TotallyRetarded;
 

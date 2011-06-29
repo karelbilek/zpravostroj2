@@ -1,10 +1,18 @@
 package Zpravostroj::AllDates;
+#Modul, který umožňuje iterovat přes všechny datumy
+
+#Spolu s tím dělá všechny úlohy, co mají co dělat se statistikou všech článků
+#(tj. v podstatě všechny úlohy kromě těch, co hodnotí kvalitu zatřiďování)
+
+#Aby to mohlo mít moose role, musí to být Moose objekt - tj. je to Moose objekt, ale nemá žádné datové položky
+
 
 use Zpravostroj::Globals;
 use Moose;
 use Zpravostroj::Date;
 use Zpravostroj::AllWordCounts;
 
+use Zpravostroj::DateArticles;
 
 with 'Zpravostroj::Traversable';
 
@@ -12,17 +20,20 @@ use forks;
 use forks::shared;
 
 
-
 use utf8;
 
+#Vrací pole všech dní - podle data/articles
 sub _get_traversed_array {
-	shift;
+	shift;	#shiftuji "zbytečný" odkaz na sebe sama
 	
 	if (!-d "data" or !-d "data/articles") {
 		say "Tak nic, no.";
 		return ();
 	} else {
 		my @res;
+		#get_last_folder je ve Zpravostroj::Globals
+		#je to kvůli řazení
+		
 		for (sort {get_last_folder($a)<=>get_last_folder($b)} <data/articles/*>) {
 			my $year = get_last_folder($_);
 			
@@ -38,72 +49,86 @@ sub _get_traversed_array {
 	}
 }
 
+
+
 sub _get_object_from_string {
-	shift;
+	shift; #odkaz na self
 	return new Zpravostroj::DateArticles(date=>Zpravostroj::Date::get_from_string(shift));
 }
 
+#Nic nedělám
 sub _after_subroutine{
 }
 
 
 
-sub get_top_lemmas_all {
-	my $s=shift;
+#========================================
+
+#Ukol (1) - spocitat nejpouzivanejsi lemmata
+sub get_most_frequent_lemmas {
+	my $s=new Zpravostroj::AllDates();
 	
-	my $allcounter = new Zpravostroj::OutCounter(name=>"data/allresults/top_lemmas_all");
+	my $allcounter = new Zpravostroj::OutCounter(name=>"data/allresults/lemmas");
 	
 	$s->traverse(sub{
 		my $d = shift;
 		
-		my %hash = $d->get_top_lemmas_all();
+		my %hash = $d->get_most_frequent_lemmas();
+		
+		say "Ctu veci z hashe, chci je pridat do allcounteru";
 		
 		$allcounter->add_hash(\%hash);
 		
-		return ();
-	},$FORKER_SIZES{TOPLEMMAS_DAY});
+		say "na konci traverse";
+		
+	},$FORKER_SIZES{LEMMAS_DAYS});
 	
-	$allcounter->count_it();
+	
+	$allcounter->count_and_sort_it();
 }
 
-sub get_top_ten_lemmas_all {
-	my $s=shift;
+
+#=========================================
+
+#Ukol (2) - statistiky trivialnich f_temat
+
+sub get_statistics_f_themes {
+	my $s=new Zpravostroj::AllDates();
 	
-	my $allcounter = new Zpravostroj::OutCounter(name=>"total_top10_lemmas");
+	my $allcounter = new Zpravostroj::OutCounter(name=>"data/allresults/f_themes");
 	
 	$s->traverse(sub{
 		my $d = shift;
 		
-		my $daycounter = $d->get_top_ten_lemmas_all();
+		my $hash = $d->get_statistics_f_themes();
 		
-		$allcounter->add_another($daycounter);
+		$allcounter->add_hash($hash);
 		
 		return ();
-	},$FORKER_SIZES{LATEST_WORDCOUNT_DAYS});
+	},$FORKER_SIZES{F_THEMES_DAYS});
 	
-	$allcounter->count_it();
+	$allcounter->count_and_sort_it();
 }
 
-sub count_and_get_baseurl {
-	my $s=shift;
+
+#=========================================
+
+#Ukol (3) - statistiky zpravodajskych zdroju
+
+sub get_statistics_news_source {
+	my $s=new Zpravostroj::AllDates();
 	
-	#my $last_date_counted = new Zpravostroj::Date(year=>2010, month=>2, day=>24);
-	my $allcounter = new Zpravostroj::OutCounter(name=>"data/allresults/total_news_source", delete_on_start=>0);
+	my $allcounter = new Zpravostroj::OutCounter(name=>"data/allresults/news_source");
 	
 	$s->traverse(sub{
 		my $d = shift;
-		#if (!$d->date->is_older_than($last_date_counted)) {
-			say "POCITAM - ".$d->date->get_to_string();
 		
 		
-			my $hash = $d->count_and_get_news_source();
+		my $hash = $d->get_statistics_news_source();
+		
+		
+		$allcounter->add_hash($hash);
 			
-			say "Pridavam ".$d->date->get_to_string()." do totalu";
-		
-			$allcounter->add_hash($hash);
-			
-			say "Dopridavano.";
-		#}
 		
 		return ();
 	},$FORKER_SIZES{NEWS_SOURCE_DAYS});
@@ -325,7 +350,7 @@ sub get_random_article {
 	$rand_name =~ s/data-articles-//g;
 	$rand_name =~ s/\.bz2//g;
 	
-	return ($s->get_from_article_id($rand_name), $rand_name);
+	return $s->get_from_article_id($rand_name);
 }
 
 
