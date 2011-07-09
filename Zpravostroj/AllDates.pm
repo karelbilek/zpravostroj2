@@ -10,7 +10,7 @@ package Zpravostroj::AllDates;
 use Zpravostroj::Globals;
 use Moose;
 use Zpravostroj::Date;
-use Zpravostroj::AllWordCounts;
+use Zpravostroj::InverseDocumentFrequencies;
 
 use Zpravostroj::DateArticles;
 
@@ -60,6 +60,30 @@ sub _get_object_from_string {
 sub _after_subroutine{
 }
 
+#Obecná
+sub get_statistics {
+	my $s=new Zpravostroj::AllDates();
+	my $name = shift;
+	my $subref = shift;
+	my $size_days = shift;
+	my $size_articles = shift;
+	
+	my $allcounter = new Zpravostroj::OutCounter(name=>"data/allresults/$name");
+	
+	$s->traverse(sub{
+		my $d = shift;
+		
+		
+		my $hash = $d->get_statistics($size_articles, $subref, $name);
+		
+		
+		$allcounter->add_hash($hash);
+		
+		return ();
+	},$size_days);
+	
+	$allcounter->count_and_sort_it();
+}
 
 
 #========================================
@@ -93,21 +117,10 @@ sub get_most_frequent_lemmas {
 #Ukol (2) - statistiky trivialnich f_temat
 
 sub get_statistics_f_themes {
-	my $s=new Zpravostroj::AllDates();
 	
-	my $allcounter = new Zpravostroj::OutCounter(name=>"data/allresults/f_themes");
 	
-	$s->traverse(sub{
-		my $d = shift;
-		
-		my $hash = $d->get_statistics_f_themes();
-		
-		$allcounter->add_hash($hash);
-		
-		return ();
-	},$FORKER_SIZES{F_THEMES_DAYS});
+	get_statistics("f_themes", sub{map {$_->lemma()} $_[0]->frequency_themes}, $FORKER_SIZES{F_THEMES_DAYS}, $FORKER_SIZES{F_THEMES_ARTICLES});
 	
-	$allcounter->count_and_sort_it();
 }
 
 
@@ -116,211 +129,40 @@ sub get_statistics_f_themes {
 #Ukol (3) - statistiky zpravodajskych zdroju
 
 sub get_statistics_news_source {
-	my $s=new Zpravostroj::AllDates();
 	
-	my $allcounter = new Zpravostroj::OutCounter(name=>"data/allresults/news_source");
+	get_statistics("news_source", sub{$_[0]->news_source}, $FORKER_SIZES{NEWS_SOURCE_DAYS}, $FORKER_SIZES{NEWS_SOURCE_ARTICLES});
 	
-	$s->traverse(sub{
-		my $d = shift;
-		
-		
-		my $hash = $d->get_statistics_news_source();
-		
-		
-		$allcounter->add_hash($hash);
-			
-		
-		return ();
-	},$FORKER_SIZES{NEWS_SOURCE_DAYS});
-	
-	$allcounter->count_it();
 }
 
 
-sub review_all {
-	my $s=shift;
-	my $count = shift;
-	my $total = shift;
-	
-	
-	$s->traverse(sub{
-		my $d = shift;
-		say "POCITAM - ".$d->date->get_to_string();
-		
-		$d->review_all($count, $total);
-		return ();
-	},$FORKER_SIZES{REVIEW_DAYS});
-}
 
+sub get_statistics_tf_idf_themes {
 
-sub count_and_get_top_tfidf {
-	my $s=shift;
-	my $count = shift;
-	my $total = shift;
 	
-	my $last_date_counted = new Zpravostroj::Date(year=>2010, month=>2, day=>24);
-	my $allcounter = new Zpravostroj::OutCounter(name=>"data/allresults/total_tfidf", delete_on_start=>0);
 	
-	$s->traverse(sub{
-		my $d = shift;
-		if (!$d->date->is_older_than($last_date_counted)) {
-			say "POCITAM - ".$d->date->get_to_string();
-		
-		
-			my $hash = $d->count_and_get_top_tfidf($count, $total);
-			
-			say "Pridavam ".$d->date->get_to_string()." do totalu";
-		
-			$allcounter->add_hash($hash);
-			
-			say "Dopridavano.";
+	my $idf = Zpravostroj::InverseDocumentFrequencies::get_frequencies();
+	
+	my $article_count = get_saved_article_count();
+	
+	get_statistics("tf_idf", 
+		sub{
+			$_[0]->count_tf_idf_themes($idf, $article_count); 
+			map {$_->lemma()} @{$_[0]->tf_idf_themes};
 		}
-		
-		return ();
-	},$FORKER_SIZES{THEMES_DAYS});
+		, $FORKER_SIZES{TF_IDF_DAYS}, $FORKER_SIZES{TF_IDF_ARTICLES});
 	
-	$allcounter->count_it();
 }
 
 
-sub get_top_ten_lemmas_stop {
-	my $s=shift;
-	
-	my $allcounter = new Zpravostroj::OutCounter(name=>"data/total_top10_lemmas_stop", delete_on_start=>0);
-	my $last_date_counted = new Zpravostroj::Date(year=>2010, month=>9, day=>20);
-	
-	$s->traverse(sub{
-		my $d = shift;
-		if (!$d->date->is_older_than($last_date_counted)) {
-			say "POCITAM - ".$d->date->get_to_string();
-		
-			
-			my $hash = $d->get_top_ten_lemmas_stop();
-			
- 
-			$allcounter->add_hash($hash);
-		}
-		
-		return ();
-	},$FORKER_SIZES{STOP_TOPTHEMES_DAYS});
-	
-	$allcounter->count_it();
-}
+sub get_statistics_stop_themes {
 
-
-sub total_wordcount_dump {
-	my $s=shift;
-	$s->traverse(sub{
-		my $d = shift;
-		
-		my %count = $d->get_wordcount_before_article(0,1);
-		
-		
-		say "DOPOCITANO, jdu tvorit adresar...";
-		while (!mkdir "data/muj") {sleep(10); say "Nepovedlo, cekam.."; }
-		
-		say "povedlo, jdu strkat. Velikost count je ", scalar keys %count;
-		
-		open my $of, ">>:utf8", "data/total_data_dump";
-		for (keys %count) {
-			print $of $_."\t".$count{$_}."\n";
-		}
-		close $of;
-		say "Zavreno.";
-		say "Rm reklo :";
-		system("rm -r data/muj");
-		return ();
-	},$FORKER_SIZES{LATEST_WORDCOUNT_DAYS});
-}
-
-sub cleanup_all {
-	my $s = shift;
-	
-	Zpravostroj::AllWordCounts::null_all();
-	
-	
-	$s->traverse(sub{
-		
-		my $d = shift;
-		my $c = $d->cleanup_all_and_count_words;
-		
-		Zpravostroj::AllWordCounts::add_to_count($c);
-		
-		
-		return();
-	}, $FORKER_SIZES{CLEANUP_DAYS});
+	get_statistics("stop", sub{map {$_->lemma()} $_[0]->stop_themes}, $FORKER_SIZES{STOP_THEMES_DAYS}, $FORKER_SIZES{STOP_THEMES_ARTICLES});
 
 
 }
 
-sub set_latest_wordcount {
-	my $s=shift;
-	
-	my ($last_date_counted, $last_article_counted) = Zpravostroj::AllWordCounts::get_last_saved();
-
-	
-	#my %counts = Zpravostroj::AllWordCounts::get_count();
-	#share(%counts); #in forks, it DOES keep its values after share, unlike in ithreads
-	
-	
-	$s->traverse(sub{
-		
-		my $d = shift;
-		
-		if (! $d->date->is_older_than($last_date_counted)) {
-			say "je novejsi, jdu pocitat counts";
-			my $day_count = ($last_date_counted->is_the_same_as($d->date)) 
-							? (
-								{$d->get_wordcount_before_article($last_article_counted+1)}
-							) : (
-								{$d->get_wordcount_before_article(0)}
-							);
-			#nemusim lockovat!
-			Zpravostroj::AllWordCounts::add_to_count($day_count);
-		}
-		
-		say "done";
-		
-		return ();
-		
-	},$FORKER_SIZES{LATEST_WORDCOUNT_DAYS});
-	
-	
-}
-
-sub get_all_date_addresses {
-	my $s = shift;
-	my @all : shared;
-	
-	$s->traverse(sub {
-		my $d = shift;
-		my @a = $d->_get_traversed_array;
-		lock(@all);
-		push @all, @a;
-	}, $FORKER_SIZES{GET_ALL_DATE_ADDRESSES}, 1);
-	
-	
-	return @all;
-}
-
-
-sub get_article_names {
-	my $s = shift;
-	if (-e "data/all_article_names/names") {
-		open my $anames, "<", "data/all_article_names/names";
-		my @all = <$anames>;
-		close $anames;
-		chomp(@all);
-		return @all;
-	} else {
-		$s->freeze_article_names;
-		return $s->get_article_names;
-	}
-}
-
-sub freeze_article_names {
-	my $s = shift;
-	my @all = $s->get_all_date_addresses;
+sub update_saved_article_names {
+	my @all = get_real_article_names();
 	mkdir "data/";
 	mkdir "data/all_article_names/";
 	open my $anames, ">", "data/all_article_names/names";
@@ -331,12 +173,51 @@ sub freeze_article_names {
 }
 
 
+sub get_real_article_names {
+	my $s=new Zpravostroj::AllDates();
+	my @all : shared;
+	
+	$s->traverse(sub {
+		my $d = shift;
+		my @a = $d->_get_traversed_array;
+		lock(@all);
+		push @all, @a;
+	}, $FORKER_SIZES{REAL_ARTICLE_NAMES});
+	
+	
+	return @all;
+}
+
+
+sub get_saved_article_names {
+	if (!-e "data/all_article_names/names") {
+		update_saved_article_names;
+	}
+	
+	open my $anames, "<", "data/all_article_names/names";
+	my @all = <$anames>;
+	close $anames;
+	chomp(@all);
+	return @all;
+	
+}
+
+
+sub get_saved_article_count {
+	if (!-e "data/all_article_names/names") {
+		update_saved_article_names;
+	}
+	
+	return `cat data/all_article_names/names | wc -l`;
+}
+
+
 sub get_random_article {
 	#$s potrebuju kvuli traverse nekde dal
-	my $s = shift;
+	my $s = new Zpravostroj::AllDates();;
 	
 	
-	my @names = $s->get_article_names;
+	my @names = $s->get_saved_article_names;
 	my $size = scalar @names;
 	say "Size je $size.";
 	
@@ -350,13 +231,12 @@ sub get_random_article {
 	$rand_name =~ s/data-articles-//g;
 	$rand_name =~ s/\.bz2//g;
 	
-	return $s->get_from_article_id($rand_name);
+	return get_from_article_id($rand_name);
 }
 
 
 sub get_from_article_id {
 	
-	my $s = shift;
 	
 	my $id = shift;
 	if ($id =~ /^(\d\d\d\d)-(\d+)-(\d+)-(\d+)$/){
@@ -370,170 +250,100 @@ sub get_from_article_id {
 	}
 }
 
-sub get_total_article_count_before_last_wordcount {
-	say "Bacha, cheatuju v AllDates::get_total_article_count_before_last_wordcount !!!";
+
+sub PAPER__dates {
 	
-	return 63733;
+	mkdir "data/R_data";
 	
-	my $s = shift;
+	open my $dny, ">:utf8","data/R_data/all_dates";
 	
-	my ($last_date, $last_article) = Zpravostroj::AllWordCounts::get_last_saved();
-	if (!$last_date) {
-		$last_date = new Zpravostroj::Date(day=>0, month=>0, year=>0);
+	my @a = _get_traversed_array();
+	for (@a) {
+		/^(....)-(.*)-(.*)/;
+		print $dny $3.".".$2;
+		print $dny "\n";
 	}
-	say "Last day je ".$last_date->get_to_string();
-	
-	my $total:shared;
-	$total=0;
-	$s->traverse(sub{
-		
-		my $d = shift;
-		
-		my $add=0;;
-		
-		if ($last_date->is_the_same_as($d->date)) {
-			$add = $last_article+1;
-		}
-		if ($d->date->is_older_than($last_date)) {
-			$add = $d->article_count;
-		}
-		
-		lock($total);
-		$total += $add;
-		return();		
-	},$FORKER_SIZES{ARTICLECOUNT});
-	
-	say "total je $total";
-	return $total;
-	
-}
-
-sub delete_all_unusable {
-	$|=1;
-	my $s = shift;
-	my $count:shared;
-	$count=0;
-	say "wtf";
-	$s->traverse(sub{
-		(shift)->delete_all_unusable;		
-	}, $FORKER_SIZES{UNUSABLE});
-	say "Count je $count.";
-}
-
-sub get_top_themes {
-
-	my $s = shift;
-	
-	my $c = shift;
-	
-	my %themes = $s->get_all_themes();
-	
-	my @r_themes = values %themes;
-	
-	@r_themes = sort {$b->importance <=> $a->importance} @r_themes;
-	
-	if (!defined $c) {
-		return @r_themes;
-	} else {
-		return @r_themes[0..$c];
-	}
-}
-
-
-sub print_dny {
-	my $s = shift;
-	
-	open my $dny, ">:utf8","data/allresults/R_dny_less_tfidf";
-	
-
-	
-	$s->traverse(sub{
-		my $d = shift;
-		
-		my $da = $d->date;
-		
-		
-
-
-			my $count_articles = scalar($d->_get_traversed_array);
-			if ($count_articles > 0) {
-				
-				print $dny $da->day.".".$da->month;
-				print $dny "\n";
-				
-				
-			}		
-		#}
-		
-	}, 0);
 	
 	close $dny;
-}
-
-sub print_podils {
-	my $s = shift;
 	
-	open my $dny, ">:utf8","data/allresults/R_dnywhere_tfidf";
-	open my $mesice, ">:utf8","data/allresults/R_mesice_tfidf";
+	open my $days_filter, ">:utf8","data/R_data/filtered_dates__places";
+	open my $marks, ">:utf8","data/R_data/filtered_dates__marks";
 	
-	open my $podily, ">:utf8","data/allresults/R_podily_tfidf";
+	my $previous_year=0;
+	my $previous_month=0;
 
-	my $i=0;
-	my $predchmesic=0;
-	my $predchrok=0;
-	
-	$s->traverse(sub{
-		my $d = shift;
+	for my $i (0..$#a) {
+		my $d = $a[$i];
 		
-		my $da = $d->date;
+		$d=~/^(....)-(.*)-(.*)/;
+		my $year = $1;
+		my $month = $2;
 		
-		#if ($da->year==2010 and ($da->month==3 or $da->month==4)) {
-		
-			my $filename = "data/daycounters/tfidf_".$d->date->get_to_string();
-
-			my $count_themes;
-
-			{
-				no warnings 'numeric';
-				$count_themes = int(`wc -l $filename`);
+		if ($month != $previous_month) {
+			print $days_filter $i."\n";
+			
+			
+			if ($year != $previous_year) {
+				$year=~/..(..)/;
+				print $marks '"'.$month.'/'.$1."\"\n";
+			} else {
+				print $marks '"'.$month."\"\n";
 			}
-
-			my $count_articles = scalar($d->_get_traversed_array);
-			if ($count_articles > 0) {
-				my $podil = $count_themes/$count_articles;
-
-				print $podily $podil."\n";
-				
-				$i++;
-				if ($da->month!=$predchmesic) {
-					print $dny $i."\n";
-				
-					my $ye = $da->year;
-					$ye=~/..(..)/;
-					if ($ye != $predchrok) {
-						print $mesice '"'.$da->month.'/'.$1."\"\n";
-					} else {
-						print $mesice '"'.$da->month."\"\n";
-					}
-					$predchmesic=$da->month;
-					$predchrok=$da->year;
-				} 
-				
-				
-			}		
-		#}
+			
+		} 
 		
-	}, 0);
-	
-	close $dny;
-	close $podily;
+		$previous_year = $year;
+		$previous_month = $month;
+	} 
+	close $days_filter;
+	close $marks;
 }
 
-sub print_pocty_cochci_puvodni {
+
+sub PAPER__average_tf_idf_themes_on_article {
+	_PAPER__average_themes_on_article("tf_idf");
+}
+
+sub _PAPER__average_themes_on_article {
+	my $s = new Zpravostroj::AllDates();
+	my $type=shift;
+	
+	mkdir "data/R_data";
+
+	
+	open my $podily, ">:utf8", "data/R_data/average_".$type;
+
+	
+	$s->traverse(sub{
+		my $d = shift;
+				
+		my $filename = "data/daycounters/".$type."_".$d->date->get_to_string();
+
+		my $count_themes;
+
+		{
+			no warnings 'numeric';
+			$count_themes = int(`wc -l $filename`);
+		}
+
+		my $count_articles = scalar($d->_get_traversed_array);
+		my $podil = ($count_articles > 0) ? ($count_themes/$count_articles) : 0;
+		print $podily $podil."\n";
+	}, 0);
+	
+	close $podily
+	
+}
+
+sub _PAPER__selected_words {
 	my $s = shift;
 	
+	my $type = shift;
+	my @words_array = shift;
 	#my %words = map {($_=>undef)} qw(ods čssd volební blesk premiér paroubek klaus zemřít zápas demokrat 09 auto nehoda modelka fischer);
-	my %words = map {($_=>undef)} qw(nečas);
+	#my %words = map {($_=>undef)} qw(nečas);
+	
+	my %words = map {($_=>undef)}  @words_array;
 	
 	use Text::Unaccent;
 	
@@ -656,51 +466,6 @@ sub print_pocty_noviny {
 	}
 
 
-sub print_pocty_cochci {
-	print_pocty_cochci_soucet(@_);
-}
-
-sub print_pocty_cochci_soucet {
-	my $s = shift;
-	
-	my %words = map {($_=>undef)} qw(ods čssd premiér demokrat);
-	
-	use Text::Unaccent;
-	
-	
-	open my $of, ">:utf8","data/allresults/R_tfidf_sums_politika";
-	
-	
-	$s->traverse(sub{
-		my $d = shift;
-		
-		my $da = $d->date;
-
-		my %tytopocty;
-		my $filename = "data/daycounters/tfidf_".$d->date->get_to_string();
-
-		open my $f, "<:utf8", $filename;
-
-		while (<$f>) {
-
-			chomp;
-			/^(.*)\t(.*)$/;
-			if (exists $words{$1}) {
-				$tytopocty{$1}=$2;
-			}
-		}
-		
-		my $count_articles = scalar($d->_get_traversed_array);
-		if ($count_articles > 0) {
-			my $celkem = 0;
-			for (keys %words) {
-				$celkem += $tytopocty{$_}||0;
-			}
-			print $of $celkem."\n";
-		}
-	}, 0);
-	close $of;
-}
 
 sub mnozina {
 	my $s = shift;

@@ -3,9 +3,8 @@ use base 'Exporter';
 #pomocny modulik na vsechny funkce, co chci, aby byly videt vsude, ale nejsou samy o sobe prilis "chytre"
 #plus pres to sdilim vsechny konstanty, co chci videt vsude
 
-our @EXPORT = qw(%FORKER_SIZES $MIN_ARTICLES_PER_DAY_FOR_ALLWORDCOUNTS_INCLUSION $MINIMAL_USABLE_BZ2_SIZE $FREQUENCY_THEMES_SIZE $STOP_THEMES_SIZE $TF_IDF_THEMES_SIZE cleanup_lemma undump_bz2 dump_bz2 say if_undef get_last_folder @banned_phrases @selected_themes);
+our @EXPORT = qw(%FORKER_SIZES $MINIMAL_USABLE_BZ2_SIZE $FREQUENCY_THEMES_SIZE $STOP_THEMES_SIZE $TF_IDF_THEMES_SIZE cleanup_lemma undump_bz2 dump_bz2 say if_undef get_last_folder @banned_phrases @selected_themes);
 
-our $MIN_ARTICLES_PER_DAY_FOR_ALLWORDCOUNTS_INCLUSION = 8;
 
 use utf8;
 our @banned_phrases = ("Publikování nebo jakékoliv jiné formy dalšího šíření obsahu serveru Blesk.cz jsou bez písemného souhlasu Ringier Axel Springer CZ a.s., zakázány.", "Blesk.cz využívá zpravodajství z databází ČTK, jejichž obsah je chráněn autorským zákonem. Přepis, šíření či další zpřístupňování tohoto obsahu či jeho části veřejnosti, a to jakýmkoliv způsobem, je bez předchozího souhlasu ČTK výslovně zakázáno.", "Připomínky a tipy pište na", "© 2001 - 2010 Copyright  Ringier Axel Springer CZ a.s. a dodavatelé obsahu. ISSN 1213-8991", "Publikování nebo jakékoliv jiné formy dalšího šíření obsahu serveru Blesk.cz jsou bez písemného souhlasu Ringier ČR, a. s., zakázány.");
@@ -16,13 +15,13 @@ our @selected_themes = ("ODS" , "ČSSD" , "soud" , "volby" , "Nečas" , "nehoda"
 our %FORKER_SIZES;
 $FORKER_SIZES{TECTOSERVER}=10;
 $FORKER_SIZES{ARTICLE_CREATION}=10;
-$FORKER_SIZES{LATEST_WORDCOUNT_DAYS}=2;
-$FORKER_SIZES{LATEST_WORDCOUNT_ARTICLES}=10;
+$FORKER_SIZES{IDF_UPDATE_DAYS}=2;
+$FORKER_SIZES{IDF_UPDATE_ARTICLES}=10;
 $FORKER_SIZES{ARTICLECOUNT}=10;
 
 
-$FORKER_SIZES{THEMES_DAYS}=2;
-$FORKER_SIZES{THEMES_ARTICLES}=5;
+$FORKER_SIZES{TF_IDF_DAYS}=2;
+$FORKER_SIZES{TF_IDF_ARTICLES}=5;
 
 
 $FORKER_SIZES{REVIEW_DAYS}=2;
@@ -32,7 +31,7 @@ $FORKER_SIZES{ALL_TOPTHEMES}=20;
 $FORKER_SIZES{MOOT}=40;
 $FORKER_SIZES{CLEANUP_DAYS}=2;
 $FORKER_SIZES{CLEANUP_ARTICLES}=5;
-$FORKER_SIZES{GET_ALL_DATE_ADDRESSES}=15;
+$FORKER_SIZES{REAL_ARTICLE_NAMES}=15;
 
 $FORKER_SIZES{LEMMAS_ARTICLES}=15;
 $FORKER_SIZES{LEMMAS_DAYS}=3;
@@ -41,8 +40,8 @@ $FORKER_SIZES{F_THEMES_ARTICLES}=15;
 $FORKER_SIZES{F_THEMES_DAYS}=3;
 
 
-$FORKER_SIZES{STOP_TOPTHEMES_DAYS}=3;
-$FORKER_SIZES{STOP_TOPTHEMES_ARTICLES}=30;
+$FORKER_SIZES{STOP_THEMES_DAYS}=3;
+$FORKER_SIZES{STOP_THEMES_ARTICLES}=30;
 
 $FORKER_SIZES{NEWS_SOURCE_DAYS}=3;
 $FORKER_SIZES{NEWS_SOURCE_ARTICLES}=15;

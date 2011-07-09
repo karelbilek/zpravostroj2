@@ -176,7 +176,6 @@ sub stop_themes {
 
 
 
-
 sub BUILD {
 	my $s = shift;
 	$s->counts;
@@ -184,19 +183,19 @@ sub BUILD {
 
 sub count_tf_idf_themes {
 	my $s = shift;
-	my $all_count = shift;
-	my $count_hashref = shift;
+	my $idf = shift;
+	my $article_count = shift;
 	
-	my $themes = $s->tf_idf($all_count, $count_hashref, $TF_IDF_THEMES_SIZE);
+	my $themes = $s->tf_idf($idf, $article_count, $TF_IDF_THEMES_SIZE);
 	$s->tf_idf_themes($themes);
 }
 
 sub tf_idf {
 	my $s = shift;
-	my $all_count = shift;
-	my $count_hashref = shift;
+	my $idf_hash = shift;
+	my $article_count = shift;
 	
-	if (!defined $all_count) {
+	if (!defined $article_count) {
 		die "neni all count";
 	}
 	
@@ -218,25 +217,16 @@ sub tf_idf {
 			
 			my $lemma = $word->lemma;
 			
-			my $d = ($count_hashref->{$lemma}||0);
+			my $d = ($idf_hash->{$lemma}||0);
 			$d = 1 if ($d==0);
 			
 			if (defined $lemma) {
 				my $tf = $word->score() / $document_size;
-				my $idf = log($all_count / $d);
+				my $idf = log($article_count / $d);
 			
 				$importance{$lemma} = $tf * $idf;
 			}
 			
-	}
-	
-	
-	
-	for my $key (keys %importance) {
-		if (!defined $word_counts->{$key}->form()) {
-			say "Vadny key $key. Mazu.";
-			delete $importance{$key};
-		}
 	}
 	
 	

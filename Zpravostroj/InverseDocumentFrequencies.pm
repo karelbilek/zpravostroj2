@@ -1,4 +1,4 @@
-package Zpravostroj::AllWordCounts;
+package Zpravostroj::InverseDocumentFrequencies;
 #UPDATE - komentáře pod tím už uplně neplatí. třídim vnějšim třídenim :)
 
 
@@ -21,9 +21,8 @@ use 5.008;
 use strict;
 use warnings;
 
+#use Zpravostroj::AllDates;
 
-use forks;
-use forks::shared;
 
 use Zpravostroj::Globals;
 use Zpravostroj::Date;
@@ -39,16 +38,13 @@ mkdir "data";
 
 my $outcounter = new Zpravostroj::OutCounter(name=>"data/idf/idf", delete_on_start=>0);
 
-sub null_all {
-	system("rm -r ".$outcounter->tempname);
-}
 
-sub add_to_count {
+sub add_words {
 	my $w = shift;
 	$outcounter->add_hash($w);
 }
 
-sub get_count {
+sub get_frequencies {
 	return $outcounter->return_counted();
 	
 }
@@ -64,6 +60,38 @@ sub set_last_saved {
 	my ($date, $num) = @_;
 	$date->get_to_file("data/idf/date_last_counted");
 	write_file("data/idf/article_last_counted", $num);
+}
+
+sub count_it {
+	$outcounter->count_it();
+}
+
+sub update_all {
+	my ($last_date_counted, $last_article_counted) = get_last_saved();
+
+	
+	(new Zpravostroj::AllDates())->traverse(sub{
+		
+		my $d = shift;
+		
+		if (! $d->date->is_older_than($last_date_counted)) {
+			say "je novejsi, jdu pocitat counts";
+			my $day_count = ($last_date_counted->is_the_same_as($d->date)) 
+							? (
+								{$d->get_idf_before_article($last_article_counted+1)}
+							) : (
+								{$d->get_idf_before_article(0)}
+							);
+			#nemusim lockovat!
+			Zpravostroj::InverseDocumentFrequencies::add_words($day_count);
+		}
+		
+		say "done";
+		
+		return ();
+		
+	},$FORKER_SIZES{IDF_UPDATE_DAYS});
+	count_it;
 }
 
 

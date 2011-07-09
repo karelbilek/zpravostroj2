@@ -134,18 +134,6 @@ sub _after_subroutine{
 	}
 }
 
-sub _should_delete_dup_url {
-	my $url = shift;
-	my $urls = shift;
-	lock ($urls);
-	if (exists $urls->{$url}) {
-		return 1;
-	} else {
-		$urls->{$url} = 1;
-		return 0;
-	}
-}
-
 
 
 sub _get_and_save_articles_themes {
@@ -206,41 +194,46 @@ sub print_sorted_hash_to_file {
 	
 }
 
-sub get_statistics_news_source {
-	
-	
+sub get_statistics {
 	my $s = shift;
+	my $size = shift;
+	my $subref = shift;
+
+	my $filename = shift;
 	
 	my %count:shared;
-	
+		
 	$s->traverse(sub {
 		my $a = shift;
 		if (defined $a) {
 	
-			$count{$a->news_source}++;
-
+			my @res = $subref->($a);
+			lock(%count);
+			for (@res) {
+				$count{$_}++;
+			}
 		} 
 		return(0);
-	},$FORKER_SIZES{NEWS_SOURCE_ARTICLES}
+	},$size
 	);	
 	
 	
-	$s->print_sorted_hash_to_file(\%count, "news_source");
-	
-	
+	$s->print_sorted_hash_to_file(\%count, $filename);
 	
 	return \%count;
+	
+	
 }
 
 
 
-sub count_and_get_top_tfidf {
+
+sub get_statistics_tf_idf_themes {
 	
 	
 	my $s = shift;
 		
-	my $idfcount = shift;
-	my $total = shift;
+	my ($word_frequencies, $article_count)=@_;
 	
 	my %count:shared;
 	
@@ -248,7 +241,7 @@ sub count_and_get_top_tfidf {
 		my $a = shift;
 		if (defined $a) {
 	
-			$a->count_themes($total, $idfcount);
+			$a->count_themes($word_frequencies, $article_count);
 
 			my $themes = $a->themes;
 			
@@ -296,19 +289,6 @@ sub get_and_save_themes_themefiles {
 	
 }
 
-sub review_all {
-	my $s = shift;
-	
-	my $idfcount = shift;
-	my $total = shift;
-	
-	$s->traverse(sub{
-		my $a = shift;
-		$a->counts();
-		$a->count_tf_idf_themes($total, $idfcount);
-		return(1);
-	},$FORKER_SIZES{REVIEW_ARTICLES});
-}
 
 sub cleanup_all_and_count_words {
 	my $s = shift;
@@ -360,113 +340,45 @@ sub get_most_frequent_lemmas {
 	return %count;
 }
 
-sub get_top_ten_lemmas_stop {
+
+
+sub get_idf_before_article {
 	my $s = shift;
-
-	my %count:shared;
+	my $start = shift;
 	
-	$s->traverse(sub{
-		my $ar = shift;	
-		
-		my @topten = $ar->stop_themes;
-		{
-			lock(%count);
-			for (@topten) {
-				$count{$_}++
-			}
-		}
-		
-		return (0);
-	}, $FORKER_SIZES{STOP_TOPTHEMES_ARTICLES});
-
-	open my $of, ">:utf8", "data/daycounters/stop_".$s->date->get_to_string;
-	for (sort {$count{$b}<=>$count{$a}} keys %count) {
-		print $of $_."\t".$count{$_}."\n";
-	}
+	my %idf:shared;
 	
-	close $of;
-	
-	return \%count;
-}
-
-
-
-sub get_statistics_f_themes {
-	my $s = shift;
-
-	my %count:shared;
-	
-	$s->traverse(sub{
-		my $ar = shift;
-		
-		my @f_themes = $ar->frequency_themes();
-		
-		{
-			lock(%count);
-			for (@f_themes) {
-				$count{$_->lemma()}++
-			}
-		}
-		
-		
-		return (0);
-	}, $FORKER_SIZES{F_THEMES_ARTICLES});
-	
-	
-	$s->print_sorted_hash_to_file(\%count, "f_themes");
-	
-	
-	return \%count;
-}
-
-sub get_wordcount_before_article {
-	my $s = shift;
-	my $num = shift;
-	my $unlimited = shift;
-	my %counts:shared;
-	
-	my %urls:shared;
 	
 	$s->traverse(sub{
 		
 		my $a = shift;
 		my $artname = shift;
 		$artname =~ /\/([0-9]*)\.bz2/;
-		if ($1 < $num) {
+		if ($1 < $start) {
 			return (0);
 		}
 		
-		if (_should_delete_dup_url($a->url, \%urls)) {
-			return (-1);
-		}
-		
-		
-		my $had = $a->has_counts;
+		my $had_counts = $a->has_counts;
 		
 		#tohle vrací počty slov ve článku
 		my $wcount = $a->counts;
 		for (keys %$wcount) {
 			#pro každé slovo se přičte pouze JEDNOU ZA ČLÁNEK
 			#tj. je tam POČET ČLÁNKŮ
-			lock(%counts);
-			$counts{$_}++;
+			lock(%idf);
+			$idf{$_}++;
 		}
 		
 		
-		if ($had) {
+		if ($had_counts) {
 			return (0);
 		} else {
 			return (1);
 		}
-	}, $FORKER_SIZES{LATEST_WORDCOUNT_ARTICLES});
+	}, $FORKER_SIZES{IDF_UPDATE_ARTICLES});
 	
-	for (keys %counts) {
-		if ((!$unlimited) and $counts{$_}<$MIN_ARTICLES_PER_DAY_FOR_ALLWORDCOUNTS_INCLUSION) {
-			delete $counts{$_};
-		}
-	}
 	#tady vyjde slovo->inverzní počet článků
-	return %counts;
+	return %idf;
 }
 
 
