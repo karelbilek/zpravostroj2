@@ -93,6 +93,7 @@ sub refresh_urls {
 sub get_urls{
 	my $s = shift;
 	my $today = new Zpravostroj::Date() -> get_to_string;
+	$today=$today."_read_read";
 	my $yesterday = Zpravostroj::Date::get_days_before_today(1)-> get_to_string;
 	
 
@@ -100,7 +101,7 @@ sub get_urls{
 	for (keys %{$s->article_urls}) {
 		if ($s->article_urls->{$_} eq $today or $s->article_urls->{$_} eq $yesterday) {
 			push (@res, $_);
-			$s->article_urls->{$_}.="_read";
+			#$s->article_urls->{$_}.="_read";
 		}
 	}
 	return @res;

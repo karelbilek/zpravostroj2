@@ -88,6 +88,7 @@ sub get_articles {
 	
 	my @res;
 	
+	
 	for my $filename (<$dir/*>) {
 		
 		#Bere to podle názvů souborů...

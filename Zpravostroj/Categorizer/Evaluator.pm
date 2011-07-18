@@ -10,8 +10,32 @@ use Zpravostroj::ManualCategorization::Unlimited;
 use List::Util qw(shuffle);
 
 
+my $unlimited_tuples_preloaded;
+my $limited_tuples_preloaded;
+sub preload_articles{
+	my $unlimited = shift;
+	my $limited = shift;
+	
+	if ($unlimited and !defined $unlimited_tuples_preloaded) {
+		$unlimited_tuples_preloaded = _load_tuples(1);
+	}
+	
+	if ($limited and !defined $limited_tuples_preloaded) {
+		$unlimited_tuples_preloaded = _load_tuples(0);
+	}
+}
+
 sub _load_tuples {
 	my $unlimited_categories = shift;
+	if ($unlimited_categories and defined $unlimited_tuples_preloaded) {
+		return $unlimited_tuples_preloaded;
+	}
+	
+	if ((!$unlimited_categories) and defined $limited_tuples_preloaded) {
+		return $limited_tuples_preloaded;
+	}
+	
+	
 	my @articles = $unlimited_categories ? Zpravostroj::ManualCategorization::Unlimited::get_articles : Zpravostroj::ManualCategorization::NewsTopics::get_articles;
 	
 	my @tuples;
@@ -38,7 +62,9 @@ sub evaluate_on_manual_categories {
 	
 	my @res = evaluate($classname, $tuples, $weak_evaluation, $trial_count, @options);
 	
-	return (join (" ", map {"& ".sprintf ("%.2f", $_*100)." \\%"} @res));
+	my $res_string = join (" ", map {"& ".sprintf ("%.2f", $_*100)." \\%"} @res);
+	say $res_string;
+	return $res_string;;
 
 }
 

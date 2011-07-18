@@ -21,7 +21,8 @@ use 5.008;
 use strict;
 use warnings;
 
-#use Zpravostroj::AllDates;
+#kvuli circular use
+require Zpravostroj::AllDates;
 
 
 use Zpravostroj::Globals;
@@ -57,7 +58,13 @@ sub get_last_saved {
 	return (Zpravostroj::Date::get_from_file("data/idf/date_last_counted"), read_file("data/idf/article_last_counted"));
 }
 
-sub set_last_saved {
+sub set_last_saved_today {
+	my $date = new Zpravostroj::Date();
+	my $count = new Zpravostroj::DateArticles(date=>$date)->get_last_number;
+	_set_last_saved($date, $count);
+}
+
+sub _set_last_saved {
 	my ($date, $num) = @_;
 	$date->get_to_file("data/idf/date_last_counted");
 	write_file("data/idf/article_last_counted", $num);
@@ -69,6 +76,9 @@ sub count_it {
 
 sub update_all {
 	my ($last_date_counted, $last_article_counted) = get_last_saved();
+	
+	say "Last day counted je ".$last_date_counted->get_to_string();
+	
 
 	
 	(new Zpravostroj::AllDates())->traverse(sub{
@@ -85,6 +95,8 @@ sub update_all {
 							);
 			#nemusim lockovat!
 			Zpravostroj::InverseDocumentFrequencies::add_words($day_count);
+		} else {
+			say "CHCIPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM"
 		}
 		
 		say "done";
@@ -93,6 +105,7 @@ sub update_all {
 		
 	},$FORKER_SIZES{IDF_UPDATE_DAYS});
 	count_it;
+	set_last_saved_today;
 }
 
 

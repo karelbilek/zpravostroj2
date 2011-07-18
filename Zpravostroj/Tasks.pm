@@ -121,23 +121,7 @@ sub check_for_lemma_in_words {
 }
 
 
-sub refresh_all_RSS {
-	for my $f (<data/RSS/*>) {
-		my $RSS = undump_bz2($f);
-		$RSS->refresh_urls;
-		dump_bz2($f, $RSS);
-	}
-}
 
-sub get_all_RSS {
-	my @links;
-	for my $f (<data/RSS/*>) {
-		my $RSS = undump_bz2($f);
-		push (@links, $RSS->get_urls);
-		dump_bz2($f, $RSS);
-	}
-	return @links;
-}
 
 sub create_articles_from_URLs {
 	my @links = @_;
