@@ -85,7 +85,7 @@ sub get_random_article {
 	$rand =~ s/data\/user_categories\///;
 
 	#a vratim article
-	return  (new Zpravostroj::AllDates)->get_from_article_id($rand);
+	return  Zpravostroj::AllDates::get_from_article_id($rand);
 }
 
 

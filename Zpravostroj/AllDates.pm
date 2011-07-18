@@ -7,6 +7,9 @@ package Zpravostroj::AllDates;
 #Aby to mohlo mít moose role, musí to být Moose objekt - tj. je to Moose objekt, ale nemá žádné datové položky
 
 
+use warnings;
+use strict;
+
 use Zpravostroj::Globals;
 use Moose;
 use Zpravostroj::Date;
@@ -21,6 +24,8 @@ use forks::shared;
 
 
 use utf8;
+
+binmode STDOUT, ":utf8"; 
 
 #Vrací pole všech dní - podle data/articles
 sub _get_traversed_array {
@@ -213,7 +218,7 @@ sub get_saved_article_count {
 
 
 sub get_random_article {
-	#$s potrebuju kvuli traverse nekde dal
+	#$s potrebuju kvuli get_saved_article_names, ktery muze vyvolat traverse
 	my $s = new Zpravostroj::AllDates();;
 	
 	
@@ -250,257 +255,6 @@ sub get_from_article_id {
 	}
 }
 
-
-sub PAPER__dates {
-	
-	mkdir "data/R_data";
-	
-	open my $dny, ">:utf8","data/R_data/all_dates";
-	
-	my @a = _get_traversed_array();
-	for (@a) {
-		/^(....)-(.*)-(.*)/;
-		print $dny $3.".".$2;
-		print $dny "\n";
-	}
-	
-	close $dny;
-	
-	open my $days_filter, ">:utf8","data/R_data/filtered_dates__places";
-	open my $marks, ">:utf8","data/R_data/filtered_dates__marks";
-	
-	my $previous_year=0;
-	my $previous_month=0;
-
-	for my $i (0..$#a) {
-		my $d = $a[$i];
-		
-		$d=~/^(....)-(.*)-(.*)/;
-		my $year = $1;
-		my $month = $2;
-		
-		if ($month != $previous_month) {
-			print $days_filter $i."\n";
-			
-			
-			if ($year != $previous_year) {
-				$year=~/..(..)/;
-				print $marks '"'.$month.'/'.$1."\"\n";
-			} else {
-				print $marks '"'.$month."\"\n";
-			}
-			
-		} 
-		
-		$previous_year = $year;
-		$previous_month = $month;
-	} 
-	close $days_filter;
-	close $marks;
-}
-
-
-sub PAPER__average_tf_idf_themes_on_article {
-	_PAPER__average_themes_on_article("tf_idf");
-}
-
-sub _PAPER__average_themes_on_article {
-	my $s = new Zpravostroj::AllDates();
-	my $type=shift;
-	
-	mkdir "data/R_data";
-
-	
-	open my $podily, ">:utf8", "data/R_data/average_".$type;
-
-	
-	$s->traverse(sub{
-		my $d = shift;
-				
-		my $filename = "data/daycounters/".$type."_".$d->date->get_to_string();
-
-		my $count_themes;
-
-		{
-			no warnings 'numeric';
-			$count_themes = int(`wc -l $filename`);
-		}
-
-		my $count_articles = scalar($d->_get_traversed_array);
-		my $podil = ($count_articles > 0) ? ($count_themes/$count_articles) : 0;
-		print $podily $podil."\n";
-	}, 0);
-	
-	close $podily
-	
-}
-
-sub _PAPER__selected_words {
-	my $s = shift;
-	
-	my $type = shift;
-	my @words_array = shift;
-	#my %words = map {($_=>undef)} qw(ods čssd volební blesk premiér paroubek klaus zemřít zápas demokrat 09 auto nehoda modelka fischer);
-	#my %words = map {($_=>undef)} qw(nečas);
-	
-	my %words = map {($_=>undef)}  @words_array;
-	
-	use Text::Unaccent;
-	
-	my %files;
-	for (keys %words) { 
-		
-		my $name = unac_string("utf8", $_);
-		
-		open my $of, ">:utf8","data/allresults/R_tfidf_special_".$name;
-		$files{$_}=$of;
-	}
-	
-	$s->traverse(sub{
-		my $d = shift;
-		
-		my $da = $d->date;
-
-		my %tytopocty;
-		my $filename = "data/daycounters/tfidf_".$d->date->get_to_string();
-
-		open my $f, "<:utf8", $filename;
-
-		while (<$f>) {
-
-			chomp;
-			/^(.*)\t(.*)$/;
-			if (exists $words{$1}) {
-				$tytopocty{$1}=$2;
-			}
-		}
-		
-		my $count_articles = scalar($d->_get_traversed_array);
-		if ($count_articles > 0) {
-			for (keys %words) {
-				my $handle = $files{$_};
-				my $toto = $tytopocty{$_};
-				if ($toto) {
-					print $handle $toto
-				} else {
-					print $handle 0
-				}
-				print $handle "\n";
-			}
-		}
-	}, 0);
-	
-	for (keys %words) { 
-		my $handle = $files{$_};
-		close $handle;
-	}
-}	
-
-sub print_pocty_noviny {
-		my $s = shift;
-
-		my %words = map {($_=>undef)} qw(aktualne
-		blesk
-		bleskove
-		ceskenoviny
-		financninoviny
-		idnes
-		ihned
-		lidovky
-		);
-		
-
-		my %files;
-		for (keys %words) { 
-
-			my $name =  $_;
-
-			open my $of, ">:utf8","data/allresults/R_news_source_".$name;
-			$files{$_}=$of;
-		}
-
-		$s->traverse(sub{
-			my $d = shift;
-
-			my $da = $d->date;
-
-			my %tytopocty;
-			my $filename = "data/daycounters/news_source_".$d->date->get_to_string();
-
-			open my $f, "<:utf8", $filename;
-
-			while (<$f>) {
-
-				chomp;
-				/^(.*)\t(.*)$/;
-				if (exists $words{$1}) {
-					$tytopocty{$1}=$2;
-				} else {
-					if ($1 eq "reflex") {
-						$tytopocty{reflex}+=$2;
-					} else {
-						$tytopocty{aktualne}+=$2;
-					}
-				}
-			}
-
-			my $count_articles = scalar($d->_get_traversed_array);
-			if ($count_articles > 0) {
-				for (keys %words) {
-					my $handle = $files{$_};
-					my $toto = $tytopocty{$_};
-					if ($toto) {
-						print $handle $toto
-					} else {
-						print $handle 0
-					}
-					print $handle "\n";
-				}
-			}
-		}, 0);
-
-		for (keys %words) { 
-			my $handle = $files{$_};
-			close $handle;
-		}
-	}
-
-
-
-sub mnozina {
-	my $s = shift;
-	
-	my %mnozina;
-	
-	
-	
-	$s->traverse(sub{
-		my $d = shift;
-		
-		
-		my $filename = "data/daycounters/stop_".$d->date->get_to_string();
-		
-		
-		open my $f, "<:utf8", $filename;
-		
-		while (<$f>) {
-			
-			chomp;
-			/^(.*)\t(.*)$/;
-			$mnozina{$1}++;
-		}
-		
-	},0);
-	
-	
-	open my $of, ">:utf8", "data/allresults/stop_dayinfos";
-	
-	for (sort {$mnozina{$b}<=>$mnozina{$a}} keys %mnozina) {
-		print $of $_."\t".$mnozina{$_}."\n";
-	}
-	
-	close $of;
-}
 
 
 

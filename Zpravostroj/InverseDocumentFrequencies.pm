@@ -44,6 +44,7 @@ sub add_words {
 	$outcounter->add_hash($w);
 }
 
+
 sub get_frequencies {
 	return $outcounter->return_counted();
 	

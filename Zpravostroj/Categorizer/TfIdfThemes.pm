@@ -26,7 +26,7 @@ sub categorize {
 	
 	for my $article (@articles) {
 		
-		my @t = sort {$b->{importance} <=> $a->{importance}} @{$article->themes};
+		my @t = sort {$b->score <=> $a->score} @{$article->tf_idf_themes};
 		if (scalar @t > $self->count) {
 			@t=@t[0..$self->count-1];
 		}

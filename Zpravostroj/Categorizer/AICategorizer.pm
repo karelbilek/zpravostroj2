@@ -85,19 +85,21 @@ sub get_features_from_article {
 	
 	say "Pridavam feature source_$source=1";
 	
+	my $idf_hash = Zpravostroj::InverseDocumentFrequencies::get_frequencies();
+
 	if ($all_themes_as_features) {
-		for my $theme (@{$article->complete_tf_idf}) {
-			my $feature_name = $theme->{lemma};
+		for my $theme (@{$article->tf_idf($idf_hash)}) {
+			my $feature_name = $theme->lemma;
 			
-			my $feature_value = $theme->{importance};
+			my $feature_value = $theme->score;
 			$features{$feature_name} = $feature_value;
 			say "Pridavam feature $feature_name=$feature_value";
 		
 		
 		}
 	} else {
-		for my $theme (@{$article->themes}) {
-			my $feature_name = $theme->{lemma};
+		for my $theme (@{$article->tf_idf_themes}) {
+			my $feature_name = $theme->lemma;
 			my $feature_value = 1;
 			$features{$feature_name} = $feature_value;
 			say "Pridavam feature $feature_name=$feature_value";

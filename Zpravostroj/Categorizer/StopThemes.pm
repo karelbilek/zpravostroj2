@@ -16,7 +16,7 @@ sub categorize {
 	my @tagged;
 	
 	for my $article (@articles) {
-		push (@tagged, {article=>$article, tags=>[$article->nostop_best]});
+		push (@tagged, {article=>$article, tags=>[map {$_->form} $article->stop_themes]});
 	}
 	return @tagged;
 }

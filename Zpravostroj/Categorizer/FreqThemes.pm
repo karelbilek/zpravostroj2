@@ -16,7 +16,7 @@ sub categorize {
 	my @tagged;
 	
 	for my $article (@articles) {
-		push (@tagged, {article=>$article, tags=>[$article->frequency_themes]});
+		push (@tagged, {article=>$article, tags=>[map {$_->lemma} $article->frequency_themes]});
 	}
 	return @tagged;
 }

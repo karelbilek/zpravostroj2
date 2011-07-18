@@ -3,7 +3,7 @@ use base 'Exporter';
 #pomocny modulik na vsechny funkce, co chci, aby byly videt vsude, ale nejsou samy o sobe prilis "chytre"
 #plus pres to sdilim vsechny konstanty, co chci videt vsude
 
-our @EXPORT = qw(%FORKER_SIZES $MINIMAL_USABLE_BZ2_SIZE $FREQUENCY_THEMES_SIZE $STOP_THEMES_SIZE $TF_IDF_THEMES_SIZE cleanup_lemma undump_bz2 dump_bz2 say if_undef get_last_folder @banned_phrases @selected_themes);
+our @EXPORT = qw(%FORKER_SIZES $MINIMAL_USABLE_BZ2_SIZE $FREQUENCY_THEMES_SIZE $STOP_THEMES_SIZE $TRIAL_COUNT $TF_IDF_THEMES_SIZE cleanup_lemma undump_bz2 dump_bz2 say if_undef get_last_folder @banned_phrases @selected_themes);
 
 
 use utf8;
@@ -46,7 +46,7 @@ $FORKER_SIZES{STOP_THEMES_ARTICLES}=30;
 $FORKER_SIZES{NEWS_SOURCE_DAYS}=3;
 $FORKER_SIZES{NEWS_SOURCE_ARTICLES}=15;
 
-
+our $TRIAL_COUNT = 10;
 our $MINIMAL_USABLE_BZ2_SIZE = 3000;
 our $FREQUENCY_THEMES_SIZE = 10;
 our $STOP_THEMES_SIZE = 10;

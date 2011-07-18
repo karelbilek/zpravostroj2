@@ -193,10 +193,17 @@ sub count_tf_idf_themes {
 sub tf_idf {
 	my $s = shift;
 	my $idf_hash = shift;
+	
+	
+	
+	if (!defined $idf_hash) {
+		$idf_hash = Zpravostroj::InverseDocumentFrequencies::get_frequencies();
+	}
+	
 	my $article_count = shift;
 	
-	if (!defined $article_count) {
-		die "neni all count";
+	if (!$article_count) {
+		$article_count = Zpravostroj::AllDates::get_saved_article_count();
 	}
 	
 	my $count = shift;

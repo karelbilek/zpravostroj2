@@ -7,6 +7,8 @@ use strict;
 use warnings;
 use utf8;
 
+use Zpravostroj::Globals;
+
 #Označí jeden článek více kategoriemi
 sub add_article_to_categories {
 	
@@ -93,7 +95,13 @@ sub get_articles {
 		$id =~ s/$dir\///;
 		
 		#...které pak načte přes AllDates (takže je k nim "správně" přidán i date a číslo)
-		my $article = (new Zpravostroj::AllDates)->get_from_article_id($id);
+		my $article = Zpravostroj::AllDates::get_from_article_id($id);
+		
+		if (defined $article) {
+			say "Definovany ".$id;
+		} else {
+			say "undefinovany ".$id;
+		}
 		
 		push @res, $article;
 	}

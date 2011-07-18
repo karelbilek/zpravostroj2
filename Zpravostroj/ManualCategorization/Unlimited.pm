@@ -118,7 +118,7 @@ sub get_articles {
 #Vrátí náhodný článek
 #(volá get_random_article v AllDates, která pro rychlejší přístup tahá náhodné články ze seznamu článků v data/all_article_names)
 sub get_random_article {
-	return (new Zpravostroj::AllDates)->get_random_article();
+	return Zpravostroj::AllDates::get_random_article();
 }
 
 

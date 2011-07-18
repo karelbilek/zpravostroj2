@@ -9,35 +9,43 @@ use Zpravostroj::ManualCategorization::Unlimited;
 
 use List::Util qw(shuffle);
 
-sub evaluate_on_manual_categories {
-	my $classname = shift;
-	my $weak_evaluation = shift;
+
+sub _load_tuples {
 	my $unlimited_categories = shift;
-	my $trial_count = shift;
-	
-	my @options = @_;
-	
 	my @articles = $unlimited_categories ? Zpravostroj::ManualCategorization::Unlimited::get_articles : Zpravostroj::ManualCategorization::NewsTopics::get_articles;
 	
 	my @tuples;
 	
-	if ($unlimited_categories) {
-		my @articles = Zpravostroj::ManualCategorization::Unlimited::get_articles;
-		@tuples = map {{article=>$_, tags=>[$_->unlimited_manual_tags]}} @articles;
+	if ($unlimited_categories) {		
+		@tuples = map {my $a=$_;{article=>$a, tags=>[$a->unlimited_manual_tags]}} @articles;
 	} else {
-		my @articles = Zpravostroj::ManualCategorization::NewsTopics::get_articles;
-		@tuples = map {{article=>$_, tags=>[$_->news_topics_manual_tags]}} @articles;
+		@tuples = map {my $a=$_;{article=>$a, tags=>[$a->news_topics_manual_tags]}} @articles;
 	}
+	return \@tuples;
+
+}
+
+sub evaluate_on_manual_categories {
+	my $classname = shift;
+	my $weak_evaluation = shift;
 	
-	my @res = evaluate($classname, \@tuples, $weak_evaluation, $trial_count, @options);
+	my $unlimited_categories = shift;
+	my $trial_count = $TRIAL_COUNT;
 	
-	say (join (" ", map {"& ".sprintf ("%.2f", $_*100)." \\%"} @res));
+	my @options = @_;
+	
+	my $tuples = _load_tuples($unlimited_categories);
+	
+	my @res = evaluate($classname, $tuples, $weak_evaluation, $trial_count, @options);
+	
+	return (join (" ", map {"& ".sprintf ("%.2f", $_*100)." \\%"} @res));
 
 }
 
 sub choose_k_disjunct_subsets{
 	my $number = shift;
 	my @arr = @_;
+	
 	
 	#@arr = shuffle(@arr);
 
@@ -56,8 +64,12 @@ sub choose_k_disjunct_subsets{
 		my $zac = $n * $size;
 		my $kon = $zac + $size- 1;
 		for my $i (0..$#arr) {
+		
 			
-			say "Clanek $i je ".$arr[$i]->{article}->title if ($n==9);
+			
+			say "Clanek $i je ".($arr[$i]->{article}->title) if ($n==9);
+			
+		
 			if ($i >= $zac and $i <= $kon) {
 				say "...a je v setu" if ($n==9);
 				push (@set, $arr[$i]);
@@ -188,8 +200,18 @@ sub count_precision_recall {
 	my $micro_FN = _sum_hash(%FN);	
 	
 	my $micro_pi = (($micro_TP + $micro_FP)>0) ? (($micro_TP||0)/($micro_TP + $micro_FP)) : (1);
+	
+	say "Vypocitavam micro pi.";
+	say "micro_TP je $micro_TP";
+	say "micro_FP je $micro_FP";
+	say "micro_pi je $micro_pi";
+	
 	my $micro_ro = ($micro_TP||0)/($micro_TP + $micro_FN);
 
+	say "Vypocitavam micro ro.";
+	say "micro_TP je $micro_TP";
+	say "micro_FP je $micro_FN";
+	say "micro_pi je $micro_ro";
 	
 	my $macro_pi_sum=0;
 	my $macro_ro_sum=0;
@@ -229,6 +251,8 @@ sub evaluate {
 		
 	my $articles_ref = shift;
 	
+
+	
 	my $weak_evaluation = shift;
 	
 	my $trials = shift;
@@ -266,12 +290,13 @@ sub evaluate {
 			if (scalar @tagged != scalar @eval) {
 				die "Tagged and eval doesn't have the same size! :(";
 			}
+			
+		
 		
 			my @prec_recall = count_precision_recall(\@categorizer_tags_only, \@original_tags_only, \@to_tag, 0);
 		
 			my ($micro_pi, $micro_ro, $micro_F, $macro_pi, $macro_ro, $macro_F) = @prec_recall;
 		
-			say "VYSLEDKY - ",($micro_pi, $micro_ro, $macro_pi, $macro_ro); 
 		
 			$micro_pi_sum+=$micro_pi;
 			$micro_ro_sum+=$micro_ro;
@@ -289,10 +314,13 @@ sub evaluate {
 		#na tomto kategorizeru se netrenuje
 		my $categorizer = $class->new(undef, @options);
 		my @to_tag = map {$_->{article}} @arr;
+		
+
 		my @tagged = $categorizer->categorize(@to_tag);
 		
 		my @original_tags_only = map {$_->{tags}} @arr;
 		my @categorizer_tags_only = map {$_->{tags}} @tagged;
+		
 		my @prec_recall = count_precision_recall(\@categorizer_tags_only, \@original_tags_only, \@to_tag, 1);
 		
 		($micro_pi_sum, $micro_ro_sum,  $micro_F_sum, $macro_pi_sum, $macro_ro_sum, $macro_F_sum) = @prec_recall;
