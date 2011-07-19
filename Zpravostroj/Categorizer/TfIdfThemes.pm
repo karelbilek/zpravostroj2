@@ -1,14 +1,17 @@
 package Zpravostroj::Categorizer::TfIdfThemes;
+#Zatřídí do kategorií, odpovídajícím tf-idf tématům
 
 use Moose;
 with 'Zpravostroj::Categorizer::Categorizer';
 
+#Kolik vzít témat
 has 'count'=> (
 	is=>'ro',
 	isa=>'Int',
 	required=>1
 );
 
+#Odignoruje pole, nastaví count
 sub _create {
 	shift;
 	
@@ -18,6 +21,7 @@ sub _create {
 	return {count=>$c};
 }
 
+#Pro každý článek vezme count nejdůležitějších TF-IDF témat
 sub categorize {
 	my $self = shift;
 	my @articles = @_;

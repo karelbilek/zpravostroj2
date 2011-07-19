@@ -1,4 +1,5 @@
 package Zpravostroj::Categorizer::TotallyRetarded;
+#Triviální kategorizér, co všechno zatřídí do kategorie, která mu přijde
 
 use Moose;
 with 'Zpravostroj::Categorizer::Categorizer';
@@ -9,6 +10,7 @@ has 'tag'=> (
 	required=>1
 );
 
+#Odignoruje se pole, nastaví se tag
 sub _create {
 	shift;
 	
@@ -18,6 +20,7 @@ sub _create {
 	return {tag=>$tag};
 }
 
+#Nastaví tag u článku
 sub categorize {
 	my $self = shift;
 	my @articles = @_;

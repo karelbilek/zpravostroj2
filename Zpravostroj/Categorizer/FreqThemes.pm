@@ -1,14 +1,16 @@
 package Zpravostroj::Categorizer::FreqThemes;
+#zařazuje do "frekvenčních témat" (tj. nejčastější slova)
 
 use Moose;
 with 'Zpravostroj::Categorizer::Categorizer';
 
-
+#nic netvoří
 sub _create {
 	
 	return {};
 }
 
+#každému dá jeho frekvenční témata
 sub categorize {
 	my $self = shift;
 	my @articles = @_;

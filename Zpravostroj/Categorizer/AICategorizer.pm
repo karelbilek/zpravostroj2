@@ -1,8 +1,11 @@
 package Zpravostroj::Categorizer::AICategorizer;
+#AICategorizer používá modul AI:.Categorizer
+#(ten implementuje NaiveBayes, SVM a Decision Trees)
+
 
 use Zpravostroj::Globals;
 use Moose;
-with 'Zpravostroj::Categorizer::Trained';
+with 'Zpravostroj::Categorizer::Categorizer';
 
 use AI::Categorizer::KnowledgeSet;
 use AI::Categorizer::Document;
@@ -10,35 +13,54 @@ use AI::Categorizer::FeatureVector;
 use AI::Categorizer::Category;
 use AI::Categorizer::Learner;
 
+#Objekt, co se učí a co potom zatřizuje
 has 'learner'=> (
 	is=>'ro',
 	isa=>'AI::Categorizer::Learner',
 	required=>1
 );
 
+#Jestli brát jako featury všechna slova z článku s jejich tf-idf vahami
+#1=ano
+#0=ne, ber jenom prvních 20 s vahou featury 1
 has 'all_themes_as_features'=> (
 	is=>'ro',
 	isa=>'Bool',
 	required=>1
 );
 
-sub _create_training_object {
-	shift;
+#Vytvoří knowledgeset, learner a na článcích natrénuje learner
+sub _create {
+	my $class = shift;
+	
+	my $array = shift;
+	
 	my $options = shift;
 	
-	my $k = new AI::Categorizer::KnowledgeSet(verbose=>1);
+	my $all_themes_as_features = $options->{all_themes_as_features};
+	
+	my $AI_categorizer_classname = $options->{name};
+	
+	my $knowledgeset = new AI::Categorizer::KnowledgeSet(verbose=>1);
+	
+	for my $touple (@$array) {
+		_add_to_knowledgeset($touple, $knowledgeset, $all_themes_as_features);
+	}
+	
+	my $learner = _train($knowledgeset, $AI_categorizer_classname);
 	
 	
-	return {knowledgeset=>$k};
+	return {learner=>$learner, all_themes_as_features=>$all_themes_as_features};
 }
 
-sub _train_on_article {
-	shift;
+
+#Do Knowledgesetu prida clanky, reprezentovane jako jejich featury, a zaradi je tam do kategorii
+sub _add_to_knowledgeset {
 	
-	say "Trenuji na dalsim clanku.";
+	say "Pridavam dalsi clanek.";
 	my $touple = shift;
 	my $hashref = shift;
-	my $options = shift;
+	my $all_themes_as_features = shift;
 	
 	my @categories;
 	
@@ -53,23 +75,21 @@ sub _train_on_article {
 	my $document = new AI::Categorizer::Document(name => $touple->{article}->url(), categories=>\@categories);
 	
 	
-	say "WTF0.";
 	
-	my $features=get_features_from_article( $touple->{article}, $options->{all_themes_as_features});
+	my $features=get_features_from_article( $touple->{article}, $all_themes_as_features);
 	
-	say "WTF1.";
 	my $feature_vector = new AI::Categorizer::FeatureVector(features => $features);
 
-	say "Vytvareni featureVectoru hotovo.";
 	$document->features($feature_vector);
 	
-	say "Features uspesne spusteno.";
+	say "Hotovo.";
 	
 	
 	$hashref->{knowledgeset}->add_document($document);
 	
 }
 
+#Ze clanku dostane featury jako hash
 sub get_features_from_article {
 	my $article = shift;
 	
@@ -106,35 +126,26 @@ sub get_features_from_article {
 		
 		}
 	}
-	say "WTF-1";
 	return \%features;
 	
 }
 
-sub _finish_training {
-	shift;
-	my $hashref = shift;
-	my $options = shift;
+#vytvoří AI::Categorizer (musí tedy být už třída načtená pomocí use!)
+#a spustí train
+sub _train {
+	my $knowledgeset = shift;
+	my $AI_categorizer_classname = shift;
 	
-	my $name;
-	if (defined $options and defined $options->{name}) {
-		$name = $options->{name}
-	} else {
-		die "no name";
-	}
-	
-	say "Pred vytvorenim learneru.";
-	my $learner = $name->new();
-	
-	say "Po vytvoreni learneru.";
-	
-	$learner->train(knowledge_set => $hashref->{knowledgeset});
+	my $learner = $AI_categorizer_classname->new();
+		
+	$learner->train(knowledge_set => $knowledgeset);
 	
 	
-	return {learner=>$learner, all_themes_as_features=>($options->{all_themes_as_features})};
+	return $learner;
 	
 }
 
+#Řekne si o kategorii
 sub get_article_tags {
 	my $self = shift;
 	my $article = shift;
