@@ -45,7 +45,7 @@ sub traverse(&$) {
 	my $should_fork = ($size > 1);
 	
 	#Vytvoreni noveho "forkeru"
-	my $forker = $should_fork ? new Zpravostroj::Forker(size=>$size, shut_up=>1) : undef;
+	my $forker = $should_fork ? new Zpravostroj::Forker(size=>$size) : undef;
 
 	#Zazadam si o to samotne pole
 	say "pred get traversed array" unless $shut_up;

@@ -8,6 +8,13 @@ package Zpravostroj::RSS;
 #a jako values ma datumy, kdy byl dany clanek stahnut (tj ne vydan, ale opravdu stahnut)
 #datum je myslim YYYY-MM-DD, kazdopadne je to tentyz format, co dava Zpravostroj::Date::get_to_string()
 
+#Pouzivam takovy trik na zjisteni, co uz jsem precetl a co ne: pri refreshovani RSS 
+	#vytvarim dvojice URL->DEN, pokud tam uz URL ale neni
+#Pri cteni clanku vezmu vsechny clanky, ktere maji DEN dnes nebo vcera a u nich za DEN dopisu "_read"
+#a priste pri cteni uz je neberu
+
+#pri dalsim refreshi smazu vsechny, co maji DEN starsi, nez 2 dny, at uz s _read nebo bez _read
+
 #Cely ten objekt je Moose a pomoci Storage ho ukladam komplet
 
 use 5.008;
@@ -57,9 +64,6 @@ sub refresh_urls {
 	#smaze predvcerejsi
 	for (keys %{$s->article_urls}) {
 		
-		#mozna tu az prilis zabira staveni Date objektu,
-		#ale to je fuk, stejne to nikdy neni bottleneck
-		
 		my $datestr = $s->article_urls->{$_};
 		if ($datestr =~ /^(.*)_read$/) {
 			$datestr = $1;
@@ -86,14 +90,13 @@ sub refresh_urls {
 		}
 		
 	}
-	
-
 }
 
+
+#viz popis nahore
 sub get_urls{
 	my $s = shift;
 	my $today = new Zpravostroj::Date() -> get_to_string;
-	$today=$today."_read_read";
 	my $yesterday = Zpravostroj::Date::get_days_before_today(1)-> get_to_string;
 	
 
@@ -101,7 +104,7 @@ sub get_urls{
 	for (keys %{$s->article_urls}) {
 		if ($s->article_urls->{$_} eq $today or $s->article_urls->{$_} eq $yesterday) {
 			push (@res, $_);
-			#$s->article_urls->{$_}.="_read";
+			$s->article_urls->{$_}.="_read";
 		}
 	}
 	return @res;

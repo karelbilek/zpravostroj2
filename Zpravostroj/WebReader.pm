@@ -1,8 +1,8 @@
 package Zpravostroj::WebReader;
-#Pomocny modulek na cteni z webu
-#co mu dam jenom URL a on vyda HTML
+#Pomocný modulek na čtení z webu
+#co mu dám jenom URL a on vydá HTML v utf-8
 
-#(v CPANu je na to spooousta modulu, ale vzdycky delaji bud moc, nebo malo)
+#(v CPANu je na to spousta už udělaných modulů, ale vždycky delají buď moc, nebo málo)
 
 use strict;
 use warnings;
@@ -14,29 +14,35 @@ use Encode;
 use HTML::Encoding 'encoding_from_http_message';
 use LWP::UserAgent;
 
-#UserAgent je globalni, protoze proc ne.
-my $ua = LWP::UserAgent->new;
+#UserAgent je globálni, protože není důvod ho pokaždé vytvářet znova.
+my $user_agent = LWP::UserAgent->new;
 
+
+#Samotné načtení (zkusí to 5x)
 sub wread {
-	my $try_count;
-	my $address = shift;
 	
-	my $resp;
+	my $address = shift;
+
+	#Kolikrát jsem to zkoušel načíst
+	my $try_count;
+	
+	my $response;
 	
 	do {
-		$resp = $ua->get( $address );
+		$response = $user_agent->get( $address );
 		$try_count++;
-	} while ($try_count<=5 and $resp->code != 200);
-		#try to download it 5 times, if server is not responsive
+	} while ($try_count<=5 and $response->code != 200);
 	
-	if ($resp->code != 200) {
+	#po 5 pokusech vzdávám
+	if ($response->code != 200) {
 		return "";
 	}
 	
-	#s timhle byl myslim nekdy problem, ale uz nevim kdy :)
-	my $enco = encoding_from_http_message($resp);
 
-	return decode($enco => ($resp->content));
+
+	#s tímhle encodingem jsou někdy problémy.... ale myslím, že takhle je to OK
+	my $enco = encoding_from_http_message($response);
+	return decode($enco => ($response->content));
 	
 }
 

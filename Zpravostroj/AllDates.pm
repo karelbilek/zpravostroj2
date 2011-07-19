@@ -55,7 +55,7 @@ sub _get_traversed_array {
 }
 
 
-
+#Načítání DateArticles ze stringu
 sub _get_object_from_string {
 	shift; #odkaz na self
 	return new Zpravostroj::DateArticles(date=>Zpravostroj::Date::get_from_string(shift));
@@ -65,7 +65,9 @@ sub _get_object_from_string {
 sub _after_subroutine{
 }
 
-#Obecná
+#Obecná funkce na získávání různých statistických dat
+#Vezme data z každého dne, které jsou sesbírané pomocí jeho get_statistics
+#ty dá do OutCounteru, co se jmenuje předvídatelně, a pak ho seřadí
 sub get_statistics {
 	my $s=new Zpravostroj::AllDates();
 	my $name = shift;
@@ -91,9 +93,8 @@ sub get_statistics {
 }
 
 
-#========================================
 
-#Ukol (1) - spocitat nejpouzivanejsi lemmata
+#Spočítá nejčastější lemmata
 sub get_most_frequent_lemmas {
 	my $s=new Zpravostroj::AllDates();
 	
@@ -117,10 +118,8 @@ sub get_most_frequent_lemmas {
 }
 
 
-#=========================================
 
-#Ukol (2) - statistiky trivialnich f_temat
-
+#Statistika f-témat
 sub get_statistics_f_themes {
 	
 	
@@ -129,10 +128,7 @@ sub get_statistics_f_themes {
 }
 
 
-#=========================================
-
-#Ukol (3) - statistiky zpravodajskych zdroju
-
+#Statistika zpravodajských zdrojů
 sub get_statistics_news_source {
 	
 	get_statistics("news_source", sub{$_[0]->news_source}, $FORKER_SIZES{NEWS_SOURCE_DAYS}, $FORKER_SIZES{NEWS_SOURCE_ARTICLES});
@@ -140,7 +136,8 @@ sub get_statistics_news_source {
 }
 
 
-
+#Statistika tfidf-témat
+#(vypočítává je)
 sub get_statistics_tf_idf_themes {
 
 	
@@ -158,7 +155,7 @@ sub get_statistics_tf_idf_themes {
 	
 }
 
-
+#statistika stop-témat
 sub get_statistics_stop_themes {
 
 	get_statistics("stop", sub{map {$_->lemma()} $_[0]->stop_themes}, $FORKER_SIZES{STOP_THEMES_DAYS}, $FORKER_SIZES{STOP_THEMES_ARTICLES});
@@ -166,6 +163,10 @@ sub get_statistics_stop_themes {
 
 }
 
+
+#Kromě toho si pamatuji seznam všech článků (hodí se to např. na zjišťování celkového počtu nebo pro náhodné články)
+
+#Tady ho updatnu
 sub update_saved_article_names {
 	my @all = get_real_article_names();
 	mkdir "data/";
@@ -177,7 +178,7 @@ sub update_saved_article_names {
 	close $anames;
 }
 
-
+#Tady ho zjistím
 sub get_real_article_names {
 	my $s=new Zpravostroj::AllDates();
 	my @all : shared;
@@ -193,7 +194,7 @@ sub get_real_article_names {
 	return @all;
 }
 
-
+#Tady si ho přečtu
 sub get_saved_article_names {
 	if (!-e "data/all_article_names/names") {
 		update_saved_article_names;
@@ -207,7 +208,7 @@ sub get_saved_article_names {
 	
 }
 
-
+#Vrátí počet všech článků
 sub get_saved_article_count {
 	if (!-e "data/all_article_names/names") {
 		update_saved_article_names;
@@ -216,7 +217,7 @@ sub get_saved_article_count {
 	return `cat data/all_article_names/names | wc -l`;
 }
 
-
+#Vrátí náhodný článek
 sub get_random_article {
 	#$s potrebuju kvuli get_saved_article_names, ktery muze vyvolat traverse
 	my $s = new Zpravostroj::AllDates();;
@@ -239,7 +240,7 @@ sub get_random_article {
 	return get_from_article_id($rand_name);
 }
 
-
+#Vrátí článek na základě jeho ID
 sub get_from_article_id {
 	
 	

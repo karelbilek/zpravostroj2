@@ -1,4 +1,7 @@
 package Zpravostroj::DateArticles;
+#Modul, který představuje všechny články pro dané datum
+#a umožňuje nad nimi iterovat
+
 use Zpravostroj::Globals;
 use strict;
 use warnings;
@@ -6,7 +9,6 @@ use warnings;
 use forks;
 use forks::shared;
 
-use Zpravostroj::ThemeHash;
 use Zpravostroj::Forker;
 
 use Moose;
@@ -18,25 +20,24 @@ with 'Zpravostroj::Traversable';
 
 use Zpravostroj::Date;
 
+
+#Date, co mu přísluší
+#(1 Date má přesně 1 DateArticles, resp. jsou všichni stejní, a jeden DateArticles má jeden Date.)
 has 'date' => (
 	is=>'ro',
 	required=>1,
 	isa=>'Zpravostroj::Date'
 );
 
-has '_last_number' => (
-	is => 'rw',
-	isa=>'Maybe[Int]',
-	default=>undef
-);
 
-
+#Pro dané číslo článku "složí" název souboru
 sub filename {
 	my $s = shift;
-	my $n = shift;
-	return $s->pathname."/".$n.".bz2";
+	my $number = shift;
+	return $s->pathname."/".$number.".bz2";
 }
 
+#Vrátí adresář, určený danému dni
 sub pathname {
 	my $s = shift;
 	mkdir "data";
@@ -50,24 +51,52 @@ sub pathname {
 	return "data/articles/".$year."/".$month."/".$day;
 }
 
+#Vrátí článek na daném čísle
 sub get_article_from_number {
 	my $s = shift;
 	my $number = shift;
 	return $s->_get_object_from_string($s->pathname."/".$number.".bz2");
 }
 
+
+#Uloží článek na zadanou POZICI
 sub save_article {
 	my $s = shift;
-	my $n = shift;
+	my $name = shift;
 	my $article = shift;
 	if (defined $article) {
+		
+		#Mažu article_number a date proto, že čísla článků a dny nechci ukládat přímo do .yaml.bz2 těch článků,
+		#ale chci je přiřazovat znovu na základě toho, který den a ze kterého souboru je načítám
+		
 		$article->clear_article_number();
 		$article->clear_date();
-		say "Jdu dumpovat do $n. TECKA.";
-		dump_bz2($n, $article, "Article");
+		
+		say "Jdu dumpovat do $n.";
+		dump_bz2($name, $article, "Article");
 	}
 }
 
+
+sub load_article {
+	my $s = shift;
+	my $name = shift;
+	
+	$name=~/\/([0-9]*)\.bz2$/;
+	my $num = $1;
+	my $article = undump_bz2($n);
+	if (defined $article) {
+		
+		#Tady article_number a date do článku naopak přidám (do souborů je neukládám)
+		
+		$article->date($s->date);
+		$article->article_number($num);
+	}
+	return $article;
+}
+
+#Smaže článek ze zadané pozice
+#(skutečně to, mám pocit, nikdy nedělám, ale možné to je)
 sub remove_article {
 	my $s = shift;
 	my $n = shift;
@@ -76,6 +105,8 @@ sub remove_article {
 	system ("rm $n");
 }
 
+#Vrátí poslední číslo článku
+#(pokud není ani jeden článek, vrátí -1)
 sub get_last_number {
 	my $s = shift;
 	my @a = sort {$a<=>$b} map {/\/([0-9]*)\.bz2/; $1} $s->_get_traversed_array();
@@ -86,48 +117,49 @@ sub get_last_number {
 	}
 }
 
+#Vezme počet všech článků
 sub article_count {
 	my $s = shift;
 	return scalar ($s->_get_traversed_array());
 }
 
-
+#Řekne seznam všech článků (resp souborů, ze kterých lze udělat články)
 sub _get_traversed_array {
 	my $s = shift;
-	my $ds = $s->pathname;
-	my @s = <$ds/*>;
-	@s = grep {/\/[0-9]*\.bz2$/} @s;
-	return (@s);
+	my $path = $s->pathname;
+	my @articles = <$path/*>;
+	@articles = grep {/\/[0-9]*\.bz2$/} @articles;
+	return (@articles);
 }
 
-
+#jenom zavolá load_article
 sub _get_object_from_string {
 	my $s = shift;
 	my $n = shift;
 	
-	$n=~/\/([0-9]*)\.bz2$/;
-	my $num = $1;
-	my $article = undump_bz2($n);
-	if (defined $article) {
-		$article->date($s->date);
-		$article->article_number($num);
-	}
-	return $article;
+	return load_article($s, $n);
 }
 
+#Podle výsledků subroutiny buď článek nechá být, uloží nebo smaže
+
+#subroutina (tj. to, co se spouští na každém článku) může vrátit tři možné stavy:
+#0 - nic se nemění
+#1 - článek se změnil a chci, aby byl uložen, ale samotný objekt je stejný
+#2 - článek se změnil a z nějakého důvodu je to úplně jiný objekt, ten je jako druhý výsledek
+#-1 - článek smaž
 sub _after_subroutine{
 	say "Jsem v after traverse.";
 	my $s = shift;
 	my $art_name = shift;
-	my $a = shift;
+	my $article = shift;
 	my ($art_changed, $res_a) = @_;
 					
 	if ($art_changed>=1) {
 		if ($art_changed==2) {
-			$a = $res_a;
+			$article = $res_a;
 		}
 		
-		$s->save_article($art_name, $a);
+		$s->save_article($art_name, $article);
 	} elsif ($art_changed==-1) {
 		
 		$s->remove_article($art_name);
@@ -135,51 +167,8 @@ sub _after_subroutine{
 }
 
 
-
-sub _get_and_save_articles_themes {
-	my $s = shift;
-		
-	my $count = shift;
-	my $total = shift;
-	
-	my $themhash:shared;
-	$themhash = shared_clone(new Zpravostroj::ThemeHash());
-	
-	my %urls:shared;
-	
-	$s->traverse(sub {
-		my $a = shift;
-		if (defined $a) {
-		
-			if (_should_delete_dup_url($a->url, \%urls)) {
-				say "Vracim DUPLICATE";
-				return (-1);
-			}
-			
-			say "Jdu pocitat temata.";
-			$a->count_themes($total, $count);
-
-			my $themes = $a->themes;
-			
-			for (@$themes) {
-				{
-					lock($themhash);
-					$themhash->add_theme($_, 1);
-				}
-			}
-			
-			$a->date($s->date);
-			
-			say "Vracim 1 -> UKLADEJ!";
-			return(1);
-		} else {
-			return(0);
-		}
-	},$FORKER_SIZES{THEMES_ARTICLES}
-	);	
-	return $themhash;
-}
-
+#Dostane hash s nějakou statistikou, důležitou část názvu souboru
+# a statistiku vypíše do něj
 sub print_sorted_hash_to_file {
 	my $s = shift;
 	my $hash = shift;
@@ -194,6 +183,10 @@ sub print_sorted_hash_to_file {
 	
 }
 
+#Obecná funkce na počítání statistiky čehokoliv.
+#Dostane subroutinu, která vrací pole stringů. (např. tf-idf témata)
+#Pro všechny články si to počítá do jednoho sdíleného hashe, který zamyká,
+#a pak ten celý hash vytiskne
 sub get_statistics {
 	my $s = shift;
 	my $size = shift;
@@ -215,107 +208,15 @@ sub get_statistics {
 		} 
 		return(0);
 	},$size
-	);	
-	
+	);
 	
 	$s->print_sorted_hash_to_file(\%count, $filename);
 	
 	return \%count;
-	
-	
 }
 
 
-
-
-sub get_statistics_tf_idf_themes {
-	
-	
-	my $s = shift;
-		
-	my ($word_frequencies, $article_count)=@_;
-	
-	my %count:shared;
-	
-	$s->traverse(sub {
-		my $a = shift;
-		if (defined $a) {
-	
-			$a->count_themes($word_frequencies, $article_count);
-
-			my $themes = $a->themes;
-			
-			for (@$themes) {
-				my $lemma = $_->lemma;
-				
-				lock(%count);
-				if (exists $count{$lemma}) {
-					$count{$lemma}++;
-				} else {
-					$count{$lemma}=1;
-				}
-			}
-			return(1);
-		} else {
-			return(0);
-		}
-	},$FORKER_SIZES{THEMES_ARTICLES}
-	);	
-	
-	
-	say "Pisu do data/daycounters/tfidf_".$s->date->get_to_string;
-	open my $of, ">:utf8", "data/daycounters/tfidf_".$s->date->get_to_string;
-	for (sort {$count{$b}<=>$count{$a}} keys %count) {
-		print $of $_."\t".$count{$_}."\n";
-	}
-	
-	close $of;
-	
-	
-	return \%count;
-}
-
-sub get_and_save_themes_themefiles {
-	my $s = shift;
-	
-	my $count = shift;
-	my $total = shift;
-	
-	my $themhash = $s->_get_and_save_articles_themes($count, $total);
-
-	say "jsem po _get_and_save_articles_themes";
-
-	
-	
-}
-
-
-sub cleanup_all_and_count_words {
-	my $s = shift;
-	
-	my %counts:shared;
-	my %urls:shared;
-
-	$s->traverse(sub{
-		my $a = shift;
-		if (_should_delete_dup_url($a->url, \%urls)) {
-			return (-1);
-		}
-		$a->cleanup();
-		
-		
-		my $wcount = $a->counts;
-
-		for (keys %$wcount) {
-			lock(%counts);
-			$counts{$_}++;
-		}
-		return (1);
-	}, $FORKER_SIZES{CLEANUP_ARTICLES});
-	
-	return \%counts;
-}
-
+#Spočítá nejčastější lemmata
 sub get_most_frequent_lemmas {
 	my $s = shift;
 	
@@ -323,6 +224,11 @@ sub get_most_frequent_lemmas {
 	
 	$s->traverse(sub{
 		my $ar = shift;
+		
+		#Přiznaný bug, který už nestíhám opravovat - tady beru ->counts,
+		#ale ty už jsou s přírůstky podle toho, jestli jsou nebo nejsou pojmenované entity.
+		#To by asi nemělo být.
+		
 		my $wcount = $ar->counts;
 		
 		while (my($f, $s)=each %$wcount) {
@@ -341,12 +247,14 @@ sub get_most_frequent_lemmas {
 }
 
 
+#Pro počítání IDF
 
-sub get_idf_before_article {
+#Spočítá všechna slova ve článcích PO daném článku (kvůli updatu IDF, která se tak nemusí přepočítávat celá)
+sub get_idf_after_article {
 	my $s = shift;
 	my $start = shift;
 	
-	my %idf:shared;
+	my %idf: shared;
 	
 	
 	$s->traverse(sub{
@@ -354,13 +262,20 @@ sub get_idf_before_article {
 		my $a = shift;
 		my $artname = shift;
 		$artname =~ /\/([0-9]*)\.bz2/;
+		
 		if ($1 < $start) {
 			return (0);
 		}
 		
+		#Abych věděl, jestli ho nemám nakonec uložit 
+		#(nejsem si teď jist, jestli se může stát, že ve článku nebudou spočítány počty.)
+		#(každopádně, pokud by se to stalo, tak se to po spočítání uloží, aby tam byly)
+		
 		my $had_counts = $a->has_counts;
 		
+		
 		#tohle vrací počty slov ve článku
+		
 		my $wcount = $a->counts;
 		for (keys %$wcount) {
 			#pro každé slovo se přičte pouze JEDNOU ZA ČLÁNEK
@@ -377,11 +292,12 @@ sub get_idf_before_article {
 		}
 	}, $FORKER_SIZES{IDF_UPDATE_ARTICLES});
 	
-	#tady vyjde slovo->inverzní počet článků
 	return %idf;
 }
 
-
+#Smaže všechny soubory, které jsou moc malé na to, aby byly doopravdy soubory článků
+#nebo které se nejmenují správně
+#(ve skutečnosti je to nesmaže, pouze - radši - přesune do složky "delete")
 sub delete_all_unusable {
 	my $s = shift;
 	my $ada = new Zpravostroj::DateArticles(date=>$s);

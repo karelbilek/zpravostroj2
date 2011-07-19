@@ -1,14 +1,15 @@
 package Zpravostroj::MooseTypes;
-#nejake veci na Moose koercovani a subtypovani
+#Různé pomocné Moose typy, které používám
 
 use Zpravostroj::Globals;
 use Moose::Util::TypeConstraints;
 use Data::Validate::URI qw(is_http_uri);
 
+#Lemma je normální string, ale díky "coercingu" je vyčištěn od pomocných značek,
+#které tagger vyhodí, ale já je nechci
 subtype 'Lemma'
 	=> as 'Str';
 
-#odstrani z Lemmatu bordel
 coerce 'Lemma'
 	=> from 'Str'
 	=> via {

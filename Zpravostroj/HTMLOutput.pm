@@ -1,4 +1,10 @@
 package Zpravostroj::HTMLOutput;
+#U tohoto modulu nemůžu příliš zaručit, že bude fungovat
+
+#Ruční zatřizování funguje jako aplikace na Facebook
+#(původně bylo zamýšleno, že bude více masová a zapojím víc uživatelů.
+#Nakonec se to zatřizovalo velmi, velmi špatně i v jednom, viz BP)
+
 
 use 5.008;
 use strict;
@@ -26,6 +32,7 @@ use URI::Escape;
 
 use CGI ':standard';
 
+#Vytisknu začátek HTML, nějaké styly
 sub print_zacatek {
 	print << 'EOF';
 	<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -91,6 +98,7 @@ sub print_zacatek {
 EOF
 }
 
+#Vytisknu jednu nevybranou položku, co po kliknutí udělá csript a má napsáno text
 sub polozka {
 	my $text = shift;
 	my $cscript = shift;
@@ -102,6 +110,7 @@ sub polozka {
 	return $res;
 }
 
+#Vytisknu JavaScript redirect
 sub print_redirect {
 	my $where = shift;
 	print << "EOF";
@@ -113,6 +122,7 @@ sub print_redirect {
 EOF
 }
 
+#Patička
 sub print_end {
 	print << 'EOF';
 		</body>
@@ -120,6 +130,7 @@ sub print_end {
 EOF
 }
 
+#Řeknu Facebooku o nový token
 sub chci_novy_token {
 	my ($fb, $c) = @_;
 	my $uri = $fb->authorize->uri_as_string;
@@ -133,7 +144,7 @@ sub chci_novy_token {
 
 
 
-
+#Vytiskne "důležitou" část stránky - článek, tlačítka, javascripty
 
 sub print_article {
 	my $a = shift;
@@ -143,11 +154,13 @@ sub print_article {
 	print '
 	<script language="JavaScript" type="text/javascript">
 	
+	//tohle melo teoreticky poresit Facebookovske divne skrolovani, uplne se to nepodarilo
 	window.fbAsyncInit = function() {
 		FB.Canvas.setAutoResize();
 	}
 	var all_themes = new Array();
 	
+	//pridam dalsi tema do all_themes
 	function addtheme(what) {
 		what = what.replace(/\s*$/gi,"");
 		if (what!="další theme") {
@@ -157,11 +170,15 @@ sub print_article {
 		}
 	}
 	
+	//smazu tema z all_themes
 	function deletetheme(what) {
 		all_themes[what] = 0;
 		
 		update_visible_themes();
 	}
+	
+	
+	//prekreslim vsechny pseudotlacitka s tematy
 	
 	function update_visible_themes() {
 		var H = document.getElementById("vybraneh3");
@@ -195,6 +212,7 @@ sub print_article {
 	
 	';
 	
+	#Vypisu si s radosti clanek
 	print "<h1>".$a->title."</h1>";
 	
 	print "<a href=\"".$a->url."\" target=\"_blank\">původní článek (s lepšími odstavci, nemusí ale fungovat)</a>";
@@ -209,6 +227,8 @@ sub print_article {
 	print '<h3 id="vybraneh3"></h3>
 	<div id="themesdiv"></div>';
 	
+	
+	#podle $UNLIMITED zobazim jednu z moznosti
 	print "<h3 id=\"oblibh3\">Oblíbené kategorie</h3><div>";
 	my @possible_categories = $UNLIMITED ? (Zpravostroj::ManualCategorization::Unlimited::get_possible_categories()) 
 											: (Zpravostroj::ManualCategorization::NewsTopics::get_possible_categories());
@@ -238,6 +258,9 @@ sub generate_HTML {
 	my $c = shift;
 	
 	
+	#toto už nefunguje, úmyslně změněno na straně Facebooku,
+	#"secret" key by měla být opravdu "secret"
+	
 	my $fb = Facebook::Graph->new(
 		secret      => "5e26c0f3d3027dfd90d7dfe52575f9be",
 		app_id      => "188978231143185",
@@ -250,6 +273,8 @@ sub generate_HTML {
 		return;
 	}
 	
+	
+	#Několik možností, odkud "přijdu"
 	if ($c->param("code")) {
 		#prichazi jako postback po autorizaci
 		my $code = $c->param("code");
@@ -301,7 +326,7 @@ sub generate_HTML {
 	#jsem konecne uspesne nalogovan
 	print $c->header(-charset=>'utf-8');
 	
-	
+	#konečně HTML obsah :-)
 	
 	
 	print_zacatek;

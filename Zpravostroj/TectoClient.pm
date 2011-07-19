@@ -1,5 +1,5 @@
 package Zpravostroj::TectoClient;
-#Klient k TectoServeru, co vytvari Zpravostroj::Word objekty z textu
+#Klient k TectoServeru, co vytváří Zpravostroj::Word objekty z textu
 
 use 5.008;
 use Zpravostroj::Globals;
@@ -9,12 +9,13 @@ use IO::Socket::INET;
 use strict;
 use warnings;
 
-#Jenom cte ze socketu jednu varku
-#neinterpretuje to nijak, jenom vraci jako pole
+#Jenom čte ze socketu jednu várku slov
+#neinterpretuje to nijak, jenom vrací jako pole
 sub read_from_sock {
 	my $sock = shift;
 	
 	my @res;
+				#zprávou "ZPRAVOSTROJ KONEC ZPRAVOSTROJ KONEC" vždycky "vysílání" ze serveru končí
 	while ((my $in =<$sock>) ne "ZPRAVOSTROJ KONEC ZPRAVOSTROJ KONEC") {
 		
 		if ($in eq "ZPRAVOSTROJ KONEC ZPRAVOSTROJ KONEC\n") {
@@ -28,7 +29,7 @@ sub read_from_sock {
 }
 
 
-#Dostane text, vraci Zpravostroj::Word objekty
+#Dostane text, vrací Zpravostroj::Word objekty, připojí se během toho k serveru
 sub lemmatize {
 	my $text = shift;
 	
@@ -55,6 +56,8 @@ sub lemmatize {
 	say "Neco rekl do TectoMT, jdu na nej cekat";
 	#Dokud TectoMt nezacne neco vracet, zablokuje se to uvnitr read_from_sock
 	
+	
+	#každý končí ZPRAVOSTROJ KONEC ZPRAVOSTROJ KONEC
 	my @lemmas_all = read_from_sock($sock);
 	my %named = read_from_sock($sock);
 	

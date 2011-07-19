@@ -1,5 +1,7 @@
 #Objekt, co představuje článek sám o sobě.
-#Přímo v něm jsou uložené věci, jako url, 
+#Přímo v něm jsou uložené věci, jako url, počty slov a tf-idf témata
+
+#velká část věcí se "sama" tahá pomocí Moose pomocí default
 package Zpravostroj::Article;
 use 5.008;
 use strict;
@@ -18,7 +20,6 @@ use Zpravostroj::ManualCategorization::Unlimited;
 use Zpravostroj::ManualCategorization::NewsTopics;
 
 
-
 use Moose;
 use MooseX::StrictConstructor;
 
@@ -30,18 +31,21 @@ use MooseX::Storage;
 with Storage;
 
 
+#url
 has 'url' => (
 	is=>'ro',
 	required=>1,
 	isa=>'URL'
 );
 
+#html kód, neupravený
 has 'html_contents' => (
 	is=>'ro',
 	lazy => 1,
 	default=>sub{Zpravostroj::WebReader::wread($_[0]->url)}
 );
 
+#vytažený obsah článku pomocí Readability
 has 'article_contents' => (
 	is=>'ro',
 	clearer   => 'clear_article_contents',
@@ -49,12 +53,15 @@ has 'article_contents' => (
 	default=>sub{Zpravostroj::Readability::extract_text($_[0]->html_contents)}
 );
 
+#Vytažený titulek
 has 'title' => (
 	is=>'ro',
 	lazy=>1,
 	default=>sub{Zpravostroj::Readability::extract_title($_[0]->html_contents)}
 );
 
+
+#Jednotlivá slova
 has 'words' => (
 	is=>'rw',
 	clearer   => 'clear_words',
@@ -63,18 +70,21 @@ has 'words' => (
 	default=>sub{my $t = ($_[0]->title)." ".($_[0]->article_contents); my $r = [ Zpravostroj::TectoClient::lemmatize($t) ]; $r}
 );
 
+#Datum (to se ale neukládá do souboru, když to serializuju, viz DateArticles.pm)
 has 'date' => (
 	is=>'rw',
 	clearer => 'clear_date',
 	isa=>'Zpravostroj::Date'
 );
 
+#Číslo článku (totéž, co výše)
 has 'article_number' => (
 	is=>'rw',
 	clearer => 'clear_article_number',
 	isa=>'Int'
 );
 
+#počty jednotlicých slov
 has 'counts' => (
 	is=>'ro',
 	isa=>'HashRef[Zpravostroj::Word]',
@@ -106,13 +116,16 @@ has 'counts' => (
 	}
 );
 
-
+#tf_idf témata
 has 'tf_idf_themes' => (
 	is => 'rw',
 	isa=> 'ArrayRef[Zpravostroj::Word]',
 	predicate => 'has_tf_idf_themes'
 );
 
+#Zjistím zpravodajský zdroj z URL pomocí regexpů
+
+#řeším extra centrum, protože většina webů z centra má adresu stylu www.aktualne.centrum.cz a já nechci centrum.cz
 sub news_source {
 	my $s = shift;
 	my $u = $s->url;
@@ -130,14 +143,16 @@ sub news_source {
 				
 	} else {
 		say "1 je $1, 2 je $2";
-	}
-	
-	if ($2 ne "centrum") {
-		return $2;
-	} else {
-		return $1;
+		
+		if ($2 ne "centrum") {
+			return $2;
+		} else {
+			return $1;
+		}
 	}
 }
+
+#Zjistím to, čemu v bakalářské práci říkám "frekvenční témata"
 sub frequency_themes {
 	my $s = shift;
 	my $c = $s->counts;
@@ -153,9 +168,11 @@ sub frequency_themes {
 	return @{$c}{@res};
 }
 
+
+#stop-slova
 my %most_frequent_lemmas = Zpravostroj::Globals::most_frequent_lemmas;
 
-
+#stop-témata (viz BP)
 sub stop_themes {
 	my $s = shift;
 	my $c = $s->counts;
@@ -178,9 +195,10 @@ sub stop_themes {
 
 sub BUILD {
 	my $s = shift;
-	$s->counts;
+	$s->counts; #donutím, aby se kaskádovitě spustilo budování těch default parametrů
 }
 
+#spočítá a uloží tf-idf témata
 sub count_tf_idf_themes {
 	my $s = shift;
 	my $idf = shift;
@@ -190,11 +208,10 @@ sub count_tf_idf_themes {
 	$s->tf_idf_themes($themes);
 }
 
+#spočítá VŠECHNA tf-idf témata
 sub tf_idf {
 	my $s = shift;
 	my $idf_hash = shift;
-	
-	
 	
 	if (!defined $idf_hash) {
 		$idf_hash = Zpravostroj::InverseDocumentFrequencies::get_frequencies();
@@ -206,7 +223,10 @@ sub tf_idf {
 		$article_count = Zpravostroj::AllDates::get_saved_article_count();
 	}
 	
-	my $count = shift;
+	my $count = shift; 
+		#kolik jich mám vrátit
+	
+	
 	
 	my $document_size = scalar @{$s->words};
 	
@@ -215,25 +235,26 @@ sub tf_idf {
 	my $word_counts = $s->counts;
 	
 	
-	
 	#http://en.wikipedia.org/wiki/Tf%E2%80%93idf
 	
 	
-	
 	for my $word (values %{$word_counts}) {
-			
-			my $lemma = $word->lemma;
-			
-			my $d = ($idf_hash->{$lemma}||0);
-			$d = 1 if ($d==0);
-			
-			if (defined $lemma) {
-				my $tf = $word->score() / $document_size;
-				my $idf = log($article_count / $d);
-			
-				$importance{$lemma} = $tf * $idf;
-			}
-			
+		
+		my $lemma = $word->lemma;
+		
+		my $d = ($idf_hash->{$lemma}||0);
+		$d = 1 if ($d==0); #nemělo by se stávat, ale pro jistotu
+		
+		if (defined $lemma) {
+			my $tf = $word->score() / $document_size;
+				#term frequency
+				
+			my $idf = log($article_count / $d);
+				#inverse document frequency
+				
+			$importance{$lemma} = $tf * $idf;
+		}
+		
 	}
 	
 	
@@ -244,17 +265,19 @@ sub tf_idf {
 		@sorted_lemmas = @sorted_lemmas[0..$count-1] if (scalar(@sorted_lemmas) > $count);
 	}
 	
+	#vracím seřazené podle důležitosti a useklé podle $count
 	my @res=(map {new Zpravostroj::Word(form=>$word_counts->{$_}->form, lemma=>$_, score=>$importance{$_})} @sorted_lemmas);
 	return \@res;
-	
-
 }
 
+#jednoznačně identifikující ID článku
 sub ID {
 	my $s = shift;
 	return $s->date->year."-".$s->date->month."-".$s->date->day."-".$s->article_number;
 }
 
+
+#Manuální tagy (jenom zavolá Zpravostroj::ManualCategorization)
 sub unlimited_manual_tags {
 	my $s = shift;
 	

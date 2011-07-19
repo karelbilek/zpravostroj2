@@ -1,5 +1,9 @@
 package Zpravostroj::Date;
- 
+#Modul/objekt, co představuje den
+
+#Představuje ale opravdu jenom den ve smyslu den/měsíc/rok, 
+#na den ve smyslu "všechny články daného dne" je modul Zpravostroj::DateArticles
+
 use 5.008;
 use Zpravostroj::Globals;
 use forks;
@@ -18,13 +22,16 @@ with Storage;
 use Zpravostroj::Article;
 use Zpravostroj::Globals;
 
+
+#Pomocná procedura, která mi vrací buď info o dnešku, nebo info o dni o X dni za určitým dnem
+#info = den/měsíc/rok, vše v lidské podobě
 sub _get_day_info {
-	my $how_late = shift || 0;
+	my $delay = shift || 0;
 	my $date = shift;
 	my %starting_day_info;
 	if (!$date) {
 		my @a = localtime();
-		if (!$how_late) {
+		if (!$delay) {
 			return ($a[3], $a[4]+1, $a[5]+1900);
 		}
 		$starting_day_info{day}=$a[3];
@@ -37,7 +44,7 @@ sub _get_day_info {
 	}
 	
 	my $tme = timelocal(0,0,12,$starting_day_info{day},$starting_day_info{month},$starting_day_info{year});
-	my @r = localtime($tme + $how_late * 86400);
+	my @r = localtime($tme + $delay * 86400);
 	return ($r[3], $r[4]+1, $r[5]+1900);
 }
 
@@ -59,6 +66,9 @@ has 'year' => (
 	required=>1
 );
 
+
+#Pokud nedostanu žádné argumenty, chci dnešek
+#(využívám pořád)
 around BUILDARGS => sub {
 	my $orig  = shift;
 	my $class = shift;
@@ -69,14 +79,16 @@ around BUILDARGS => sub {
 		my @info = _get_day_info();
 		return $class->$orig(day=>$info[0], month=>$info[1], year=>$info[2]);
 	}
-}; 
+};
 
+#Ze stringu yyyy-mm-dd udělám objekt date
 sub get_from_string {
     my $d = shift; 
 	$d=~/(\d\d\d\d)-(\d+)-(\d+)/;
 	return new Zpravostroj::Date(day=>$3, month=>$2, year=>$1);
 }
 
+#Ze stringu uloženého v souboru udělám date
 sub get_from_file {
 	my $pth = shift;
 
@@ -86,17 +98,20 @@ sub get_from_file {
 	return get_from_string($d);
 }
 
+#(mělo by být asi put_, ale už to neměním)
+#udělá z Date string yyyy-mm-dd
 sub get_to_string {
 	my $s = shift;
 	return $s->year."-".$s->month."-".$s->day;
 }
 
+#Udělá z Date "hezký" string dd. mm. yyyy
 sub get_to_nice_string {
 	my $s = shift;
 	return $s->day.". ".$s->month.". ".$s->year;
 }
 
-
+#Uloží do souboru
 sub get_to_file {
 	my $s = shift;
 	my $where = shift;
@@ -106,6 +121,7 @@ sub get_to_file {
 	close $f;
 }
 
+#Vrátí H dní po dni S
 sub get_days_after {
 	my $s = shift;
 	my $h = shift;
@@ -114,21 +130,29 @@ sub get_days_after {
 	return $d;
 }
 
+#vrátí H dní po dnešku
 sub get_days_after_today {
 	my $h = shift;
 	return ((new Zpravostroj::Date)->get_days_after($h));
 }
 
+#vrátí H dní před dneškem
 sub get_days_before_today {
 	my $h = shift;
 	return get_days_after_today(-$h);
 }
 
+
+#jsou si rovny dva dny?
 sub is_the_same_as {
 	my ($a, $b) = @_;
 	return($a->year == $b->year and $a->month eq $b->month and $a->day eq $b->day);
 }
 
+
+#je Date starší, než další Date?
+#("starší" je myšleno "byl dřív")
+#asi by bylo lepší pojmenovat "sooner", ale už to neměním 
 sub is_older_than {
 	my ($s, $newer)=@_;
 	if ($newer->{year} > $s->{year}) {

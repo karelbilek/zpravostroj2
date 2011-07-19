@@ -1,20 +1,19 @@
 package Zpravostroj::Forker;
-#Takovy muj pomocny modulek, co se mi ale osobne hrozne libi :) protoze mi setri spoustu prace
+#Takovy muj pomocny modulek, co se mi ale osobne hrozne libi, protoze mi setri spoustu prace
 
 #reknu mu, kolik chci maximalne spustit threadu, a pak mu strkam pres run reference na procedury a on je spousti
 
 #$forker->run(sub{...}) neblokuje, bud thread spusti, nebo prida (vcetne "closure") do fronty
-#je ale nutne z "vnejsku" bud obcas spustit $forker->check_waiting(), ktera zkontroluje frontu,
+#je ale nutne z "vnejsku" bud casto spoustet $forker->check_waiting(), ktera zkontroluje frontu,
 #nebo rovnou $forker->wait(), ktera pocka, nez vsechny veci ve fronte dobehnou
+#(mam pocit, ze v celem programu pouzivam pouze ->wait() moznost)
 
-#neni mozne napr. nechat perl "nekonecne" blokovat na nejake podmince a check_waiting() nespoustet, coz se mi
-#jednou povedlo - to se potom veci ve fronte nikdy nespusti
 
 #take neni mozno forker proste zahodit a nespustit "na konec" wait().
 
 
 
-#jako jinde v programu, thready myslim ve skutecnosti forky z modulu forks (proto forker), ale jelikoz jsou vsude klicova slova 
+#thready myslim ve skutecnosti forky z modulu forks (proto forker), ale jelikoz jsou vsude klicova slova 
 #jako "threads", tak se mi o tom pise lip jako o threadech. plus, syntaxe zustava z perlich, jinak nepouzitelnych, ithreadu.
 
 use forks;
@@ -33,12 +32,6 @@ has 'size' => (
 	isa=>'Int'
 );
 
-has 'shut_up' => (
-	is=>'ro',
-	required=>0,
-	isa=>'Bool',
-	default=>0
-);
 
 
 #bezici thready
@@ -104,7 +97,6 @@ sub add_to_threads {
 	});
 	
 	push @{$s->threads}, $thread;
-	say "Stvoril jsem novy thread s cislem ",$thread->tid() unless $s->shut_up;
 }
 
 #zkontroluje, jestli neni mozne pridat nove thready
