@@ -1,6 +1,10 @@
 package Zpravostroj::Categorizer::TotallyRetarded;
 #Triviální kategorizér, co všechno zatřídí do kategorie, která mu přijde
 
+use strict;
+use warnings;
+
+
 use Moose;
 with 'Zpravostroj::Categorizer::Categorizer';
 

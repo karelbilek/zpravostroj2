@@ -1,6 +1,9 @@
 package Zpravostroj::Categorizer::FreqThemes;
 #zařazuje do "frekvenčních témat" (tj. nejčastější slova)
 
+use strict;
+use warnings;
+
 use Moose;
 with 'Zpravostroj::Categorizer::Categorizer';
 

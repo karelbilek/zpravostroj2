@@ -72,7 +72,7 @@ sub save_article {
 		$article->clear_article_number();
 		$article->clear_date();
 		
-		say "Jdu dumpovat do $n.";
+		say "Jdu dumpovat do $name.";
 		dump_bz2($name, $article, "Article");
 	}
 }
@@ -84,7 +84,7 @@ sub load_article {
 	
 	$name=~/\/([0-9]*)\.bz2$/;
 	my $num = $1;
-	my $article = undump_bz2($n);
+	my $article = undump_bz2($name);
 	if (defined $article) {
 		
 		#Tady article_number a date do článku naopak přidám (do souborů je neukládám)

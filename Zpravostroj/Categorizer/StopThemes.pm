@@ -1,6 +1,9 @@
 package Zpravostroj::Categorizer::StopThemes;
 #Zařazuje do stop-témat - tj. nejčastější témata bez stop-slov
 #viz BP
+use strict;
+use warnings;
+
 
 use Moose;
 with 'Zpravostroj::Categorizer::Categorizer';

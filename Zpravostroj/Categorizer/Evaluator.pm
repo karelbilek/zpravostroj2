@@ -40,9 +40,11 @@ sub _load_tuples {
 	
 	my @tuples;
 	
-	if ($unlimited_categories) {		
+	if ($unlimited_categories) {
+		
 		@tuples = map {my $a=$_;{article=>$a, tags=>[$a->unlimited_manual_tags]}} @articles;
 	} else {
+		
 		@tuples = map {my $a=$_;{article=>$a, tags=>[$a->news_topics_manual_tags]}} @articles;
 	}
 	return \@tuples;

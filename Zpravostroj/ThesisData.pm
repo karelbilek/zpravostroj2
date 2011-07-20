@@ -500,15 +500,18 @@ sub try_tf_idf_themes {
 }
 
 sub try_categorizer {
+	
+	
 	Zpravostroj::Categorizer::Evaluator::preload_articles(1,1);
+	
+	
 	my @res;
 	for my $catType(1,0) {
-	
 		for my $AIType ("AI::Categorizer::Learner::NaiveBayes", "AI::Categorizer::Learner::SVM", "AI::Categorizer::Learner::DecisionTree") {
 			for my $featureType (0,1) {
 				push (@res, Zpravostroj::Categorizer::Evaluator::evaluate_on_manual_categories(
 						"Zpravostroj::Categorizer::AICategorizer", 0, $catType, 
-						{name=>$AIType, all_themes_as_features=>$featureType}));
+						{name=>$AIType, all_themes_as_features=>$featureType, one_category=>!($catType)}));
 			}
 		}
 	}

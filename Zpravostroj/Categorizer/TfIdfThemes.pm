@@ -1,6 +1,10 @@
 package Zpravostroj::Categorizer::TfIdfThemes;
 #Zatřídí do kategorií, odpovídajícím tf-idf tématům
 
+use strict;
+use warnings;
+
+
 use Moose;
 with 'Zpravostroj::Categorizer::Categorizer';
 

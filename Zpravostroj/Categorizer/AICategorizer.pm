@@ -2,9 +2,13 @@ package Zpravostroj::Categorizer::AICategorizer;
 #AICategorizer používá modul AI:.Categorizer
 #(ten implementuje NaiveBayes, SVM a Decision Trees)
 
+use strict;
+use warnings;
 
 use Zpravostroj::Globals;
 use Moose;
+use MooseX::StrictConstructor;
+
 with 'Zpravostroj::Categorizer::Categorizer';
 
 use AI::Categorizer::KnowledgeSet;
@@ -24,6 +28,13 @@ has 'learner'=> (
 #1=ano
 #0=ne, ber jenom prvních 20 s vahou featury 1
 has 'all_themes_as_features'=> (
+	is=>'ro',
+	isa=>'Bool',
+	required=>1
+);
+
+#Vrací jednu, nebo více kategorií?
+has 'one_category'=>(
 	is=>'ro',
 	isa=>'Bool',
 	required=>1
@@ -50,7 +61,7 @@ sub _create {
 	my $learner = _train($knowledgeset, $AI_categorizer_classname);
 	
 	
-	return {learner=>$learner, all_themes_as_features=>$all_themes_as_features};
+	return {learner=>$learner, all_themes_as_features=>$all_themes_as_features, one_category=>$options->{one_category}};
 }
 
 
@@ -59,7 +70,7 @@ sub _add_to_knowledgeset {
 	
 	say "Pridavam dalsi clanek.";
 	my $touple = shift;
-	my $hashref = shift;
+	my $knowledgeset = shift;
 	my $all_themes_as_features = shift;
 	
 	my @categories;
@@ -85,7 +96,7 @@ sub _add_to_knowledgeset {
 	say "Hotovo.";
 	
 	
-	$hashref->{knowledgeset}->add_document($document);
+	$knowledgeset->add_document($document);
 	
 }
 
@@ -161,8 +172,22 @@ sub get_article_tags {
 	my $hypothesis = $self->learner()->categorize($document);
 	
 	
-	my @categories = ($hypothesis->best_category()); #hypothesis->categories(); #
+	my @categories = ($self->one_category)?($hypothesis->best_category()) : ($hypothesis->categories()); #
 	
 	return @categories;
+}
+
+#Vrací vše zkategorizované
+sub categorize {
+	my $self = shift;
+	my @articles = @_;
+	
+	my @tagged;
+	
+
+	for my $article (@articles) {
+		push (@tagged, {article=>$article, tags=>[ $self->get_article_tags($article) ]});
+	}
+	return @tagged;
 }
 1;
