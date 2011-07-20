@@ -26,7 +26,7 @@ sub preload_articles{
 	}
 	
 	if ($limited and !defined $limited_tuples_preloaded) {
-		$unlimited_tuples_preloaded = _load_tuples(0);
+		$limited_tuples_preloaded = _load_tuples(0);
 	}
 }
 
