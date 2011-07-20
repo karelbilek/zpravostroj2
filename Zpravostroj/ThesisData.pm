@@ -481,20 +481,20 @@ use AI::Categorizer::Learner::DecisionTree;
 
 
 sub try_trivial {
-	Zpravostroj::Categorizer::Evaluator::evaluate_on_manual_categories("Zpravostroj::Categorizer::TotallyRetarded",1,1, "ODS");
+	Zpravostroj::Categorizer::Evaluator::load_manual_categories_and_evaluate("Zpravostroj::Categorizer::TotallyRetarded",1,1, "ODS");
 }
 
 sub try_f_themes {
-	Zpravostroj::Categorizer::Evaluator::evaluate_on_manual_categories("Zpravostroj::Categorizer::FreqThemes",1,1 );
+	Zpravostroj::Categorizer::Evaluator::load_manual_categories_and_evaluate("Zpravostroj::Categorizer::FreqThemes",1,1 );
 }
 
 sub try_stop_themes {
-	Zpravostroj::Categorizer::Evaluator::evaluate_on_manual_categories("Zpravostroj::Categorizer::StopThemes",1, 1);
+	Zpravostroj::Categorizer::Evaluator::load_manual_categories_and_evaluate("Zpravostroj::Categorizer::StopThemes",1, 1);
 }
 
 sub try_tf_idf_themes {
-	my $first_res = Zpravostroj::Categorizer::Evaluator::evaluate_on_manual_categories("Zpravostroj::Categorizer::TfIdfThemes",1, 1, 10);
-	my $sec_res = Zpravostroj::Categorizer::Evaluator::evaluate_on_manual_categories("Zpravostroj::Categorizer::TfIdfThemes",1, 1, 20);
+	my $first_res = Zpravostroj::Categorizer::Evaluator::load_manual_categories_and_evaluate("Zpravostroj::Categorizer::TfIdfThemes",1, 1, 10);
+	my $sec_res = Zpravostroj::Categorizer::Evaluator::load_manual_categories_and_evaluate("Zpravostroj::Categorizer::TfIdfThemes",1, 1, 20);
 	say $first_res;
 	say $sec_res;
 }
@@ -509,7 +509,7 @@ sub try_categorizer {
 	for my $catType(1,0) {
 		for my $AIType ("AI::Categorizer::Learner::NaiveBayes", "AI::Categorizer::Learner::SVM", "AI::Categorizer::Learner::DecisionTree") {
 			for my $featureType (0,1) {
-				push (@res, Zpravostroj::Categorizer::Evaluator::evaluate_on_manual_categories(
+				push (@res, Zpravostroj::Categorizer::Evaluator::load_manual_categories_and_evaluate(
 						"Zpravostroj::Categorizer::AICategorizer", 0, $catType, 
 						{name=>$AIType, all_themes_as_features=>$featureType, one_category=>!($catType)}));
 			}

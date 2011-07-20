@@ -111,6 +111,7 @@ sub get_features_from_article {
 	}
 	$source = $1;
 	
+	#zdroj je taky featura
 	my %features;
 	$features{"source_".$source}=1;
 	

@@ -1,4 +1,7 @@
 package Zpravostroj::Categorizer::Evaluator;
+#Evaluátor obecného Categorizeru
+#Categorizer si sám tvoří (jelikož stejně nestačí jeden, ane na každý pokus je vytvořen další znovu)
+
 
 use warnings;
 use strict;
@@ -12,6 +15,8 @@ use List::Util qw(shuffle);
 
 my $unlimited_tuples_preloaded;
 my $limited_tuples_preloaded;
+
+#Přednačte články a načte je do globálních proměnných (aby se to nemuselo dělat pokaždé znovu)
 sub preload_articles{
 	my $unlimited = shift;
 	my $limited = shift;
@@ -25,6 +30,32 @@ sub preload_articles{
 	}
 }
 
+#Načte články, kategorie a provede celou evaluaci
+#Pro moje pohodlí vrací tato funkce už TeXovský string s procenty
+#(to by se dalo v budoucnu určitě zlepšit)
+sub load_manual_categories_and_evaluate {
+	my $classname = shift;
+	my $weak_evaluation = shift;
+	
+	my $unlimited_categories = shift;
+	my $trial_count = $TRIAL_COUNT;
+	
+	my @options = @_;
+	
+	my $tuples = _load_tuples($unlimited_categories);
+	
+	my @res = _evaluate($classname, $tuples, $weak_evaluation, $trial_count, @options);
+	
+	my $res_string = join (" ", map {"& ".sprintf ("%.2f", $_*100)." \\%"} @res);
+	say $res_string;
+	return $res_string;;
+
+}
+
+#Načtu články, které jsou ručně ohodnocené, a k nim potom ono ohodnocení
+#(dalo by se zlepšit, že nenačítá celé články, protože to dlouze načítá data z .bz2 souborů, které
+#	stejně nepoužívám skoro na nic)
+
 sub _load_tuples {
 	my $unlimited_categories = shift;
 	if ($unlimited_categories and defined $unlimited_tuples_preloaded) {
@@ -35,7 +66,7 @@ sub _load_tuples {
 		return $limited_tuples_preloaded;
 	}
 	
-	
+	#jsou tam načtené celé články (tj. objekt Zpravostroj::Article)
 	my @articles = $unlimited_categories ? Zpravostroj::ManualCategorization::Unlimited::get_articles : Zpravostroj::ManualCategorization::NewsTopics::get_articles;
 	
 	my @tuples;
@@ -48,148 +79,210 @@ sub _load_tuples {
 		@tuples = map {my $a=$_;{article=>$a, tags=>[$a->news_topics_manual_tags]}} @articles;
 	}
 	return \@tuples;
-
 }
 
-sub evaluate_on_manual_categories {
-	my $classname = shift;
-	my $weak_evaluation = shift;
-	
-	my $unlimited_categories = shift;
-	my $trial_count = $TRIAL_COUNT;
-	
-	my @options = @_;
-	
-	my $tuples = _load_tuples($unlimited_categories);
-	
-	my @res = evaluate($classname, $tuples, $weak_evaluation, $trial_count, @options);
-	
-	my $res_string = join (" ", map {"& ".sprintf ("%.2f", $_*100)." \\%"} @res);
-	say $res_string;
-	return $res_string;;
+#samotná evaluace
+#(samotné počítání ale proběhne v _trial / _untrained_trial)
 
+#weak_evaluation nazývám to, že jednak probíhá jenom jedna evaluace bez jakéhokoliv trénování
+#a jednak to, že mi stačí, že Categorizerem zatřízená kategorie je jedno ze slov původní kategorie, abych
+#	prohlásil zatřízení za správné
+
+sub _evaluate {
+	my ($categorizer_classname, $articles_ref, $weak_evaluation, $trials, @categorizer_options) = @_;
+	
+	my @articles = @$articles_ref;
+	
+	say "Velikost articles je ", scalar @articles,".";
+	
+	my ($macro_F_sum, $micro_F_sum, $macro_pi_sum, $micro_pi_sum, $macro_ro_sum, $micro_ro_sum) = 0 x 6;
+	
+	if (!$weak_evaluation) {
+		my @sets = _choose_disjunct_subsets($trials, @articles);
+		for my $trial (0..$trials-1) {
+			
+			my ($micro_pi, $micro_ro, $micro_F, $macro_pi, $macro_ro, $macro_F) =
+					_trial(\@sets, $trial, $categorizer_classname, @categorizer_options);
+			
+			$micro_pi_sum += $micro_pi / $trials;
+			$micro_ro_sum += $micro_ro / $trials;
+			$micro_F_sum += $micro_F / $trials;
+
+			$macro_pi_sum += $macro_pi / $trials;
+			$macro_ro_sum += $macro_ro / $trials;
+			$macro_F_sum += $macro_F / $trials;
+				
+		}
+	} else {
+		#na tomto kategorizeru se netrenuje
+		
+		($micro_pi_sum, $micro_ro_sum,  $micro_F_sum, $macro_pi_sum, $macro_ro_sum, $macro_F_sum) = 
+				_untrained_trial($articles_ref, $categorizer_classname, @categorizer_options);
+		
+	}
+	
+	return ($micro_ro_sum, $micro_pi_sum, $micro_F_sum, $macro_ro_sum,$macro_pi_sum,  $macro_F_sum);
 }
 
-sub choose_k_disjunct_subsets{
-	my $number = shift;
-	my @arr = @_;
-	
-	
-	#@arr = shuffle(@arr);
+#vybere disjunktní množiny a ještě to rozdělí do množiny/doplňku
+#vrací pole hashů, kde v hashi jsou klíče "set" a "complement"
+sub _choose_disjunct_subsets{
+	my $number_of_subsets = shift;
+	my @input_array = @_;
 
-	my $size = int((scalar @arr) / $number);
+	my $set_size = int((scalar @input_array) / $number_of_subsets);
 	
 	my @res;
-	
 
-	for my $n (0..$number-1) {
+	for my $n (0..$number_of_subsets-1) {
 	
-		say "Ukazkova prvni skupina." if ($n==9);
 		my @set;
 		my @complement;
 		
-		
-		my $zac = $n * $size;
-		my $kon = $zac + $size- 1;
-		for my $i (0..$#arr) {
+		my $set_start = $n * $set_size;
+		my $set_end = $set_start + $set_size - 1;
+		for my $i (0..$#input_array) {
 		
 			
-			
-			say "Clanek $i je ".($arr[$i]->{article}->title) if ($n==9);
-			
-		
-			if ($i >= $zac and $i <= $kon) {
-				say "...a je v setu" if ($n==9);
-				push (@set, $arr[$i]);
+			if ($i >= $set_start and $i <= $set_end) {
+				push (@set, $input_array[$i]);
 			} else {
-								say "...a je v complementu" if ($n==9);
-				push (@complement, $arr[$i]); 
+				push (@complement, $input_array[$i]); 
 			}
 		}
-		push (@res, [\@set, \@complement]);
+		push (@res, {set=>\@set, complement => \@complement});
 	}
 	
+	my $are_remains = ((scalar @input_array) % $number_of_subsets) > 0;
+	
 	#kdyz jsou zbytky
-	if ((scalar @arr)%$number) {
+	if ($are_remains) {
 		
+		my $remains_start = $number_of_subsets*$set_size;
 		
 		#zbytky rozdeluju tak, ze je davam skoro vsechny do komplementu, jenom v posledni skupine do samotne mnoziny
 	
 		#pro vsechny krome posledniho strc do komplementu
-		for my $n (0.. $number-2) {
-					#komplement n-teho      #ty zbytky
-			push (@{$res[$n]->[1]},        @arr[$number*$size..$#arr]);
+		for my $n (0.. $number_of_subsets-2) {
+			push (@{$res[$n]->{complement}}, @input_array[$remains_start..$#input_array]);
 		}
 		
 		#pro posledni strc do mnoziny
-		push (@{$res[$number-1]->[0]}, @arr[$number*$size..$#arr]);
+		push (@{$res[$number_of_subsets-1]->{set}}, @input_array[$remains_start..$#input_array]);
 
 	}
 	return @res;
 }
 
-sub _sum_hash {
-	my %w = @_;
+#pokus, kde nic netrénuji, tj. otaguji množinu a rovnou počítám precision a recall
+sub _untrained_trial {
+	my $articles = shift;
 	
-	my $res=0;
-	for (values %w) {$res+=$_};
+	my $categorizer_classname = shift;
 	
-	return $res;
+	my @categorizer_options = @_;
 	
+	
+	my $categorizer = $categorizer_classname->new(undef, @categorizer_options);
+	my @to_tag = map {$_->{article}} @$articles;
+	
+
+	my @tagged = $categorizer->categorize(@to_tag);
+	
+	my @original_tags_only = map {$_->{tags}} @$articles;
+	my @categorizer_tags_only = map {$_->{tags}} @tagged;
+	
+	return _count_precision_recall(\@categorizer_tags_only, \@original_tags_only, 1);
 }
 
-sub _is_one_of_the_words {
-	my $longer = shift;
-	my $shorter = shift;
+
+
+#pokus, kde trénuji a počítám precision/recall
+#dostanu tedy 2 množiny - trénovací a testovací
+#Po otagování spočítám precision a recall
+sub _trial {
+	my $sets = shift;
+	my $trial_number = shift;
+	my $categorizer_classname = shift;
+	my @categorizer_options = @_;
 	
-	my %longer_words = map {(lc($_) => undef)} split(/ /, $longer);
-	if (exists $longer_words{lc($shorter)}) {
-		return 1;
-	} else {
-		return 0;
+	
+	say "DALSI POKUS - CISLO $trial_number";
+	
+	my @train = @{$sets->[$trial_number]{complement}};
+	my @eval = @{$sets->[$trial_number]{set}};
+
+	my $categorizer = $categorizer_classname->new(\@train, @categorizer_options);
+	my @to_tag = map {$_->{article}} @eval;
+	
+	my @tagged = $categorizer->categorize(@to_tag);
+
+	my @original_tags_only = map {$_->{tags}} @eval;
+	my @categorizer_tags_only = map {$_->{tags}} @tagged;
+
+	if (scalar @tagged != scalar @eval) {
+		die "Tagged and eval doesn't have the same size! :(";
 	}
+	
+	return _count_precision_recall(\@categorizer_tags_only, \@original_tags_only, 0);
+
 }
 
-sub count_precision_recall {
-	my $categorizer_tags_ref = shift;
-	my $original_tags_ref = shift;
+#Spočítá různé druhy precision a recall
+sub _count_precision_recall {
+	my ($categorizer_tags_ref, $original_tags_ref, $fake_categorizer) = @_;
 	
-	my $articles_ref = shift;
+	my ($TP, $FP, $FN, $category_count) = _count_positives_and_negatives($categorizer_tags_ref, $original_tags_ref, $fake_categorizer);
 	
-	my $fake_categorizer=shift;
+	my $micro_TP = _sum_hash($TP);
+	my $micro_FP = _sum_hash($FP);
+	my $micro_FN = _sum_hash($FN);	
+	
+	my $micro_pi = _safe_fraction($micro_TP, $micro_FP);
+	my $micro_ro = _safe_fraction($micro_TP, $micro_FN);
+	
+	my $macro_pi_sum=0;
+	my $macro_ro_sum=0;
+	
+	#teoreticky bych tady mel iterovat pres all_tags_hash, ale nahore by byla stejne vzdycky nula
+	for my $tag (keys %$TP) {
+		$macro_pi_sum += _safe_fraction($TP->{$tag}, $FP->{$tag}); 
+		$macro_ro_sum += _safe_fraction($TP->{$tag}, $FN->{$tag}); 
+	}
+	
+	my $macro_pi = $macro_pi_sum/$category_count;
+	my $macro_ro = $macro_ro_sum/$category_count;	
+	
+	my $micro_F = _count_F($micro_pi, $micro_ro);
+	my $macro_F = _count_F($macro_pi, $macro_ro);
+	
+	return ($micro_pi, $micro_ro, $micro_F, $macro_pi, $macro_ro, $macro_F);
+}
+
+
+#Spočítá true positive, false negative a false positive
+sub _count_positives_and_negatives {
+	my ($categorizer_tags_ref, $original_tags_ref, $fake_categorizer) = @_;
+	
 	
 	my @all_categorizer_tags = @{$categorizer_tags_ref};
 	my @all_original_tags = @{$original_tags_ref};
-	
+		
 	if (scalar @all_categorizer_tags != scalar @all_original_tags) {
 		die "all_categorizer_tags and all_original_tags doesn't have the same size! :(";
 	}
 	
-	my %all_tags_hash;	
-	
-	my %TP;
-	my %FP;
-	my %FN;
+	my %all_tags_hash;
+	my (%TP, %FP, %FN);
 	
 	for my $i (0..$#all_categorizer_tags) {
 		my %categorizer_tags = map {($_=>undef)} @{$all_categorizer_tags[$i]};
 		my %original_tags = map {($_=>undef)} @{$all_original_tags[$i]};
 		
-		
-		
-		say $articles_ref->[$i]->title;
-		
 		for my $categorized (keys %categorizer_tags) {
-			my $is_tp;
-			if ($fake_categorizer) {
-				$is_tp=0;
-				for my $orig (keys %original_tags) {
-					if (_is_one_of_the_words($orig, $categorized)) {$is_tp=1}
-				}
-				
-			} else {
-				$is_tp = exists $original_tags{$categorized};
-			}
+			
+			my $is_tp = _exists_in_categories($fake_categorizer, $categorized, \%original_tags);
+			
 			if ($is_tp) {
 				$TP{$categorized} ++;
 				say "True positive u $categorized.";
@@ -202,17 +295,7 @@ sub count_precision_recall {
 		}
 		for my $original (keys %original_tags) {
 			
-			my $is_fn;
-			if ($fake_categorizer) {
-				$is_fn=1;
-				
-				for my $cat (keys %categorizer_tags) {
-					if (_is_one_of_the_words($original, $cat)) {$is_fn=0}
-				}
-				
-			} else {
-				$is_fn = !exists $categorizer_tags{$original};
-			}
+			my $is_fn = ! _exists_in_categories($fake_categorizer, $original, \%categorizer_tags);
 			
 			if ($is_fn) {
 				$FN{$original}++;
@@ -222,143 +305,76 @@ sub count_precision_recall {
 			$all_tags_hash{$original}=undef;
 		}
 	}
-	
-	my $micro_TP = _sum_hash(%TP);
-	my $micro_FP = _sum_hash(%FP);
-	my $micro_FN = _sum_hash(%FN);	
-	
-	my $micro_pi = (($micro_TP + $micro_FP)>0) ? (($micro_TP||0)/($micro_TP + $micro_FP)) : (1);
-	
-	say "Vypocitavam micro pi.";
-	say "micro_TP je $micro_TP";
-	say "micro_FP je $micro_FP";
-	say "micro_pi je $micro_pi";
-	
-	my $micro_ro = ($micro_TP||0)/($micro_TP + $micro_FN);
-
-	say "Vypocitavam micro ro.";
-	say "micro_TP je $micro_TP";
-	say "micro_FP je $micro_FN";
-	say "micro_pi je $micro_ro";
-	
-	my $macro_pi_sum=0;
-	my $macro_ro_sum=0;
-	
-	#teoreticky bych tady mel iterovat pres all_tags_hash, ale nahore by byla stejne vzdycky nula
-	for my $tag (keys %TP) {
-		$macro_pi_sum +=( ($TP{$tag} + ($FP{$tag}||0)) > 0) ? ($TP{$tag}/($TP{$tag} + ($FP{$tag}||0))) : (1);
-		$macro_ro_sum += $TP{$tag}/($TP{$tag} + ($FN{$tag}||0));
-
-	}
-	
-	my $macro_pi = $macro_pi_sum/(scalar keys %all_tags_hash);
-	
-	
-	my $macro_ro = $macro_ro_sum/(scalar keys %all_tags_hash);	
-	
-	
-	
-	my $micro_F =0;
-	if ($micro_pi!=0 and $micro_ro!=0) {
-	
-		$micro_F= (2*$micro_pi*$micro_ro)/($micro_pi + $micro_ro);
-	}
-	
-	my $macro_F=0;
-	if ($macro_pi!=0 and $macro_ro!=0) {
-		$macro_F = (2*$macro_pi*$macro_ro)/($macro_pi + $macro_ro);
-	} 
-	
-	
-	return ($micro_pi, $micro_ro, $micro_F, $macro_pi, $macro_ro, $macro_F);
+	return (\%TP, \%FP, \%FN, scalar keys %all_tags_hash);
 }
 
-
-sub evaluate {
-	my $class = shift;
-		
-	my $articles_ref = shift;
+#Existuje $category v hashi $hash_of_categories?
+#Pokud nejde o "weak evaluation", tak je to jednoduchý exists
+#pokud jde, tak musím rozsekat na slova
+sub _exists_in_categories {
+	my ($break_to_words, $category, $hash_of_categories) = @_;
 	
-
-	
-	my $weak_evaluation = shift;
-	
-	my $trials = shift;
-	
-	my @options = @_;
-	
-	my @arr = @$articles_ref;
-	
-	say "Velikost arr je ", scalar @arr,".";
-	
-	
-	my $macro_F_sum=0;
-	my $micro_F_sum=0;
-	my $macro_pi_sum=0;
-	my $micro_pi_sum=0;
-	my $macro_ro_sum=0;
-	my $micro_ro_sum=0;
-	
-	if (!$weak_evaluation) {
-		my @sets = choose_k_disjunct_subsets($trials, @arr);
-		for my $trial (0..$trials-1) {
-			say "DALSI POKUS - CISLO $trial";
-			my @train = @{$sets[$trial][1]};
-			my @eval = @{$sets[$trial][0]};
-		
-			my $categorizer = $class->new(\@train, @options);
-			my @to_tag = map {$_->{article}} @eval;
-			
-			
-			my @tagged = $categorizer->categorize(@to_tag);
-		
-			my @original_tags_only = map {$_->{tags}} @eval;
-			my @categorizer_tags_only = map {$_->{tags}} @tagged;
-		
-			if (scalar @tagged != scalar @eval) {
-				die "Tagged and eval doesn't have the same size! :(";
+	if ($break_to_words) {
+		for my $longer_category (keys %$hash_of_categories) {
+			if (_is_one_of_the_words($longer_category, $category)) {
+				return 1;
 			}
-			
-		
-		
-			my @prec_recall = count_precision_recall(\@categorizer_tags_only, \@original_tags_only, \@to_tag, 0);
-		
-			my ($micro_pi, $micro_ro, $micro_F, $macro_pi, $macro_ro, $macro_F) = @prec_recall;
-		
-		
-			$micro_pi_sum+=$micro_pi;
-			$micro_ro_sum+=$micro_ro;
-			$micro_F_sum+=$micro_F;
-			
-			$macro_pi_sum+=$macro_pi;
-			$macro_ro_sum += $macro_ro;
-			$macro_F_sum+=$macro_F;
-		
-		
-		
 		}
-		for ($micro_pi_sum, $micro_ro_sum, $micro_F_sum, $macro_pi_sum, $macro_ro_sum, $macro_F_sum) {$_=$_/$trials}
+		return 0;
+		
 	} else {
-		#na tomto kategorizeru se netrenuje
-		my $categorizer = $class->new(undef, @options);
-		my @to_tag = map {$_->{article}} @arr;
-		
-
-		my @tagged = $categorizer->categorize(@to_tag);
-		
-		my @original_tags_only = map {$_->{tags}} @arr;
-		my @categorizer_tags_only = map {$_->{tags}} @tagged;
-		
-		my @prec_recall = count_precision_recall(\@categorizer_tags_only, \@original_tags_only, \@to_tag, 1);
-		
-		($micro_pi_sum, $micro_ro_sum,  $micro_F_sum, $macro_pi_sum, $macro_ro_sum, $macro_F_sum) = @prec_recall;
-		
+		return exists $hash_of_categories->{$category};
 	}
-	
-
-
-	
-	return ($micro_ro_sum, $micro_pi_sum, $micro_F_sum, $macro_ro_sum,$macro_pi_sum,  $macro_F_sum);
 }
+
+#posčítá elementy v hashi
+sub _sum_hash {
+	my $r = shift;
+	my %w = %$r;
+	
+	my $res=0;
+	for (values %w) {$res+=$_};
+	
+	return $res;
+	
+}
+
+#řeší, jestli se v delším stringu objevuje slovo z kratšího stringu
+sub _is_one_of_the_words {
+	my $longer = shift;
+	my $shorter = shift;
+	
+	my %longer_words = map {(lc($_) => undef)} split(/ /, $longer);
+	if (exists $longer_words{lc($shorter)}) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+
+#Spočítám F (viz bakalarska prace)
+sub _count_F {
+	my ($pi, $ro) = @_;
+	if ($pi==0 or $ro==0) {
+		return 0;
+	}
+	return (2*$pi*$ro)/($pi + $ro);
+}
+
+#Pomocná funkce, co mi spočítá "bezpečně" a/(a+b)
+sub _safe_fraction {
+	my $a = shift;
+	my $b = shift;
+	
+	$a = $a || 0;
+	$b = $b || 0;
+	if ($a+$b == 0) {
+		return 1; #0/0, rozhodl jsem se, že to bude 1
+	}
+	return ($a / ($a+$b));
+}
+
+
 
 1;

@@ -10,6 +10,8 @@ use utf8;
 use Zpravostroj::Globals;
 
 #Označí jeden článek více kategoriemi
+#dělá to tak, že do daného adresáře uloží pod názvem, shodujícím se s ID článku, přímo kategorie
+#na jeden řádek dá jednu kategorii
 sub add_article_to_categories {
 	
 	#ID toho článku
@@ -82,6 +84,7 @@ sub get_article_categories {
 	return @categories;
 }
 
+#Vrátí všechny články, co mají kategorie v daném adresáři
 sub get_articles {
 	
 	my $dir = shift;
