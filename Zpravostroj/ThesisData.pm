@@ -23,39 +23,41 @@ sub print_dates {
 	
 	mkdir "data/R_data";
 	
-	open my $days, ">:utf8","data/R_data/all_dates";
+	if (!(-e "data/R_data/all_dates" and -e "data/R_data/filtered_dates__places")) {
+		open my $days, ">:utf8","data/R_data/all_dates";
 	
-	my @a = Zpravostroj::AllDates::_get_traversed_array();
-	for (@a) {
-		/^(....)-(.*)-(.*)/;
-		print $days $3.".".$2;
-		print $days "\n";
-	}
+		my @a = Zpravostroj::AllDates::_get_traversed_array();
+		for (@a) {
+			/^(....)-(.*)-(.*)/;
+			print $days $3.".".$2;
+			print $days "\n";
+		}
 	
-	close $days;
+		close $days;
 	
-	open my $days_filter, ">:utf8","data/R_data/filtered_dates__places";
-	open my $marks, ">:utf8","data/R_data/filtered_dates__marks";
+		open my $days_filter, ">:utf8","data/R_data/filtered_dates__places";
+		open my $marks, ">:utf8","data/R_data/filtered_dates__marks";
 	
-	my $previous_month=0;
+		my $previous_month=0;
 
-	for my $i (0..$#a) {
-		my $d = $a[$i];
+		for my $i (0..$#a) {
+			my $d = $a[$i];
 		
-		$d=~/^(....)-(.*)-(.*)/;
-		my $month = $2;
+			$d=~/^(....)-(.*)-(.*)/;
+			my $month = $2;
 		
-		if ($month != $previous_month) {
-			print $days_filter $i."\n";
-			print $marks "\"".$month."\"\n";
+			if ($month != $previous_month) {
+				print $days_filter $i."\n";
+				print $marks "\"".$month."\"\n";
 			
 			
+			} 
+		
+			$previous_month = $month;
 		} 
-		
-		$previous_month = $month;
-	} 
-	close $days_filter;
-	close $marks;
+		close $days_filter;
+		close $marks;
+	}
 }
 
 
@@ -167,6 +169,7 @@ sub _make_R_graph {
 
 #Nakreslí průměrný počet stop témat na článek na den
 sub graph_average_stop_themes_on_article {
+	print_dates;
 	_average_theme_count_on_article("stop");
 	_make_R_graph("average_stop");
 }
@@ -174,12 +177,14 @@ sub graph_average_stop_themes_on_article {
 #Nakreslí průměrný počet tf-idf témat na článek na den
 #(ve skutečnosti tenhle graf v práci nikde nepoužívám)
 sub graph_average_tf_idf_themes_on_article {
+	print_dates;
 	_average_theme_count_on_article("tf_idf");
 	_make_R_graph("average_tf_idf");
 }
 
 #Nakreslí průměrný počet článků na den
 sub graph_article_count {
+	print_dates;
 	_write_any_count_data("article_count", sub {
 		my $d = shift;
 		return scalar($d->_get_traversed_array);
@@ -200,6 +205,7 @@ sub _R_vec{
 #(ve skutečnosti jsou tam nějaké další, většinou chyby, takže vybírám ty, co chci)
 sub graph_news_source {
 	
+	print_dates;
 	#jaké zdroje to budou
 	my @news = qw(aktualne
 	blesk
@@ -234,6 +240,8 @@ sub graph_lemma_count {
 #Vybrané kombinace, které mám v bakalářce
 sub graph_selected_words_from_thesis {
 	my $what = shift;
+	print_dates;
+	
 	if ($what==1) {
 		graph_selected_words("stop_nehoda_premier_raw", "stop", 0, ["premiér","nehoda"], ["blue", "red"],
 			25, [5,10,15,20,25]);
@@ -283,6 +291,8 @@ sub graph_selected_words {
 	
 	my $result_name = shift;
 	my $type = shift;
+	print_dates;
+	
 	if ($type ne "tf_idf" and $type ne "stop") {
 		die "wrong type";
 	}
@@ -329,6 +339,8 @@ sub graph_selected_words {
 sub graph_selected_word_diff {
 	
 	my $word = shift;
+	print_dates;
+	
 	
 	count_selected_word("tf_idf", $word);
 	count_selected_word("stop", $word);
@@ -393,7 +405,7 @@ sub _write_lemma_count {
 }
 
 #Vrátí dva články, co v BP používám jako příklady
-sub _get_example_articles {
+sub get_example_articles {
 	my $f = Zpravostroj::AllDates::get_from_article_id("2010-5-12-91");
 	my $s = Zpravostroj::AllDates::get_from_article_id("2010-11-3-35");
 
@@ -402,7 +414,7 @@ sub _get_example_articles {
 
 #Několik jednoduchých funkcí, co jenom vypisují ukázkové články
 sub example_unlimited_manual_tags {
-	for (_get_example_articles()) {
+	for (get_example_articles()) {
 		print "===============\n";
 		for ($_->unlimited_manual_tags()) {
 			print $_."\n";
@@ -411,7 +423,7 @@ sub example_unlimited_manual_tags {
 }
 
 sub example_text {
-	for (_get_example_articles()) {
+	for (get_example_articles()) {
 		print "===============\n";
 		print $_->article_contents;
 		print "\n";
@@ -419,7 +431,7 @@ sub example_text {
 }
 
 sub example_f_themes {
-	for (_get_example_articles()) {
+	for (get_example_articles()) {
 		print "===============\n";
 		for ($_->frequency_themes()) {
 			print $_->lemma."\t".$_->score."\n";
@@ -428,10 +440,19 @@ sub example_f_themes {
 }
 
 sub example_stop_themes {
-	for (_get_example_articles()) {
+	for (get_example_articles()) {
 		print "===============\n";
 		for ($_->stop_themes()) {
 			print $_->lemma."\t".$_->score."\n";
+		}
+	}
+}
+
+sub example_tf_idf_themes {
+	for (get_example_articles()) {
+		print "===============\n";
+		for (@{$_->tf_idf_themes()}) {
+			print $_->lemma."\t".sprintf ("%.2f", $_->score)."\n";
 		}
 	}
 }
@@ -458,6 +479,10 @@ sub most_frequent_f_themes {
 
 sub most_frequent_stop_themes {
 	_print_first_twenty("stop");
+}
+
+sub most_frequent_tf_idf_themes {
+	_print_first_twenty("tf_idf");
 }
 
 

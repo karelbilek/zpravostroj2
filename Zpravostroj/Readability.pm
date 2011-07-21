@@ -15,7 +15,7 @@ package Zpravostroj::Readability;
 #na druhou stranu, funguje to vyborne, az na tu rychlost, resp. pomalost
 
 #stranka projektu - http://code.google.com/p/arc90labs-readability/
-#Readability (c) 2010 Arc90 Inc
+#Readability (c) 2010 Arc90 Inc, Apache Licence 2.0
 
 #Nebudu ho prilis komentovat - tj vubec, protoze sam ne uplne vim, co kdy presne dela, byl jsem rad, ze jsem to naportoval
 

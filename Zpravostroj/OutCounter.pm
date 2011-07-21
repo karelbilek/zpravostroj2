@@ -23,6 +23,8 @@ use Time::HiRes qw( usleep);
 use Moose;
 use Zpravostroj::Globals;
 
+mkdir "tmp";
+
 #Jméno/adresa souborů
 has 'name' => (
 	is=>'ro',

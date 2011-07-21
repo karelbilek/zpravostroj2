@@ -1,0 +1,126 @@
+Uživatelská dokumentace k projektu Zpravostroj
+----------------------------------------------
+
+Celý projekt je pouze několik perl modulů. Pro spuštění jednotlivých úloh je nutné daný modul načíst pomocí příkazů use nebo require, přičemž musí být "hlavní adresář" (tj. adresář, nadřazený adresáři Zpravostroj) v PERL5LIB - jelikož je ale v PERL5LIB většinou obsažen odkaz na pracovní adresář ., stačí mít hlavní adresář jako pracovní adresář.
+
+Po načtení modulu (různé moduly pro různé úkoly) je možné různé úkoly spustit jedním zavoláním procedury. Kromě modulu Zpravostroj::Globals neexportuje žádný z modulů žádné procedury, je tedy nutné psát celé názvy procedur včetně názvu modulu.
+
+Program vypisuje velké množství pracovních výpisů na standardní výstup; toto je možné vypnout spuštěním procedury Zpravostroj::Globals::_shut_up(). Všechny kontrolní výpisy programu jsou v kódování utf-8.
+
+Všechna data (články, výsledky analýz) zapisuje a čte program do adresáře "./data/", tj. umístění je závislé na pracovním adresáři. Pokud jsou součástí projektu i stažené články (jsou na DVD k bakalářské práci, ale kvůli copyrightu je nezveřejňuji na veřejném git repository), jsou v adresáři "data", který je podadresář hlavního adresáře, je tedy nutné mít hlavní adresář jako pracovní.
+
+Stejně tak je pro kreslení grafů (viz níže) nutné mít jako podadresář pracovního adresáře adresář "/R_graphs", který obsahuje zdrojové kódy v jazyce R pro kreslení grafů. 
+
+Velmi tedy doporučuji mít jako pracovní adresář "hlavní adresář" projektu.
+
+Program též zapisuje data do adresáře "tmp/" pod pracovní adresář - toto bylo původně nutné proto, že na stroji ufallab2 jsem neměl přístup do defaultního adresáře "/tmp/".
+
+
+==
+Stahování nových článků
+-
+
+Stahování nových článků má "na starosti" modul Zpravostroj::Updater. Pro stáhnutí nových článků do archivu stačí spustit
+
+Zpravostroj::Updater::download_new_articles($recount_all_tf_idf_themes)
+
+Tato procedura stáhne nové články, slova převede na lemmata a spočítá je, články také pro všechna jejich slova přidá do IDF matice, články poté uloží do data/articles.
+
+$recount_all_tf_idf_themes je volitelná proměnná, která, pokud je rovná 1, spustí update všech tf-idf témat podle nově přidaných slov do IDF matice (při velkém počtu článků může trvat velmi dlouho, proto je defaultně nastavena jako 1).
+
+Kromě toho jsou v adresáři archivedumpers/ skripty, které stahují články z jednotlivých serverů z archivu - tyto ale určitě nefungují - jednak proto, že i vnitřní API programu se od doby, co byly napsány, změnilo, a jednak proto, že HTML na daných serverech už se změnilo a nebylo updatováno; tyto skripty mám jako součást programu tedy spíše pro zajímavost a úplnost.
+
+=====
+Témata u jednotlivých článků
+-
+
+Všechny články jsou objekty typu Zpravostroj::Article a různé druhy témat mají jako své procedury.
+
+Pro načtení článku lze použít například metodu modulu Zpravostroj::AllDates
+
+Zpravostroj::AllDates::get_from_article_id($id)
+
+kde $id je string ve formátu "Y-M-D-A", kde Y je rok, M je měsíc, D je den a A je číslo článku v daném dni. Pokud jsou součástí projektu už načtené články z roku 2010, je možné jednoduše načíst dva ukázkové články z bakalářské práce pomocí metody modulu Zpravostroj::ThesisData
+
+Zpravostroj::ThesisData::get_example_articles()
+
+která vrací 2 články, které jsou jako ukázkové v bakalářské práci, v perlovském poli.
+
+Každý článek má tyto metody pro čtení témat:
+
+$article->frequency_themes() vrací frekvenční témata (pole objektů Zpravostroj::Word)
+$article->stop_themes() vrací stop-témata (pole objektů Zpravostroj::Word)
+$article->unlimited_manual_tags() vrací "neomezená" ručně zatřízená témata, pokud jsou (pole textových řetězců)
+$article->news_topics_manual_tags() vrací "omezená" ručně zatřízená témata, pokud jsou (pole textových řetězců)
+$article->has_tf_idf_themes() je 1 nebo 0 podle toho, jestli článek má, nebo nemá spočítaná TF-IDF témata
+$article->count_tf_idf_themes($idf_hash, $article_count) TF-IDF témata spočítá - $idf_hash je IDF matice, $article_count je počet všech článků, obojí je nepovinné - pokud není zadáno, načte se v count_tf_idf_themes()
+$article->tf_idf_themes() jsou tato témata (reference na pole objektů Zpravostroj::Word)
+
+Zpravostroj::Word je objekt, který má metody:
+
+$word->form() - vrací tvar slova
+$word->lemma() - vrací lemma slova
+$word->score() - vrací ohodnocení slova jako tématu - u frequency_themes a stop_themes znamená frekvence, u tf_idf_themes znamená hodnotu tf_idf
+
+======
+Statistiky, grafy
+-
+
+Počítání většiny statistik je jakoby "dvojúrovňové". První, časově výrazně náročnější část je průchod všemi články v archivu, kdy pro každý den se daná statistika uloží do adresáře data/daycounters a ještě v tomto kroku se z těchto denních statistik spočítají statistiky pro celý archiv. Konkrétně se například ukládá pro každý den statistika všech tf-idf témat.
+
+Druhá část je pak velmi rychlý průchod těmito výsledky a vykreslení některých statistik do grafu v PDF - například historie vybraného tf-idf tématu. PDF soubory jsou ukládány do adresáře R_graphs/, data, potřebná pro kreslení těchto grafů, jsou v adresáři data/R_data.
+
+První úroveň se spouští veškerá přes modul Zpravostroj::AllDates, a to následovně:
+
+Zpravostroj::AllDates::get_statistics_f_themes() spočítá f-témata u článků, ukládá statistiky do souborů data/daycounters/f_themes_Y-M-D, a statistiky všech f-témat ukládá do souboru data/allresults/f_themes_counted_sorted_by_frequency
+
+Zpravostroj::AllDates::get_statistics_stop_themes() spočítá stop-témata u článků, ukládá statistiky do souborů data/daycounters/stop_themes_Y-M-D, a statistiky všech stop-témat ukládá do souboru data/allresults/stop_themes_counted_sorted_by_frequency
+
+Zpravostroj::AllDates::get_statistics_news_source() spočítá zpravodajské zdroje u článků, ukládá statistiky do souborů data/daycounters/news_source_Y-M-D, a statistiky všech f-témat ukládá do souboru data/allresults/news_source_counted_sorted_by_frequency
+
+Zpravostroj::AllDates::get_statistics_tf_idf_themes() spočítá pro každý článek tf-idf témata, uloží je zpět do článku, statistiky denních tf-idf témat uloží do souborů data/daycounters/tf_idf_Y-M-D a všech do /data/allresults/tf_idf_counted_sorted_by_frequency
+
+Zpravostroj::AllDates::get_most_frequent_lemmas spočítá nejčastější lemmata, denní výsledky ale neukládá, uloží pouze výsledky z celého archivu a uloží je do data/allresults/lemmas_counted_sorted_by_frequency
+
+
+Druhá úroveň už je celá v modulu Zpravostroj::ThesisData (název je ThesisData proto, že jdou vykreslit v podstatě pouze ty grafy, které mám v bakalářské práci), a to následovně:
+
+Zpravostroj::ThesisData::graph_average_stop_themes_on_article() vykreslí průměrný počet stoptémat na článek na den
+Zpravostroj::ThesisData::graph_average_tf_idf_themes_on_article() vykreslí průměrný počet tf-idf témat na článek na den
+Zpravostroj::ThesisData::graph_article_count() vykreslí průměrný počet článků na den
+Zpravostroj::ThesisData::graph_news_source() vykreslí poměr článků z různých zdrojů na den
+Zpravostroj::ThesisData::graph_lemma_count() vykreslí počty lemmat do grafu
+Zpravostroj::ThesisData::graph_selected_words($result_name, $type, $smooth, $words_ref, $colors_ref, $max, $lines_ref, $from, $to, $width, $height) vykreslí historii $type-témat $words_ref barvami $colors_ref do grafu v souboru $result_name, parametr $smooth určuje, jestli bude graf vyhlazený, $max určuje maximální Y v grafu, $lines_ref umístění horizontálních čar, $from a $to případné "přiblížení" a $width a $height velikost grafu v palcích
+Zpravostroj::ThesisData::graph_selected_words_from_thesis($type) spustí předcházející proceduru s takovými parametry, aby odpovídala grafům v bakalářské práci
+
+=========
+Evaluace
+---
+
+Různé klasifikátory lze evaluovat pomocí modulu Zpravostroj::Categorizer::Evaluator a podtříd modulu Zpravostroj::Categorizer. Aby ale nebylo třeba zadávat všechny parametry znovu, je již předpřipravena evaluace s parametry, které byly použity v bakalářské práci, v modulu Zpravostroj::ThesisData, a to následovně:
+
+Zpravostroj::ThesisData::try_trivial vyzkouší triviální zatřizování do kategorie "ODS"
+Zpravostroj::ThesisData::try_f_themes vyzkouší zatřizování do frekvenčních témat
+Zpravostroj::ThesisData::try_stop_themes vyzkouší zatřizování do stop témat
+Zpravostroj::ThesisData::try_tf_idf_themes vyzouší zatřizování do tf-idf témat
+Zpravostroj::ThesisData::try_categorizer zkusí různé "skutečné" kategorizéry se strojovým učením s různými parametry. Pozor, trvá velmi dlouho (na mém stroji kolem 6 hodin)
+
+Všechny zkoušky už rovnou vypisují TeXovské řetězce, kde na každém řádku jsou procenta úspěšnosti v pořadí: micro ro, micro pi, micro F, macro ro, macro pi, macro F. Pozor, tyto řetězce jsou vypsány na obrazovku pomocí stejných metod, jako vypisuji kontrolní výpisy, tedy Zpravostroj::Globals::_shut_up() vypne i výsledné výpisy. 
+Uznávám, že toto řešení není příliš čisté a do budoucna by bylo lepší jej změnit.
+
+
+===
+Další data
+--
+Zpravostroj::ThesisData ještě vypisuje další data pro bakalářskou práci, a to následovně:
+
+Zpravostroj::ThesisData::example_unlimited_manual_tags() vypisuje pro ukázkové články moje "neomezené" manuální tagy
+Zpravostroj::ThesisData::example_text() vypisuje pro ukázkové články jejich text
+Zpravostroj::ThesisData::example_f_themes() vypisuje pro ukázkové články jejich frekvenční témata
+Zpravostroj::ThesisData::example_stop_themes() vypisuje pro ukázkové články jejich stop témata
+Zpravostroj::ThesisData::example_tf_idf_themes() vypisuje pro ukázkové články jejich tf-idf témata
+Zpravostroj::ThesisData::most_frequent_f_themes() vypisuje nejčastější frekvenční témata
+Zpravostroj::ThesisData::most_frequent_stop_themes() vypisuje nejčastější frekvenční témata
+Zpravostroj::ThesisData::most_frequent_tf_idf_themes() vypisuje nejčastější tf-idf témata
+
+--- konec
