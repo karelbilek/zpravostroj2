@@ -1,0 +1,165 @@
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+		<title>
+			Dokumentace k projektu Zpravostroj - programátorská část
+		</title>
+	</head>
+	<body>
+		<h1>
+			Dokumentace k projektu Zpravostroj - programátorská část
+		</h1>
+		<p>
+			<a href="index.html">Zpět</a>
+		</p>
+		<hr>
+		<h2>
+			uložení článků
+		</h2>
+		<p>
+			Články jsou uloženy ve složce <code>data/articles</code>, v souboru na adrese <code>data/articles/Y/M/D/N.bz2</code>, kde <code>Y</code> je rok, <code>M</code> je měsíc, <code>D</code> je den a <code>N</code> je číslo článku. Jsou serializovány pomocí <code>YAML::XS</code> a MooseX::Storage, a jsou zazipovány programem bzip2.
+		</p>
+		<h2>
+			Postup zpracovávání článků
+		</h2>
+		<p>
+			<i>(Podrobnější popisy jednotlivých kroků jsou v příslušných modulech jako komentáře a dle mého je redundantní je zde znovu přepisovat.)</i>
+		</p>
+		<p>
+			O stahování nových článků se "stará" modul <code>Zpravostroj::Updater</code>.
+		</p>
+		<p>
+			Nejprve je jím spuštěn <code>Zpravostroj::TectoServer</code>, což je separátní fork (více o forcích dále), ve kterém běží <code>TectoMT</code>.
+		</p>
+		<p>
+			Potom jsou staženy adresy článků pomocí modulu <code>Zpravostroj::RSS</code> (adresy RSS kanálů a adresy stažených článků jsou v adresáři <code>data/articles/RSS</code>). Poté je článek stáhnut pomocí modulu <code>Zpravostroj::WebReader</code>, poté se pomocí <code>Zpravostroj::Readability</code> z HTML zdroje získá samotný článek bez okolních textů. Poté se modul <code>Zpravostroj::TectoClient</code> spojí s <code>TectoServer</code>em a pošle mu slova ve článku; <code>TectoServer</code> tato zlemmatizuje a určí pojmenované entity.
+		</p>
+		<p>
+			Tato "kaskáda" operací se spouští díky Moose konstruktoru v modulu <code>Zpravostroj::Article</code>.
+		</p>
+		<p>
+			Články jsou poté uloženy pomocí subrutiny <code>Zpravostroj::Globals::dump_bz2</code>.
+		</p>
+		<h2>
+			Forker
+		</h2>
+		<p>
+			Při experimentování jsem zjistil, že pro rychlejší a spolehlivější uvolňování paměti po operacích náročných na paměť, jako je například načítání článků, je lepší použít modul <code>forks</code>, pomocí něho vytvořit nový proces, náročnější operaci udělat v separátním procesu a výsledky nasdílet zpátky. Program tak uvolní paměť ihned po skončení procesu. (Tento fakt jsem si posléze ověřil i na jiném, nesouvisejícím projektu.)
+		</p>
+		<p>
+			Modul <code>forks</code> funguje jako "náhrada" vestavěných perl threadů, které ale nejsou příliš praktické. <code>forks</code> používá naprosto stejný syntax, jako modul <code>threads</code>, včetně sdílení proměnných pomocí <code>shared</code> (pro sdílení dat si modul forks vytvoří "nadřazený" proces a např. zámky implementuje pomocí socketů).
+		</p>
+		<p>
+			Kromě toho jsem zjistil, že při načítání většího množství článků je "bottleneck" rozbalování z bz2 a deserializace; je ale možné načítání článků mírně paralelizovat tak, že např. při rozbalování jednoho článku může systém zároveň dělat něco jiného, tím i případně využít více jader procesoru, čímž se vše zrychlí.
+		</p>
+		<p>
+			Pro tuto paralelizaci ale není možné, aby běželo příliš mnoho procesů najednou. Proto jsem si vytvořil objekt <code>Zpravostroj::Forker</code>, který za mě hlídá postupné spouštění forků.
+		</p>
+		<p>
+			Funguje tak, že se mu dávají odkazy na subroutiny pomocí <code>$forker-&gt;run($subroutine)</code>, tyto si pamatuje v poli jako ve frontě. Z fronty potom postupně subroutiny spouští v separátních forcích tak, aby nebylo zároveň spuštěno víc forků, než má <code>Forker</code> povoleno. Počet povolených forků je <code>Forker</code>u zadáno při konstrukci.
+		</p>
+		<p>
+			<code>Forker</code> ale nemá, jak by sám tyto forky spouštěl "mimo" běh hlavního programu (není možné určit vlastní fork na spouštění forků, protože odkazy na subroutiny není možno sdílet mezi jednotlivými forky). Proto je nutné po zadání všech subroutin pomocí <code>$forker-&gt;run()</code> buď pravidelně spouštět <code>$forker-&gt;check_waiting()</code>, který jednou zkotroluje počet běžících forků a případně nějaké další spustí, nebo jednou spustit <code>$forker-&gt;wait()</code>, což je funkce, která počká na doběhnutí všech nedoběhnutých forků (která pravidelně spouští <code>$forker-&gt;check_waiting</code>). Pokud se jakékoliv výsledky vrací zpátky do nějaké proměnné, která existuje mimo subroutinu, tak tato musí být sdílená přes modul <code>forks::shared</code>, jinak se při zapisování (perlí fork funguje na principu copy-on-write) vytvoří <i>kopie</i> této proměnné.
+		</p>
+		<p>
+			Forkery mohou být "vnořené" do sebe - tj. v subroutině, kterou dostane a bude spouštět jeden <code>Forker</code> může být zase jiný <code>Forker</code>. Forkery ale není možno sdílet mezi forky, tj. "vnitřní" Forker musí být v subroutině vytvořen a v ní opět zaniknout. Je také nutné
+		</p>
+		<h2>
+			Traversable
+		</h2>
+		<p>
+			<code>Zpravostroj::Traversable</code> je zobecnění objektu, který má více podobjektů, které lze postupně načítat a na kterých lze něco postupně spouštět (traverzovat). V mém případě jsou to dva objekty - jednak objekt <code>Zpravostroj::AllDates</code>, který představuje všechny dny (a který nemá žádné vlastnosti, tj. všechny jeho instance jsou jakoby datově shodné), a objekt Zpravostroj::DateArticles, který představuje všechny články daného dne. V případě <code>Zpravostroj::AllDates</code> jsou "podřazené" objekty, přes které se "traverzuje", objekty <code>Zpravostroj::DateArticles</code>, objektům <code>Zpravostroj::DateArticles</code> jsou zase "podřazené" objekty <code>Zpravostroj::Article</code>.
+		</p>
+		<p>
+			<code>Zpravostroj::Traversable</code> je abstraktní třída (v řeči <code>Moose</code> "role"), která funguje tak, že všechny podřazené objekty zároveň nikdy nejsou v paměti (protože by se všechny články naráz do paměti nevešly), ale jednak má abstraktní metodu <code>_get_traversed_array</code>, která vrátí pole řetězců, které jakoby představují podřazené objekty, a abstraktní metodu <code>_get_object_from_string</code>, která objekt z řetězce vyrobí.
+		</p>
+		<p>
+			Poté má (neabstraktní) metodu <code>traverse($sub, $count)</code>, která dostane odkaz na subroutinu, kterou postupně spouští na každý podřazený objekt. Načtení podobjektu a samotné spuštění subroutiny proběhne v separátním forku, spouštěného pomocí modulu <code>Zpravostroj::Forker</code> (viz výše), forků je zároven povolenu spouštět <code>$count</code>. Pokud je <code>$count</code> 0 nebo 1, žádné forkování neprobíhá a subroutiny se spouštějí všechny ve stejném procesu. (Nemůžu zde napsat "v hlavním procesu", protože zatímco traverzování přes <code>AllDates</code> může forkovat, traverzování přes <code>DateArticles</code> nemusí; naopak, stejně jako můžou být Forkery "vnořovány" do sebe, tak může být traverzování vnořováno do sebe).
+		</p>
+		<p>
+			Opět, jelikož jsou subroutiny spouštěny přes <code>Forker</code>, pokud jsou nějaké výsledky vraceny ven ze subroutiny do nějaké proměnné, je nutné tuto proměnou sdílet mezi forky pomocí forks::shared.
+		</p>
+		<p>
+			Kromě toho má <code>Zpravostroj::Traversable</code> abstraktní metodu <code>_after_traverse</code>, která vždy proběhne na každém podobjektu po spuštění <code>$sub</code>. Tato metoda dostane jako parametry to, co vrací <code>$sub</code>. Používám to pouze pro ukládání článků po případné změně - návratová hodnota mi potom říká, jestli se článek změnil, nebo nezměnil.
+		</p>
+		<h2>
+			Tf-Idf témata
+		</h2>
+		<p>
+			Pro TF-IDF témata je nejprve nutné znát IDF vektor (podrobněji viz bakalářská práce); tento lze načíst pomocí modulu <code>Zpravostroj::InverseDocumentFrequencies</code>, který si vektor ukládá v adresáři data/idf.
+		</p>
+		<p>
+			Pokud IDF vektor není znám, je možné jej také spočítat pomocí <code>Zpravostroj::InverseDocumentFrequencies</code>; pokud už spočítaný je, ale přibydou nové články, není nutné jej celý přepočítávat - modul <code>Zpravostroj::InverseDocumentFrequencies</code> si pamatuje poslední článek, který byl započítán, a přidá všechny novější.
+		</p>
+		<p>
+			Pokud by bylo potřeba opravdu přepočítat celý IDF vektor znovu, je nutné smazat celý adresář <code>data/idf/</code>.
+		</p>
+		<p>
+			Pokud chci článku vypočítat TF-IDF témata, je třeba článek načíst, spustit na něj <code>count_tf_idf_themes</code> a znovu ho uložit; toto dělá <code>Zpravostroj::AllDates::get_statistics_tf_idf_themes</code> (o metodách <code>get_statistics_</code> píšu více v uživatelské části dokumentace).
+		</p>
+		<h2>
+			OutCounter
+		</h2>
+		<p>
+			V projektu často potřebuji sečíst velké množství dat, které jsou ve formátu klíč-hodnota (například pro IDF potřebuji zjistit pro jednotlivá slova počet dokumentů, ve kterých se vyskytují). Pro menší množství dat lze použít velký perl hash, do kterého se postupně přičítá; pro větší množství dat se nemusí tento hash vejít do paměti, nebo v případě, že používám metodu forkování, popsanou výše, trvá dlouho sdílení hashů mezi thready a je nutno je nějak zamykat.
+		</p>
+		<p>
+			Místo toho lze ale využít vnějšího třídění pomocí unixovského příkazu sort. Všechny dvojice klíč-hodnota postupně vypisuji do souboru, poté seřadím podle klíče a poté jedním průchodem sečtu a rovnou vypisuji sečtené hodnoty. Pokud potřebuji ještě naopak seřadit vše podle hodnot (např. pro nejčastější témata některého typu), znovu použiji příkaz sort.
+		</p>
+		<p>
+			Jak píšu v uživatelské části, používám k sortu option +, který je v GNU verzi, ale nemusí být v jiných verzích (např. mám pocit, že není na systému Mac OS X).
+		</p>
+		<p>
+			Všechny výše popsané úkony dělám pomocí objektu <code>Zpravostroj::OutCounter</code>, kterému při vytvoření řeknu cestu k souboru, kam má zapisovat, a binární příznak, jestli má při už existující soubor smazat, nebo ne. Podrobněji je postup popsán v komentářích tohoto modulu.
+		</p>
+		<h2>
+			Evaluace kategorizace
+		</h2>
+		<p>
+			Evaluaci různého druhu kategorizací provádím pomocí <code>Zpravostroj::Categorizer::Categorizer</code>, což je abstraktní kategorizér, a <code>Zpravostroj::Categorizer::Evaluator</code>, který na 200 vybraných článcích <code>Zpravostroj::Categorizer::Categorizer</code> otestuje a srovná jeho zatřizování s ručně zatřízenými články.
+		</p>
+		<p>
+			Tuto evaluaci popisuji poměrně podrobně v bakalářské práci.
+		</p>
+		<h2>
+			Objektový model
+		</h2>
+		<p>
+			Všechny moduly, co jsou zároveň objekty, jsou objekty skrze objektový systém <code>Moose</code>.
+		</p>
+		<p>
+			Objekty jsou v projektu tyto:
+		</p>
+		<ul>
+			<li><code>Zpravostroj::Word</code> reprezentuje slovo, u kterého může být případně skóre.
+			</li>
+			<li>
+				<code>Zpravostroj::Article</code> reprezentuje článek.
+			</li>
+			<li>
+				<code>Zpravostroj::DateArticles</code> reprezentuje všechny články jednoho dne.
+			</li>
+			<li>
+				<code>Zpravostroj::Date</code> reprezentuje datum. Tento modul by mohl být shodný s modulem <code>DateArticles</code>, protože jednotlivé <code>DateArticles</code> se odlišují pouze podle <code>Date</code> a naopak každému <code>Date</code> lze jednoduše vytvořit <code>DateArticles</code>; rozdělené do dvou modulů je to jednoduše proto, že jeden modul má "na starosti" věci, týkající se opravdu pouze dat (tj. předcházející den, následující den, načtení datumu ze stringu apod.), druhý má naopak "na starosti" články v daném dni
+			</li>
+			<li>
+				<code>Zpravostroj::AllDates</code> reprezentuje všechny dny. Tento modul je objektem pouze proto, aby mohl mít roli <code>Zpravostroj::Traversable</code>.
+			</li>
+			<li>
+				<code>Zpravostroj::Traversable</code>, <code>Zpravostroj::Forker</code> a <code>Zpravostroj::OutCounter</code> jsem již popsal výše
+			</li>
+			<li>
+				<code>Zpravostroj::Categorizer::Categorizer</code> a <code>Zpravostroj::Categorizer::Evaluator</code> jsem velmi stručně popsal též výše
+			</li>
+			<li>
+				<code>Zpravostroj::Categorizer::TotallyRetarded</code> je triviální kategorizér
+			</li>
+			<li>
+				<code>Zpravostroj::Categorizer::FreqThemes</code>, <code>Zpravostroj::Categorizer::StopThemes</code> a <code>Zpravostroj::Categorizer::TfIdfThemes</code> dávají do kategorií podle témat, hledaných pouze z článku samého
+			</li>
+			<li>
+				<code>Zpravostroj::Categorizer::AICategorizer</code> je učící se kategorizér, který je třeba nejdříve naučit na už určených kategoriích. Používá CPAN modul AI::Categorizer
+			</li>
+		</ul>
+	</body>
+</html>
