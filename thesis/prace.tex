@@ -1,0 +1,1473 @@
+%% Verze pro jednostranný tisk:
+
+% Okraje: levý 40mm, pravý 25mm, horní a dolní 25mm
+% (ale pozor, LaTeX si sám přidává 1in)
+\documentclass[12pt,a4paper]{report}
+\setlength\textwidth{145mm}
+\setlength\textheight{247mm}
+\setlength\oddsidemargin{15mm}
+\setlength\evensidemargin{15mm}
+\setlength\topmargin{0mm}
+\setlength\headsep{0mm}
+\setlength\headheight{0mm}
+% \openright zařídí, aby následující text začínal na pravé straně knihy
+\let\openright=\clearpage
+
+
+\usepackage{caption}
+\usepackage{url}
+
+\usepackage{float}
+
+\usepackage{setspace}
+
+\usepackage[czech]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+
+
+
+%% Použité kódování znaků: obvykle latin2, cp1250 nebo utf8:
+\usepackage[utf8]{inputenc}
+
+%% Ostatní balíčky
+\usepackage{graphicx}
+\usepackage{amsthm}
+
+ 
+\newfloat{graff}{tbph}{lop}
+\floatname{graff}{Graf}
+
+
+\newfloat{claanek}{tbph}{lop}
+\floatname{claanek}{\v{C}l\'{a}nek}
+
+
+\newfloat{tabulka}{tbph}{lop}
+\floatname{tabulka}{Tabulka}
+
+
+
+\long\def\dvojka#1#2{
+\noindent
+\begin{minipage}[b]{0.5\linewidth}
+    
+    #1
+    
+\end{minipage}
+\hspace{0.5cm}
+\begin{minipage}[b]{0.5\linewidth}
+    
+    #2
+    
+\end{minipage}
+}
+
+\long\def\dvagrafy#1#2#3{
+% \begin{graff}[h!]
+%     
+%     
+%     \noindent
+%     \begin{minipage}[h]{0.5\linewidth}
+%         \includegraphics[width=85mm]{R/#1.pdf}
+%     \end{minipage}
+%     \hspace{0.5cm}
+%     \begin{minipage}[h]{0.5\linewidth}
+%         \includegraphics[width=85mm]{R/#2.pdf}
+%     \end{minipage}
+%     
+%     
+%     
+%     \caption{#3} 
+%     \label{graf:#1}
+% \end{graff}
+}
+
+\long\def\grafffmw#1#2#3{
+% \begin{graff}[h!]
+%     \includegraphics[width=#3mm]{R/#1.pdf}
+%     \caption{#2}
+%     \label{graf:#1}
+% \end{graff}
+}
+
+\long\def\grafff#1#2{
+ \begin{graff}[t]
+     \includegraphics[width=145mm]{R/#1.pdf}
+     \caption{#2}
+     \label{graf:#1}
+ \end{graff}
+}
+
+\long\def\grafffh#1#2{
+ \begin{graff}[h]
+     \includegraphics[width=145mm]{R/#1.pdf}
+     \caption{#2}
+     \label{graf:#1}
+ \end{graff}
+}
+
+\long\def\jednatabulka#1#2#3{
+ \begin{tabulka}[t]
+     
+   
+         \centergraf{
+         \footnotesize
+             #2
+             }
+     
+     
+     \caption{#3} 
+     \label{tabulka:#1}
+ \end{tabulka}
+}
+
+\long\def\dvetabulkypod#1#2#3#4{
+ \begin{tabulka}[t]
+     
+   
+         \centergraf{
+         \footnotesize
+             #2
+             \par
+             \vspace{1em}
+             \par
+             #3
+             }
+     
+%     
+     \caption{#4} 
+     \label{tabulka:#1}
+ \end{tabulka}
+}
+
+\long\def\dvetabulky#1#2#3#4{
+\begin{tabulka}[t]
+    
+    
+    \noindent
+    \begin{minipage}[h]{0.5\linewidth}
+        \centergraf{
+        \footnotesize
+        
+            #2
+            }
+    \end{minipage}
+    \hspace{0.5cm}
+    \begin{minipage}[h]{0.5\linewidth}
+        \centergraf{
+        \footnotesize
+        
+        #3
+    }
+    \end{minipage}
+    
+    
+    
+    \caption{#4} 
+    \label{tabulka:#1}
+\end{tabulka}
+}
+
+\long\def\mujpara#1#2#3 {
+ \begin{claanek}[p]
+     \begingroup
+     \leftskip1em
+     \rightskip1em
+     \footnotesize
+     \par
+     #2
+     \par
+     \endgroup
+     \caption{#3}
+     \label{graf:#1}
+ \end{claanek}
+}
+
+
+\long\def\mujparaa#1#2#3#4{
+    \vbox{
+        \vspace{#1}
+        
+        %\begin{spacing}{0.8}
+        %{
+        {
+            \begingroup
+            \leftskip#2
+            \rightskip#2
+            
+            \footnotesize
+            \par
+            #3
+            \par
+            \endgroup
+        }   
+        %}
+        %\end{spacing}
+        
+        {
+            \begingroup
+            \centering
+            \par
+            #4
+            \par
+            \endgroup
+        }
+    
+        
+        %\vspace{#1}
+    }
+}
+
+\long\def\centergraf#1 {
+{
+    \begingroup
+    \centering
+    \par
+    #1
+    \par
+    \endgroup
+}
+
+}
+
+\long\def\grafik#1#2{
+    \vbox{
+        \vspace{1em}
+        
+       
+        {
+            \begingroup
+            \centering
+            \par
+            #1
+            \par
+            \endgroup
+        }   
+        \vspace{1em}
+        
+        {
+            \begingroup
+            \centering
+            \par
+            #2
+            \par
+            \endgroup
+        }
+    \vspace{1em}
+    }
+}
+
+
+
+
+%% Balíček hyperref, kterým jdou vyrábět klikací odkazy v~PDF,
+%% ale hlavně ho používáme k~uložení metadat do PDF (včetně obsahu).
+%% POZOR, nezapomeňte vyplnit jméno práce a autora.
+\usepackage[ps2pdf,unicode]{hyperref}   % Musí být za všemi ostatními balíčky
+\hypersetup{pdftitle=Sledování témat v elektronickém zpravodajství}
+\hypersetup{pdfauthor=Karel Bílek}
+
+%%% Drobné úpravy stylu
+
+% Tato makra přesvědčují mírně ošklivým trikem LaTeX, aby hlavičky kapitol
+% sázel příčetněji a nevynechával nad nimi spoustu místa. Směle ignorujte.
+\makeatletter
+\def\@makechapterhead#1{
+  {\parindent \z@ \raggedright \normalfont
+   \Huge\bfseries \thechapter. #1
+   \par\nobreak
+   \vskip 20\p@
+}}
+\def\@makeschapterhead#1{
+  {\parindent \z@ \raggedright \normalfont
+   \Huge\bfseries #1
+   \par\nobreak
+   \vskip 20\p@
+}}
+\makeatother
+
+% Toto makro definuje kapitolu, která není očíslovaná, ale je uvedena v~obsahu.
+\def\chapwithtoc#1{
+\chapter*{#1}
+\addcontentsline{toc}{chapter}{#1}
+}
+
+
+   \setcounter{topnumber}{5}
+   \setcounter{totalnumber}{5}
+   
+
+\begin{document}
+    
+
+
+% Trochu volnější nastavení dělení slov, než je default.
+
+\lefthyphenmin=2
+\righthyphenmin=2
+
+
+%%% Titulní strana práce
+
+\pagestyle{empty}
+\begin{center}
+
+\large
+
+Univerzita Karlova v~Praze
+
+\medskip
+
+Matematicko-fyzikální fakulta
+
+\vfill
+
+{\bf\Large BAKALÁŘSKÁ PRÁCE}
+
+\vfill
+\centerline{\mbox{\includegraphics[width=60mm]{logo.pdf}}}
+
+
+\vfill
+\vspace{5mm}
+
+{\LARGE Karel Bílek}
+
+\vspace{15mm}
+
+% Název práce přesně podle zadání
+{\LARGE\bfseries Sledování témat v~elektronickém zpravodajství}
+
+\vfill
+
+% Název katedry nebo ústavu, kde byla práce oficiálně zadána
+% (dle Organizační struktury MFF UK)
+Ústav formální a aplikované lingvistiky
+
+\vfill
+
+\begin{tabular}{rl}
+
+Vedoucí bakalářské práce: & RNDr. Ondřej Bojar, Ph.D. \\
+\noalign{\vspace{2mm}}
+Studijní program: & Informatika \\
+\noalign{\vspace{2mm}}
+Studijní obor: & Obecná informatika \\
+\end{tabular}
+
+\vfill
+
+% Zde doplňte rok
+Praha 2011
+
+\end{center}
+
+\newpage
+
+%%% Následuje vevázaný list -- kopie podepsaného "Zadání bakalářské práce".
+%%% Toto zadání NENÍ součástí elektronické verze práce, nescanovat.
+
+%%% Na tomto místě mohou být napsána případná poděkování (vedoucímu práce,
+%%% konzultantovi, tomu, kdo zapůjčil software, literaturu apod.)
+
+\openright
+
+\noindent
+Na tomto místě bych chtěl poděkovat Ondřejovi Bojarovi za vedení této práce. Také bych chtěl poděkovat Josefu Šlerkovi ze Studia nových médií na FF UK za některé nápady, byť se nakonec ne všechny materializovaly.
+
+\newpage
+
+%%% Strana s~čestným prohlášením k~bakalářské práci
+\vglue 0pt plus 1fill
+
+\noindent
+Prohlašuji, že jsem tuto bakalářskou práci vypracoval(a) samostatně a výhradně
+s~použitím citovaných pramenů, literatury a dalších odborných zdrojů.
+
+\medskip\noindent
+Beru na~vědomí, že se na moji práci vztahují práva a povinnosti vyplývající
+ze zákona č. 121/2000 Sb., autorského zákona v~platném znění, zejména skutečnost,
+že Univerzita Karlova v~Praze má právo na~uzavření licenční smlouvy o~užití této
+práce jako školního díla podle §60 odst. 1 autorského zákona.
+
+\vspace{10mm}
+
+\hbox{\hbox to 0.5\hsize{%
+V ........ dne ............
+\hss}\hbox to 0.5\hsize{%
+Podpis autora
+\hss}}
+
+
+\vspace{20mm}
+\newpage
+
+%%% Povinná informační strana bakalářské práce
+\newcommand{\kecycz}{
+Název práce:
+Sledování témat v~elektronickém zpravodajství
+% přesně dle zadání
+
+Autor:
+Karel Bílek
+
+Katedra:  % Případně Ústav:
+Ústav formální a aplikované lingvistiky
+% dle Organizační struktury MFF UK
+
+Vedoucí bakalářské práce:
+RNDr. Ondřej Bojar, Ph.D., Ústav formální a aplikované lingvistiky
+% dle Organizační struktury MFF UK, případně plný název pracoviště mimo MFF UK
+
+Abstrakt:
+V~této práci se snažím nalézt definici zpravodajského tématu tak, aby byla detekce těchto témat v textu implementovatelná a kvalita této detekce měřitelná. Popisuji možné metody --- \uv{prosté} počítání slov, případně se zavedením stopslov; TF-IDF; dále popisuji problém textové kategorizace, mírně se dotknu text clusteringu. Dále popisuji přístupy, nazvané latent semantic indexing a latent Dirichlet allocation. Také popisuji experimenty s~\uv{prostým} počítáním slov, TF-IDF a textovou kategorizací na databázi článků z~několika elektronických zdrojů; vznik této databáze v~práci popisuji rovněž. Ke způsobu řešení pomocí textové kategorizace uvádím metriku pomocí měření přesnosti a úplnosti; podle těchto metrik měřím několik variant textové kategorizace.
+% abstrakt v~rozsahu 80-200 slov; nejedná se však o opis zadání bakalářské práce
+
+Klíčová slova:
+Zpravodajství, články, témata, klíčová slova
+}
+
+\newcommand{\kecyen}{
+Title:
+Topic monitoring in online news articles
+% přesný překlad názvu práce v~angličtině
+
+Author:
+Karel Bílek
+
+Department:
+Institute of Formal and Applied Linguistics
+% dle Organizační struktury MFF UK v~angličtině
+
+Supervisor:
+RNDr. Ondřej Bojar, Ph.D., Institute of Formal and Applied Linguistics
+% dle Organizační struktury MFF UK, případně plný název pracoviště
+% mimo MFF UK v~angličtině
+
+Abstract:
+In this thesis, I try to find a definition of a news topic to make topic detection implementable and its quality measurable. I describe various methods --- a ``simple'' words counting, optionally with stopwords. I also desribe TF-IDF and the text categorization problem. I touch the subject of text clustering. Then I describe approaches called latent semantic indexing and latent Dirichlet allocation. The thesis includes my experiments with ``simple'' words counting, TF-IDF and text categorization on database of articles from several online news websites; I also describe the creation of this database. Precision and recall are used as a metric to text categorization approach and I use this metric to measure several variants of text categorization. 
+
+% abstrakt v~rozsahu 80-200 slov v~angličtiněrrrrz
+Keywords:
+News, articles, topics, keywords
+}
+
+\vbox to 0.5\vsize{
+\setlength\parindent{0mm}
+\setlength\parskip{5mm}
+
+\kecycz{}
+
+\vss}\nobreak\vbox to 0.49\vsize{
+\setlength\parindent{0mm}
+\setlength\parskip{5mm}
+
+\kecyen{}
+
+\vss}
+
+
+
+
+\newpage
+
+%%% Strana s~automaticky generovaným obsahem bakalářské práce. U matematických
+%%% prací je přípustné, aby seznam tabulek a zkratek, existují-li, byl umístěn
+%%% na začátku práce, místo na jejím konci.
+
+\openright
+\pagestyle{plain}
+\setcounter{page}{1}
+\tableofcontents
+
+\chapter{Úvod}
+
+Úkolem bakalářské práce je sledovat elektronické zdroje zpravodajství a na zá\-klad\-ě opakujících se slov zařazovat články do témat, tato témata sledovat v~čase a případně na základě tohoto sledování detekovat něco, jako je \uv{okurková sezóna}.
+
+V průběhu přípravy práce jsem zjistil, že úkol detekce tématu je poměrně častý v~oboru \emph{text mining}, respektive \emph{information retrieval}. Zadání práce se mi částečně splnit podařilo, součástí práce je také shrnutí dalších možných přístupů a pohledů na danou problematiku.
+
+Většina zpravodajských médií dnes používá pro vydávání svých článků síť \emph{World Wide Web}, ať už primárně (např. server \url{http://aktualne.cz}), nebo sekundárně jako doplněk např. k~tištěným novinám (např. server \url{http://idnes.cz}). Pro oba případy ale platí, že zpravodajský server lze vzít jako pravidelně aktualizovaný zdroj elektronického zpravodajství.
+
+Výhoda zpravodajským webů je ta, že jsou za krátkou dobu (v řádu měsíců až jednotek let) stylisticky stabilní a jsou psány podobným jazykem, zároveň ale mají jasně danou časovou posloupnost. To nám daný úkol značně zjednodušuje.
+
+Zpravodajství na jednotlivých serverech lze jednoduše rozdělit na jednotlivé dokumenty neboli články. Článek na zpravodajském webu má jasně daný obsah, kromě toho je důležité si uvědomit, že nese i informaci o čase vydání (jak datem, kdy se na webu objeví, tak datem, uvedeným v~popisu článku přímo na webu). Toho lze využít a informaci o čase dále zpracovávat.
+
+\subsubsection{Témata}
+\label{sec:sub_temata}
+Jádrem bakalářské práce je na této množině článků najít \uv{témata} a jejich četnost případně vynést na časovou osu. Přesnou definici tématu v~bakalářské práci tudíž teprve hledám. Je tedy nutné se spokojit s~tím, že téma zatím nejasně definuji jako \uv{něco, o čem článek je}. Tuto definici jsem si nazval \emph{naivní} definice tématu.
+
+
+\chapter{Detekce témat}
+\label{sec:hledanitemat_hlavni}
+V této části uvedu několik postupů, jak je možné detekovat témata článku. \emph{Naivní} definici z~úvodu jsem si ponechal jako \uv{skutečnou} definici tématu; pro jednotlivé postupy potom platí, že v každém z~nich lze nakonec za definici tématu považovat \emph{ten} formální prvek, které dané postupy vyrábějí. 
+
+Některé z~těchto postupů jsem neimplementoval; u těch, které jsem implementoval, hodnotím i to, jak moc se výsledky blíží naivní definici (která je samozřejmě už ze své podstaty \emph{velmi} vágní a nepřesná); tj. jak dobře lze říci, že témata, nalezena touto metodou, jsou opravdu to, \uv{o čem je tento článek}. Výsledky samotné včetně výsledků evaluace, kterou také popisuji dále v~této části, podrobněji zkoumám v~Kapitole~\ref{sec:experimenty}.
+
+\section{Frekvence a stopslova}
+\label{sec:frekvestopslo}
+
+První nápad na hledání témat je jednoduché počítání frekvencí ve článcích s~tím, že častější slova prohlásím automaticky za témata --- případně s~tím, že budu ignorovat tzv. stopslova.
+
+Termín \emph{stopslova} (\emph{stopword}, případně \emph{stoplist} ve významu seznam stopslov) popisuje např. \cite{introduction} a další. Jde o po\-mě\-r\-ně ma\-lou mno\-ži\-nu ty\-pů slov, kte\-rá ale před\-sta\-vu\-je vel\-kou část to\-ke\-nů. (V angličtině je to např. po\-dle \cite{introduction} 40-50 pro\-cent; v~části~\ref{sec:stemata} ukazuji statistiky na vlastní databázi zpravodajských článků.) Jde převážně o spojky, částice a zá\-klad\-ní slovesa, co sama o sobě nenesou žádný obsah textu. Je nutno je buď definovat ručně, což je ale jaksi \uv{nesystémové} řešení; nebo se stopslova definují jako nej\-čas\-tě\-ji po\-u\-ží\-va\-ná slo\-va (jak je definuji i já), což s~sebou ne\-se ri\-zi\-ko, že se vel\-mi čas\-tá slo\-va, kte\-rá ale \emph{ne\-jsou} bez\-vý\-zna\-mo\-vá či po\-moc\-ná, ú\-pl\-ně i\-gno\-ru\-jí.
+%jsou jakoby prvním přiblížením, jak oddělit plnovýznamová slova od pomocných
+
+Pro nalezení množiny témat pro daný článek potom vezmu prvních $k$ nej\-ča\-s\-tě\-j\-ších slov --- buď bez ohledu na stopslova, nebo s~jejich vyřazením, kde $k$ je konstantní pro celou databázi.
+
+Tento přístup je sice velmi jednoduchý a dobře definovaný, ale jak ukazuji v~části~\ref{sec:ftemata}, nedává příliš dobré výsledky. Je to proto, že četnost slova je brána jako \emph{jediné} kritérium pro určení daného slova jako tématu --- přičemž dané slovo může sice být ve článku četné, ale je podobně četné i v~ostatních článcích, takže velká četnost tohoto slova článek nijak nevymezuje vůči dalším článkům. V~podstatě jde o tentýž problém, který se snaží řešit stopslova, pouze v~menší míře --- nejedná se \emph{přímo} o stopslova, ale přesto tato slova nejsou pro článek natolik důležitá, aby byla jeho tématem.
+
+Dále mi nastává přesně opačný problém, který jsem již nastínil --- protože stopslova beru pouze jako \emph{právě ta} nejčetnější slova v celé databázi, některá slova, která by se určitě dala chápat jako témata článku podle naivní definice, se kompletně ignorují (konkrétně jde například o jména politických stran).
+
+S touto metodou, stejně jako s~následující, je spojen také další, významný problém --- tyto metody nacházejí pouze ta slova, která jsou v~samotném článku. Jak bude vidět na skutečných datech dále, je nutno je chápat spíše jako jakási klíčová slova --- je tedy problém správnost nalezení těchto témat měřit, přičemž návrh metriky kvality zatřídění je jedním z~úkolů bakalářské práce.
+
+Témata, nalezená ve článku pouze pomocí této metody počítání frekvencí, jsem si nazval \emph{frekvenční témata}; témata, nalezená za pomoci stopslov jsem si nazval \emph{stop témata}.
+
+\section{TF-IDF}
+\label{sec:tfidf_teory}
+Dalším nápadem je použít váhovou funkci \emph{TF-IDF}, kterou popisuje dobře např. \cite{approaches} a která řeší jednu z~mých výtek k~minulému přístupu --- tj. to, že slova častá v~jednom dokumentu jsou častá i ve všech ostatních.
+
+Je zavedena \emph{inverzní frekvence dokumentů} (\emph{inverse document frequency}, \emph{IDF}), která dává větší hodnotu těm slovům, která se vyskytnou ve více dokumentech. Výsledná váha \emph{TF-IDF} (někdy také \emph{tf*idf} či \emph{tf$\times$idf}) je poté pro každé slovo ve článku násobkem \emph{TF} (jejich \uv{obyčejná} frekvence v~článku) a \emph{IDF}.
+
+Přesněji definuje \cite{understanding} $tf_{i,j}$  jako počet výskytů slova $i$ ve článku $j$; tu můžeme ještě normalizovat vydělením velikostí do\-ku\-men\-tu, čímž se do\-sta\-ne\-me k~podobnému vzorci, jaký uvádí \cite{wikitfidf} $$tf_{i,j}=\frac{n_{i,j}}{dl_j},$$ kde $dl_j$ značí délku dokumentu $j$ a $n_{i,j}$ počet výskytů slova $i$ ve článku $j$.
+
+$idf_{i,j}$ je pak (taktéž např. podle \cite{understanding}) definována jako $\log\frac{N}{n_i}$, kdy $N$ je velikost korpusu a $n_i$ počet dokumentů, ve kterých se vyskytne slovo $i$ --- \cite{wikitfidf} uvádí ekvivalentní vzorec $$idf_{i,j}=\log\frac{N}{\left|\left\{j: i \in j\right\}\right|},$$ kde $j$ je vnímáno jako množina slov ve článku.
+
+\cite{introduction} uvádí vzorec pro $idf$ explicitně s~binárním logaritmem, což ale vlastnosti nijak nemění. V~případě, že slovo nemusí být v~korpusu, je možné jmenovatel upravit na $\left|\left\{j: i \in j\right\}\right|+1,$ abychom nedělili nulou.
+
+Potom platí jednoduché $$\mathrm{TF-IDF}_{i,j}=tf_{i,j}\cdot idf_{i,j}.$$
+
+TF-IDF je opět pouze váhová funkce, tj. je třeba určit nějaké $k$, konstantní pro všechny články, a jako témata vzít pouze  $k$ slov s nejvyšším TF-IDF. Těmto tématům říkám \emph{tf-idf témata}.
+
+Pro bigramy, trigramy apod. nedává TF-IDF dobré výsledky, protože IDF je pro bigramy ve většině případů a pro trigramy téměř ve všech případech 1. Stále také platí, že tato metoda najde pouze slova, která se ve článku vyskytují, tj. jde pouze o jakási klíčová slova --- platí tedy totéž, co jsem psal v~závěru části \ref{sec:frekvestopslo}.
+
+\section{Klasifikace}
+\label{sec:kategorizace}
+Další možností je úlohu definovat jinak --- zatřiďovat články do kategorií, které nazveme tématy a které můžeme nějak pojmenovat, aniž by se ale tyto názvy musely jako slova ve článcích vyskytovat. Články jsou na podmnožině článků do těchto kategorií zatříděny uživatelem, na základě tohoto ručního zatřídění potom zatřiďuje do stejných kategorií stroj. Tato metoda se nazývá \emph{kategorizace} (\emph{categorization}) nebo \emph{klasifikace} (\emph{classification}).
+
+\subsection{Definice}
+ \label{sec:kategorizace_def}
+Např. podle \cite{machine_intro} lze úlohu klasifikace definovat takto: existuje funkce $\bar{\Phi}: D \times C \rightarrow \left\{Ano, Ne\right\}$, kde $D$ je množina všech dokumentů, $C$ množina všech kategorií, $\left\{Ano, Ne\right\}$ pravdivostní hodnota. $\bar{\Phi}$ lze potom interpretovat jako odpověď na otázku \uv{obsahuje tato kategorie tento článek?}.
+
+Funkce $\bar{\Phi}$ je tedy \uv{správné} zatřídění, nazývaná také \emph{cílová funkce} (\emph{target function}). Úlohou klasifikace je potom tuto funkci $\bar{\Phi}$ nějak aproximovat funkcí $\Phi: D \times C \rightarrow \left\{Ano, Ne\right\}$, která se nazývá \emph{klasifikátor} (\emph{classifier}).
+
+Jednou možností klasifikace jsou automaty, které mají programátorem daná pravidla pro zatřiďování --- tzv. \emph{pravidlové klasifikátory} (\emph{rule-based classifier}). Touto možností jsem se příliš nezabýval, protože ruční sestavení pravidel je příliš pracné; spíše jsem se zaměřil na klasifikace se strojovým učením.
+
+Algoritmy klasifikace se \emph{strojovým učením} (\emph{machine learning}) jsou založeny na tom, že klasifikátor se nejdříve naučí zatřiďovat na množině předem daných článků s~\emph{ručně zatříděnými kategoriemi}.
+
+Přesněji popisuje opět \cite{machine_intro}: Vezmeme $\Omega \subset D$ podmnožinu všech dokumentů, na níž \emph{známe} výsledky cílové funkce $\bar{\Phi}$, a na základě této znalosti tvoříme funkci $\Phi$ (která se na $\Omega\times C$ může a nemusí shodovat s~$\bar{\Phi}$). Ono \uv{známe výsledky funkce} je právě ruční zatřiďování na podmnožině $\Omega$.
+
+Algoritmy pro klasifikaci, které jsem použil, jsou dobře popsány v~\cite{machine_intro}. Jelikož jsem tyto algoritmy neimplementoval přímo já, ale využil jsem perl modul \texttt{AI::Categorizer}, nebudu se zde o nich tolik zmiňovat a případně mohu odkázat na dokumentaci tohoto mo\-du\-lu, viz \cite{algorithmnaivebayes}. V~rámci tohoto mo\-du\-lu jsem použil algoritmy Naive Bayes, SVM a Decision Tree.
+
+
+\subsection{Rysy}
+
+Článek je pro všechny tyto algoritmy ale třeba nějak formálně reprezentovat. Pro účely klasifikace se používají takzvané \emph{rysy} (\emph{features}). Je to množina, která charakterizuje dokument. Formálně, opět podle \cite{machine_intro}, je možné reprezentaci pomocí rysů popsat takto: $T$ je množina všech rysů, a každý dokument je poté definován jako vektor $d_j=\left<w_{1_j}, \ldots w_{\left|T\right|_j}\right>$.
+
+Já jsem k~definování rysů použil už hotovou funkci TF-IDF, a to dvěma různými způsoby:
+
+\begin{enumerate}
+    \item první varianta je vzít $k$ slov s~největší TF-IDF hodnotou a každému z nich dát $d_j$ stejné, rovné 1,
+    \item druhá varianta je vzít všechna různá slova ve článku, ohodnocená právě jako výsledek váhové funkce.
+\end{enumerate}
+
+Témata, nalezená touto metodou, jsem si nazval \emph{kategorická témata}.
+
+\subsection{Kategorie}
+\label{sec:jakekategorie}
+Čeho jsem se zatím nedotkl je výběr samotných kategorií a potom také otázky, jestli články mohou být ve více než jedné kategorii. %Tyto otázky se ukazují jako zásadní pro vyřešení daného úkolu.
+
+\subsubsection{Předem dané kategorie}
+\label{sec:omezene_teorie}
+
+Jedna z~možností je kategorie zadat explicitně předem a zatřiďovat do nich. Následuje otázka --- jak kategorie vybrat?
+
+Můžeme vybrat například kategorie velmi hrubě podle tématických kategorií, které budou přibližně zrcadlit kategorie na zpravodajských serverech. Tuto možnost jsem vyzkoušel s~těmito konkrétními kategoriemi: \texttt{Politika}, \texttt{Ekonomika}, \texttt{Krimi}, \texttt{Bulvár}, \texttt{Kultura}, \texttt{Studium}, \texttt{Věda}, \texttt{Technika}, \texttt{Počasí}, \texttt{Sport} a \texttt{Další}; každá z~nich je ještě rozdělena na \texttt{domácí} a \texttt{svět}. 
+
+Kategorie můžeme pojmout i šířeji a vypůjčit si kategorie například z~českých WikiNews. Tuto možnost jsem zvažoval, ale nakonec nestihl otestovat.
+
+
+\subsubsection{Neomezená množina kategorií}
+\label{sec:neomezene_teorie}
+
+Další možností je nedefinovat kategorie explicitně, ale vytvářet je až v~průběhu ručního zatřiďování, kde \uv{definice} kategorie kopíruje naivní definici tématu z~čá\-sti~\ref{sec:sub_temata}. Pokud jsou kategorie vytvářeny až člověkem při ručním zatřiďování, znamená to, že teoreticky není množina kategorií nijak omezená, a tedy jakýkoliv výraz, který nese sémantický význam, může být tématem článku.
+
+Tato možnost je lepší v~tom, že se není třeba dopředu omezovat na seznam kategorií, není seznam kategorií třeba předem vytvářet a hlavně je mnohem jednodušší úloha ručního zatřiďování --- v~podstatě je redukovaná pouze na otázku \uv{O čem je tento článek?}. Tuto možnost jsem implementoval jako první.
+
+Tato možnost má ale také své nevýhody --- vektor kategorií je, jak již naznačuji výše, potenciálně nekonečný. Pokud není v~programu implementována sémantická analýza nebo alespoň rozlišování synonymie, polysémie apod., neúplné překryvy témat jsou příliš časté pro to, aby bylo zatřiďování do témat praktické, protože mnoho článků má téma, které se znovu nevyskytne, jak bude vidět i v~části~\ref{sec:neomezene}.
+
+Např. článků o pražském Tančícím domě je velmi málo, kategorii \texttt{Tančící dům} bude tedy mít pouze malé množství článků. S~nějakou úrovní sémantické analýzy by se článek mohl taktéž \uv{automaticky} zatřídit do kategorie \texttt{architektura} nebo \texttt{Praha}. 
+
+Na druhou stranu, sémantická analýza je příliš složitá, nejednoznačná (jaký je např. vztah témat \texttt{premiér ČR} a \texttt{Petr Nečas}?) a rozhodně jde za rámec této bakalářské práce.
+
+Je nutno dodat, že ve skutečnosti klasifikátor nezatřiďuje do nekonečně mnoha kategorií, ale opět pouze do konečného množství --- a to právě do těch kategorií, které byly označeny v~trénovacích datech. Dále je nutné v~evaluaci, kterou popisuji v~části~\ref{sec:evaluace}, brát v~úvahu také pouze existující kategorie.
+
+\subsection{Počet kategorií na článek} 
+Důležitou otázkou je také to, jestli má každý článek pouze jedinou tématickou kategorii, nebo jich může mít více.
+
+Jedna kategorie na každý článek má výhodu kvůli jednodušší evaluaci, na druhou stranu je \emph{složitější} fáze lidského zatřiďování.
+
+Ve skutečnosti se totiž málokdy články týkají pouze jednoho tématu. Podstata novinového článku sama o sobě je spojovat dohromady více skutečností, informovat o dění v~určitém místě, spojovat dohromady více osob apod. Proto se článek ze \emph{samé své podstaty} dotýká více než jednoho tématu. 
+
+U varianty s~neomezenou množinou kategorií jsem nechal možných kategorií na jeden článek více, u varianty s~omezenými kategoriemi pouze jednu na článek.
+
+\section{Další přístupy}
+V~této části shrnuji další přístupy, které jsem ovšem neimplementoval, takže jejich případné výhody či nevýhody mohu posuzovat pouze teoreticky.
+
+\subsection{Shlukování}
+Další variantou je jít na problém jakoby z~druhé strany a použít metodu tzv. \emph{shlukování} (\emph{clustering}). Tento přístup dobře popisuje například \cite{clustering}.
+
+Zjednodušeně řečeno jde o to, že na rozdíl od kategorizace se dokumentům nepřiřazují kategorie, ale dokumenty jsou rozděleny do množin na základě vzájemné podobnosti a případné názvy jsou těmto množinám --- tzv. \emph{shlukům} (\emph{clusterům}) přiřazovány až ex-post. 
+
+Pro úlohu clusteringu je třeba mimo jiné mít nějak definovanou míru podobnosti mezi dvěma různými dokumenty. V~našem případě by možná bylo možno tuto \uv{vzdá\-le\-nost} de\-fi\-no\-vat ja\-ko ve\-li\-kost prů\-ni\-ku klíčových slov.
+
+Clustering jsem i kvůli nedostatku času blíže nezkoumal a zde ho uvádím spíše pro srovnání.
+
+\subsection{Latent semantic indexing}
+\emph{Latent semantic indexing} (zkráceně \emph{LSI}) je mírně rozdílný způsob indexování dokumentů. Postup dobře popisuje \cite{lsi}. LSI v~podstatě pouze pomocí jednoduché lineární algebry řeší problémy se synonymií termínů (nikoliv však polysémií); na druhou stranu je ve své původní formě navržen pro problém \emph{text retrieval} --- tj. pro mírně odlišný problém, než je ten náš.
+
+Podstata LSI je v~tom, že matici $\left< \mathrm{dokumenty} \times \mathrm{termíny}\right>$ rozloží pomocí techniky \emph{singular value decomposition} (zkráceně \emph{SVD}) a poté zmenší dimenzi prostoru dokumentů a termínů; jednotlivé dimenze pak \cite{lsi} interpretuje jako \uv{koncepty}.
+
+Přesněji je matice $X$ definovaná jako matice o velikosti $t\times d$, $t$ je počet termínů, $d$ je počet dokumentů. V~matici se na pozici $x_{termín, dokument}$ nachází počet výskytů termínu \emph{termín} v~dokumentu \emph{dokument}. 
+
+SVD metoda převede tuto matici na násobek tří matic $T\times S \times D'$, kde matice $S$ je čtvercová diagonální matice o velikosti $m\times m$ (kde $m\le \min\left(t, d\right)$), matice $T$ má ortonormální sloupce, stejně jako matice $D$, ke které je $D'$ komplexně sdruženou maticí --- matice $T$ je velká $t \times m$, matice $D'$ $m \times d$. \footnote{Konvence pro velikosti matic u SVD se liší zdroj od zdroje; zde jsem zvolil koncenci od \cite{lsi}.} Tento rozklad existuje pro \emph{každou} matici.
+
+Můžeme si tedy představit, že prostor termínů a prostor dokumentů má dimenzi $m$ \footnote{V \cite{lsi} je toto vysvětleno až u redukované matice, ale platí to analogicky i před redukcí} --- myšleno tak, že pro daný termín a dokument je pozice v~matici $X_{termín, dokument}$ skalárním součinem řádku odpovídajícímu danému termínu v~matici $TS^{\frac{1}{2}}$ a řádku odpovídajícímu danému dokumentu v~matici $DS^{\frac{1}{2}}$, které jsou oba velké $m$. 
+
+Pro zjištění podobnosti dvou dokumentů či dvou termínů je možné si také reprezentovat termíny či body v~$m$-rozměrném prostoru, ale tyto body jsou mírně jiné, viz \cite{lsi}, zvláště kapitola 4.2.3.
+
+Hlavním krokem LSI je to, že prvky v~diagonální matici S lze seřadit podle velikosti, nechat pouze prvních $k$ největších prvků na diagonále a zbytek, tj. naopak $m-k$ nejmenších prvků na diagonále, nahradit nulami. Vznikne poté aproximace matice $X$, nazveme ji $\bar{X}$, je daná součinem $T\bar{S}D$. Jelikož má $S$ na diagonále nuly, je možné\footnote{Z principu násobení matic, více opět \cite{lsi}} řádky s~nulami úplně vynechat, vymazat odpovídající řádky a sloupce z~matic $T$ a $D$ a mít tedy matice o rozměrech $t \times k$, $k \times k$ a $k \times d$.
+
+Prostor termínů a prostor dokumentů má teď zmenšenou dimenzi $k$ (stejnou úvahou, jako výše). Dokumenty i termíny jsou teď určeny řádky matic $\bar{D}\bar{S}^{\frac{1}{2}}$ a $\bar{T}\bar{S}^{\frac{1}{2}}$.
+
+Podle \cite{lsi} je možné interpretovat tyto řádky jako příslušnost termínů k~jednotlivým konceptům.
+
+Je otázkou, jak přesně by k~nalezení našich \uv{témat} LSI přispěl, jestli vůbec; jestli by bylo například možné už tyto koncepty nějak prohlásit za témata, případně použít tuto metodu například ke shlukování dokumentů, slov nebo obojího.
+
+%Tento způsob indexování jsem pro nedostatek času již neimplementoval. Je také otázkou, jak přesně by k~nalezení \uv{témat} přispěl, jestli ano; jestli by bylo možné už tyto koncepty nějak prohlásit za témata, případně použít tuto metodu například ke clusteringu dokumentů, slov nebo obojího.
+
+Nad čím by bylo také potřeba uvažovat je způsob SVD rozkladu matice $X$, která se celá nevejde do běžné paměti (pokud bychom opravdu vzali všechny články a termíny) a je velmi řídká. 
+
+
+\subsection{Latent Dirichlet allocation}
+\emph{Latent Dirichlet allocation} (zkráceně \emph{LDA}) je pravděpodobnostní model, který zajímavě řeší problematiku témat.
+
+LDA byl poprvé popsán v~\cite{lda}. Je to generativní pravděpodobnostní model, který pracuje se zjednodušením, že u slov ve článku nezáleží na pořadí. Při generování článku v~korpusu se postupuje následovně:
+
+\begin{itemize}
+    \item Předem je dáno pravděpodobnostní rozdělení, generující délku článku. Jeho podoba není příliš důležitá. \footnote{Autoři \cite{lda} uvádějí Poissonovo rozdělení, ale vzápětí také dodají, že toto rozdělení není dále příliš relevantní.}
+    \item Předem je dán také počet témat $k$.
+    \item Dále je předem znám vektor $\alpha$ o velikosti $k$, který je použit jako parametr Dirichletova rozdělení.
+    \item Dále je předem známá matice $\beta$ velká $k \times v$ (kde $v$ je počet všech slov), která na $\beta_{i,j}$ má pravděpodobnost $p(slovo\,j|téma\,i)$
+    \item Pro každý dokument se nejdříve vygeneruje jeho velikost.
+    \item Poté se vybere parametr $\theta \sim \mathrm{Dir}\left(\alpha\right)$, pro \textbf{každý dokument zvlášť}.
+    \item Pro \textbf{každé slovo zvlášť} se pak podle pravděpodobností v~$\theta$ vybere téma $z$ (tedy $z \sim \mathrm{Categorical}(\theta)$\footnote{\cite{lda} uvádí multinomické rozdělení, ale jedná se pouze o jeden výběr, tedy nám stačí kategorické.}).
+    \item Podle pravděpodobnosti v~matici $\beta$ se poté vygeneruje slovo.
+\end{itemize}
+
+Znamená to tedy následující:
+\begin{itemize}
+    \item Článek nemá jedno téma, ale pravděpodobnost témat $\theta$ pro svoje slova.
+    \item Každý token má naopak svoje téma.
+    \item Jeden typ může být (a často je) ale generován více tématy.
+    \item Těchto slovních témat je omezený počet ($k$) pro celý korpus.
+\end{itemize}
+
+Pokud máme naopak pouze korpus, potřebujeme přiřadit jednoznačně tokeny k~tématům, odhadnout $\theta$ pro každý dokument a také parametry $\alpha$ a $\beta$. Jeden z~možných algoritmů ke stavbě LDA modelu je popsán opět v~\cite{lda}.
+
+Z~uváděných neimplementovaných metod bych nejspíše LDA implementoval jako první a v~případné další práci by bylo dobré ji prozkoumat podrobněji, jelikož automaticky řeší velké množství problémů. Je možné, že $k$ takto nalezených témat už by bylo automaticky možné prohlásit za \uv{témata} --- na druhou stranu, je třeba si uvědomit, že $\theta$ neříká to, jaké jsou pravděpodobnosti, že článek patří do tématu, ale opravdu pouze pravděpodobnosti témat jednotlivých slov.
+
+Pro doplnění je dobré dodat, že tzv. online LDA algoritmus na stavbu LDA modelu byl implementován například v~projektu GenSim Radimem Řehůrkem z~Centra zpracovávání přirozeného jazyka na Fakultě informatiky Masarykovy univerzity, viz \cite{rehurek} či přímo stránky projektu \url{http://nlp.fi.muni.cz/projekty/gensim/index.html}; autoři popisují průběh algoritmu na korpusu celé anglické wikipedie zde \url{http://nlp.fi.muni.cz/projekty/gensim/wiki.html\#latent-dirichlet-allocation}.
+
+\section{Evaluace}
+\label{sec:evaluace}
+Nalezení metriky kvality detekce témat bylo jedno ze zadání bakalářské práce. Zatímco klasifikace má sama o sobě dobře definovanou metriku, u dalších metod je evaluace problematická.
+
+\subsubsection{Klasifikace}
+
+Evaluaci u~klasifikátorů jsem provedl metodou \emph{cross-validace} (\emph{cross-va\-li\-da\-tion}), popsanou například opět v~\cite{machine_intro}, a jednotlivé testy v~cross-validaci jsem provedl pomocí \emph{makroprůměru} (\emph{macroaveraging}) i \emph{mikroprůměru} (\emph{microaveraging}), popsaných tamtéž.
+
+Cross-validace funguje tak, že z~množiny všech článků se vybere podbnožina $\Omega$, která je ručně zatříděna do kategorií. Tato množina je rozdělena do $k$ disjunktních množin $Te_1, Te_2, \ldots Te_k,$ a poté je na dvojicích $\left<Tv_i=\Omega-Te_{i}, Te_{i}\right>$ provedena klasická evaluace (pokaždé ale s~\emph{novým} klasifikátorem), nazývaná v~\cite{machine_intro} \emph{train-and-test}.
+
+V metodě \emph{train-and-test} je klasifikátor natrénován testovaným algoritmem na množině $Tv$ a menší množinu článků $Te$ poté zatřiďuje do kategorií. Klasifikátor ruční zatřídění na množině $Te$ nezná a znát \emph{nesmí}.
+
+Po každém z~těchto dílčích testů je na základě porovnání ručního a strojového zatřídění na množině $Te$ spočítána \emph{přesnost} (\emph{precision}) a \emph{úplnost}\footnote{Český překlad slova \emph{recall} není ustálen --- velká část odborné literatury používá přímo anglické názvy, kromě termínu \emph{úplnost} je někdy také používáno termínu \emph{pokrytí}.} (\emph{recall}) --- tyto přesněji definuji níže; z~nich je poté spočítáno pro každý dílčí test \emph{F$_1$-skóre} (\emph{F$_1$-score}). 
+
+Tato skóre jsou poté ze všech $k$ dílčích testů dohromady zprůměrována; pro ilustraci ve výsledcích uvádím i průměrnou přesnost a úplnost.
+
+Jelikož při každém dílčím testu je použita pouze množina, velká $\frac{k-1}{k}\left|\Omega\right|,$ znamená to, že klasifikátor nikdy nefunguje tak dobře, jak by \uv{mohl} --- ale testování na stejných datech, na kterých byl klasifikátor natrénován, by dávalo nerealisticky dobré výsledky.
+
+Pro dílčí evaluace počítám přesnost a úplnost \emph{vzhledek ke kategoriím} (\emph{with respect to category}), průměrované pomocí \emph{mikro-} a \emph{makroprůměru} (\emph{micro} a \emph{macro averaging}). Jde o to, že pro každou kategorii $c_i$ jsou spočítány hodnoty:
+\begin{itemize}
+\item  $TP_i$: \emph{true positive} --- počet dokumentů, které měly být a jsou v~kategorii $c_i$,
+\item $FP_i$: \emph{false positive} --- počet dokumentů, které neměly být v~kategorii $c_i$, ale jsou,
+\item $FN_i$: \emph{false negative} --- počet dokumentů, které měly být v~dané kategorii, ale nejsou.
+\end{itemize}
+Spolu s~$TN_i$ (\emph{true negative} --- počet dokumentů, které neměly být v~dané kategorii a nejsou) platí pro všechny kategorie $c_i$:
+ $$\left(FP_i+TP_i\right)+\left(FN_i+TN_i\right) = \left|c_i\right| + \left|Te \setminus c_i\right| = \left|Te\right|.$$
+
+Poté je přesnost ($\pi$) a úplnost ($\rho$) spočítána dvěma způsoby. Jeden (tzv. mikroprůměr, s~indexem $\mu$) je spočítán přes všechna rozhodnutí o kategorizaci, druhý (makroprůměr, s~indexem $M$) přes všechny kategorie, tj. 
+$$\pi_{\mu} = \frac{TP}{TP+FP} = \frac{\sum_{i=1}^{\left|C\right|}TP_i}{\sum_{i=1}^{\left|C\right|}\left(TP_i+FP_i\right)},$$ 
+$$\rho_{\mu} = \frac{TP}{TP+FN} = \frac{\sum_{i=1}^{\left|C\right|}TP_i}{\sum_{i=1}^{\left|C\right|}\left(TP_i+FN_i\right)},$$ 
+$$\pi_{M} = \frac{\sum_{i=1}^{\left|C\right|}\frac{TP_i}{TP_i+FP_i}}{\left|C\right|},$$ 
+$$\rho_{M} = \frac{\sum_{i=1}^{\left|C\right|}\frac{TP_i}{TP_i+FN_i}}{\left|C\right|}.$$
+
+V obou případech lze říci, že přesnost znázorňuje podíl toho, že pokud je dokument klasifikátorem zatříděn do kategorie $c$, tak tam má být zatříděn; zatímco úplnost znázorňuje podíl toho, že pokud má být dokument do kategorie zatříděn, tak tam klasifikátorem je zatříděn. To odpovídá českým názvům. 
+
+Technicky je nutné dořešit jeden problém, kterému se \cite{machine_intro} ne\-vě\-nu\-je. Jak přesně spočítat přesnost, pokud jsou $TP$ i $FP$ rovné nule? Já tento problém vyřešil takto --- pokud jsou při výpočtu mikroprůměru $TP$ i $FP$ rovny nule --- tj. klasifikátor nevydal \emph{ani jedno} rozhodnutí, je $\pi_{\mu}$ rovno jedné, protože jsou jakoby všechna rozhodnutí správně. Stejně tak uvažuji ve výpočtu makroprůměru v~počítání \uv{malých} přesností pro každou kategorii.
+
+Ani přesnost, ani úplnost není možno brát jako samostatnou metriku --- například $\rho=1$ lze docílit triviálním klasifikátorem, který zatřídí každý článek do všech kategorií. K~průměrování těchto dvou hodnot k dosažení jediné metriky se používá F$_1$-skóre, které je (například opět podle \cite{machine_intro}) definováno jako $$F_1=\frac{2\pi\rho}{\pi+\rho}.$$ 
+
+Jelikož mám dvojí přesnost a úplnost, mám i dvojí F$_1$ skóre, jedno pro mikro- a jedno pro makroprůměr; označuji je $F_\mu$ a $F_M$. Tato dvě skóre tedy beru jako finální metriky kvality detekce kategorií.
+
+\subsubsection{Další metody}
+\label{sec:dalsimetody}
+
+Jak jsem již uvedl v~sekcích \ref{sec:frekvestopslo} a \ref{sec:tfidf_teory}, tyto metody vrací spíše klíčová slova než témata. Je velmi obtížné pro kvalitu určování těchto klíčových slov navrhnout metriku, která by dávala smysluplné výsledky.
+
+Zkusil jsem pro evaluaci těchto metod využít stejnou metriku, co pro úlohu kategorizace --- tj. použít ručně zatříděná data a výsledky srovnat s nimi. Úlohu evaluace na těchto metodách jsem si pro tyto účely upravil takto:
+\begin{enumerate}
+    \item Slova, která tyto metody vrací, jsou názvy kategorií, do kterých je článek strojem zatříděn; tj. z~metod, které nefungují na principu klasifikace, vyrobím svého druhu klasifikátory.
+    \item Naopak názvy ručně určených kategorií jsou často víceslovné; proto chápu pro jednoduchost shodu mezi ruční kategorií, skládající se ze slov $a_1, a_2 \ldots a_n$ a strojem určenou kategorií, skládající se ze slova $b$ tak, že \emph{některé} ze slov $a_1$ až $a_n$ je rovno $b$.
+    \item Protože takto definované klasifikátory se nijak neučí, není potřeba dělit množinu článků na testovací a trénovací část a provádět cross-evaluaci --- je možné \emph{rovnou} spočítat $\pi$, $\rho$ a $F_1$, vše podle definic, uvedených výše.
+\end{enumerate}
+
+Tento způsob evaluace má o něco volnější definici \emph{true positive}, tedy při srovnání s~evaluací klasických klasifikátorů dává lepší výsledky, než by jí možná odpovídalo.
+%Tato evaluace je sice dobře definovaná, ale jak ukážu v Kapitole \ref{sec:experimenty}, dává nesmyslně nízké výsledky.
+
+\chapter{Další implementační problémy}
+V této kapitole se pokusím rozebrat jednotlivé problémy, které úkol sledování témat v~elektronickém zpravodajství má, a ukázat různé varianty jejich řešení. Zároveň s~tím zmíním některé implementační problémy samotného programu.
+
+\section{Výběr serverů}
+Seznam webů ke sledování jsem se rozhodl vybrat ručně, čistě podle toho, jak \uv{důvěryhodné} mi připadaly --- tj. převážně ty, které mají za sebou tištěné deníky, a navíc server \url{http://aktualne.cz}, který je v~ostatních médiích také často citován. 
+
+Kromě \uv{seriozních} deníků jsem přidal pro úplnost také bulvární servery \texttt{blesk.cz} a \texttt{bleskove.cz}.
+
+V souvislosti s~dalším problémem jsem vybíral pouze takové servery, které seznam svých článků vydávají ve formátu RSS. Úplný seznam je uveden v~Příloze~\ref{sec:zpravozdroj}.
+
+\section{Získávání článků}
+\label{sec:ziskavani}
+Získávat články lze několika způsoby. Já zvolil následující dva.
+
+\subsubsection{RSS}
+RSS je technologie, umožňující serverům vydávajícím pravidelný obsah oznamovat vydávání nových článků přes takzvané RSS kanály a čtenářům naopak umožňující tyto nové články sledovat.
+
+Jelikož drtivá většina českých zpravodajských serverů RSS kanály podporuje, rozhodl jsem se tuto technologii použít ke stahování nových článků.
+
+\subsubsection{Archiv}
+Z technických důvodů mi ovšem RSS kanály určitou dobu nefungovaly. Proto jsem do programu přidal další funkci --- stahování článků přes archiv zpráv.
+
+Všechny mnou sledované weby (kromě, bohužel, serveru iHNed.cz\footnote{Server iHNed.cz má sice starší články na webu zdarma přístupné, ale nemá přístupný seznam více než 300 článků v každé kategorii, což odpovídá přibližně dvěma měsícům.}) mají nějakou formu archivu, který je zdarma přístupný. Každý z~těchto archivů je možno velmi jednoduše projít a články za období výpadku RSS stáhnout.
+
+Je důležité si ale uvědomit, že články v~archivu nejsou vždy shodné se články v~RSS, což bude více vidět v~kapitole~\ref{sec:sberdat}. Proto se počet a struktura článků ve dnech, kde byly články stahovány první metodou, liší od dnů, kdy byly stahovány druhou metodou.
+
+
+
+\section{Vyčištění článku}
+Jak dobře popisuje například \cite{eliminating} či \cite{discovering}, kolem \uv{sku\-te\-č\-né\-ho} obsahu článku, který nese sémantickou informaci, je také velké množství dalšího textu, například odkazy na jiné články, navigační prvky apod. Tyto HTML elementy sice uživateli pomáhají lépe se orientovat na stránce a v~nej\-lep\-ším případě jsou pro člověka jasně vizuálně oddělitelné od obsahu článku, stroj má ale k dispozici pouze zdrojový HTML kód a od\-dělení \uv{skutečného} textu článku od \uv{zbytku} je netriviální problém. Na tento problém existuje několik možností řešení.
+
+\subsubsection{Vyčištění vynechat}
+První řešení se nabízí vyčištění článku úplně vynechat a (například pomocí programu \texttt{links}) jako obsah článku vzít vše, co je zobrazeno.
+
+Jak správně podotýká například \cite{discovering}, článek je ale potom pro strojové zpracování nepoužitelný, jednak z~toho důvodu, že se některé výrazy často opakují, a poté i proto, že délka samotného textu článku je často kratší, než délka okolních navigačních prvků.
+
+\subsubsection{Šablony}
+Dalším řešením je nějak \emph{a priori} popsat, které HTML prvky jsou opravdu obsahové, které naopak nejsou a tyto seznamy vytvořit pro každý zpravodajský zdroj zvlášť. Tomuto přístupu se někdy říká \emph{používání šablon} (\emph{templating}).
+
+Jeho hlavní nevýhoda je zřejmá --- je potřeba předem znát HTML strukturu stránek, které budeme čistit. Vzhledem k~tomu, že můj projekt běžel delší dobu, po které se designy a názvy HTML elementů různě měnily, nebyl tento přístup příliš použitelný.
+
+Lepším přístupem je řešit vyčištění článků až podle obsahu jednotlivých HTML DOM elementů bez předchozí znalosti struktury stránky (případně s~použitím názvů tagů pouze jako doporučení pro automatické čištění). Z~mnoha možností jsem nakonec zvolil následující.
+
+\subsubsection{Vyčištění na základě hustoty odkazů}
+Rozhodl jsem se využít utilitu \texttt{Readability}, která je původně psá\-na ja\-ko Java\-Scri\-pto\-vý brow\-ser plu\-g\-in k~pohodlnějšímu uživatelskému čtení in\-ter\-net\-o\-vých člán\-ků (a jako takovou ji používá například prohlížeč Safari pod názvem Safari Reader). 
+
+Utilita je o něco složitější, ale základní způsob, jakým určuje obsahové části od neobsahových, je poměr odkazů k~běžnému textu. Čím větší je podíl odkazů, tím menší je pravděpodobnost, že se jedná o část s~obsahem. 
+
+\texttt{Readability} bohužel nemá žádnou další dokumentaci, kterou bych lze mohl odcitovat, kromě komentářů ve zdrojovém kódu.\footnote{Zdrojový kód lze nalézt na adrese projektu \\ \hspace*{1.5em} \url{http://code.google.com/p/arc90labs-readability/}.}
+
+
+\section{Kontinuální zpracování}
+V zadání práce je nepřímo zmíněno, že sledování zpravodajství a vyhledávání témat bude probíhat dlouhodobě a kontinuálně.
+
+To představuje mírný problém. Například TF-IDF váhová funkce se kontinuálně zlepšuje s~tím, jak do databáze přibývají nové a nové články. Vyvstává otázka, zda je třeba s~novými články, a tedy s~novými inverzními frekvencemi, měnit zpětně články s~už nalezenými tf-idf tématy. Algoritmus LSI pro SVD také potřebuje mít matici kompletní.
+
+Nakonec jsem kontinuální zpracování vůbec neřešil --- jak bude vidět v~části \ref{sec:sberdat}, sbírání článků jsem v~určitém momentě zastavil a úlohu detekce témat řešil pouze na dané množině. Tím jsem se mírně odchýlil od zadání.
+
+
+\section{Lingvistické předzpracování}
+
+\subsection{Lemmatizace}
+
+V kapitole~\ref{sec:hledanitemat_hlavni} jsem mluvil obecně pouze o slovech. Pro lepší výsledky při počítání frekvencí je dobré převést různé tvary stejného slova na kanonickou formu --- buď prostřednictvím lemmatizace, nebo pomocí tzv. stemmingu. \emph{Lemmatizace} (\emph{lemmatization}) je převedení slova do základního tvaru, tzv. \emph{lemmatu} --- např. u podstatných jmen jde o nominativ singuláru.
+
+V rámci Ústavu formální a aplikované lingvistiky existuje projekt TectoMT, v~němž jsou už předinstalované dva lemmatizátory, pojmenované \texttt{TagHajic} a \texttt{MorCe}. Více informací lze zjistit na domovské stránce projektu, \url{http://ufal.mff.cuni.cz/tectomt/}.\footnote{Pro úplnost dodám, že projekt TectoMT se nově jmenuje TreeX a bude ke stažení z archivu CPAN (\url{http://cpan.org}).}
+
+Pro lemmatizaci používám lemmatizátor \texttt{TagHajic} --- sice vrací o něco horší výsledky, ale má menší paměťové nároky a pracuje o něco rychleji.
+
+\subsection{Pojmenované entity}
+Při vyhledávání klíčových slov si ještě mírně pomáhám vyhledáním tzv. \emph{pojmenovaných entit} (\emph{named entities}), taktéž pomocí vestavěných modulů v~\texttt{TectoMT}. Pojmenované entity jsou jména osob, míst, organizací a podobně.
+
+Předpokládám, že pojmenované entity budou mít vyšší důležitost, než ostatní slova. Proto jim v~rámci TF-IDF vážící funkce dám určitý \uv{náskok} --- tj. že počet výskytů $n_{i,j}$, tedy i celou váhovou funkci, vynásobím koeficientem $2$.
+
+Pohlíženo zpět si nejsem zcela jist, jestli tento krok byl vhodný, protože je možné, že tyto entity by tak jako tak dostaly vyšší TF-IDF skóre. Na druhou stranu, jména osob a míst \emph{jsou} často klíčová slova článku, a protože automatický pojmenovávač entit funguje na jiné bázi, než TD-IDF, je dobré tyto dva komplementární přístupy kombinovat.
+
+Každopádně jde pouze o teoretickou otázku, kterou jsem přímo neověřoval, pojmenovávač entit jsem nechával jako součást programu a ani koeficient jsem neupravoval.
+
+
+\chapter{Experimenty}
+\label{sec:experimenty}
+
+
+\section {Sběr dat}
+\label{sec:sberdat}
+
+Články byly sbírány mezi prosincem 2009 a lednem 2011. Jak jsem již naznačil v~sekci~\ref{sec:ziskavani}, část dat jsem sbíral přes RSS, druhou část přes archiv zpráv. Jasný časový předěl mezi těmito dvěma částmi byl 1. duben 2010 --- do tohoto data se články sbíraly přes RSS, od tohoto data dále se články sbíraly přes archiv.
+
+\grafffh{clanky}{Počty článků v~čase}
+
+První zajímavou veličinou je samotný počet článků, který jsem vynesl do Grafu~\ref{graf:clanky}. Na horizontální ose je vynesen čas, na vertikální počet článků. Na horizontální ose jsou pouze dny s~nenulovým počtem článků; počáteční měsíc, kdy ještě systém zcela nefungoval, je tedy o něco kratší. Na horizontální ose jsou také vyznačeny měsíce (pro jednoduchost je vynecháno označení roků).
+
+Kromě počátečních a závěrečných výkyvů, způsobených drobnými chybami v~experimentu, stojí za pozornost jednak \uv{pád} v~dubnu 2010, způsobený již popisovanou změnou způsobu sběru článků, a potom pravidelné týdenní fluktuace, způsobené menším množstvím zpráv o víkendech.
+
+\grafffh{slozeni}{Poměr článků z~jednotlivých zdrojů}
+
+Složení jednotlivých zdrojů v~databázi jsem vynesl do Grafu~\ref{graf:slozeni}. Co stojí za zmínku je fakt, že server iHNed jsem po 1.dubnu 2010 do databáze nestahoval, protože na severu iHNed.cz není k~dispozici archiv; dále splynuly servery České~noviny a Finanční~noviny (v grafu to není úplně zřetelné), protože jejich archivy jsou totožné.
+
+\section{Ruční zatřiďování}
+\label{sec:rucnik}
+
+Pro evaluaci různých metod potřebuji množinu ručně zatříděných článků, jak popisuji v~části~\ref{sec:evaluace}. Jak popisuji v~části~\ref{sec:jakekategorie}, rozhodl jsem se pro dvě možnosti --- u první může být článek ve více kategoriích, které vytvářím až při ručním třídění; u druhé jsem si předem zadal několik obecných kategorií, kde každý článek má tuto kategorii pouze jednu.
+
+Proti kategoriím vzniklým první možností tedy testuji všechny metody (včetně těch, které nejsou přímo založeny na principu klasifikace); klasifikátory poté testuji i proti omezeným, obecným kategoriím, které popisuji v~části~\ref{sec:jakekategorie}.
+
+Z~celé databáze článků jsem vybral podmnožinu 200 článků, které jsem takto zatřídil. Jak se ukazuje, je ruční kategorizace do témat obtížná sama o sobě (možná \emph{právě} i kvůli neomezenosti množiny témat). 
+
+Pro ilustraci jsem z~těchto 200 článků vybral náhodně dva, na kterých ukážu problémy jak ručního zatřiďování v~této části, tak konkrétní výsledky jednotlivých metod v~části další. Jde o článek \emph{Volby skončí patem, Zeman zůstane mimo} ze serveru Týden.cz ze dne 12.~5.~2010 a článek \emph{Indie se chystá na Obamovu návštěvu: chytá opice a očesává kokosy} ze serveru iDnes.cz ze dne 3.~11.~2010; tyto články jsou na další straně.
+
+\jednatabulka{kategorie1} {
+
+
+    \begin{tabular}{ |l |l |l |l |l | }
+        \hline
+        \texttt{Factum Invenio} &
+        
+        \texttt{průzkum} &
+        \texttt{volby} &
+        \texttt{ODS} &
+        \texttt{ČSSD} \\ \hline
+        \texttt{KSČM} &
+        \texttt{TOP 09} &
+        \texttt{KDU-ČSL} &
+        \texttt{Věci Veřejné} &
+        \texttt{domácí politika} \\ \hline
+        
+      \end{tabular}
+
+}{Moje kategorická témata pro Článek 1}
+
+
+\jednatabulka{kategorie2}  {
+
+    \begin{tabular}{ |l  |l|l| }
+        \hline
+        \texttt{Barack Obama} &
+        \texttt{Indie} &
+        \texttt{opice} \\ \hline
+      \end{tabular}
+
+
+} {Moje kategorická témata pro Článek 2}
+
+\mujpara{prvni}{Volby do Poslanecké sněmovny by podle volebního modelu agentury Factum Invenio z~konce dubna vyhráli sociální demokraté s~27,5 procenta hlasů. ODS by volilo 21,7 procenta lidí. Ve sněmovně by zasedli i zástupci KSČM, TOP 09, Věcí veřejných a KDU-ČSL. Sociální demokraté by podle Factum Invenio sice byli vítězi voleb, jejich podpora ale podle agentury poklesla a k~sestavení menšinové vlády by jim nadále nestačila podpora KSČM. ČSSD by nedosáhla na většinu ani ve spojení s~KDU-ČSL a Věcmi veřejnými. Průzkum naznačuje patovou situaci, protože většinu by neměla ani pravicová koalice ODS, TOP 09 a Věcí veřejných. Podle prognózy posílila Strana práv občanů --- zemanovci. Se ziskem 3,2 procenta hlasů by se ale podle agentury do sněmovny nedostala. Za branami parlamentu by zůstali i zelení s~2,9 procenta. Průzkum se odehrál mezi 23. a 28. dubnem na vzorku asi tisíc lidí. KSČM by podle modelu skončila třetí s~13,9 procenta hlasů. Těsně za komunisty by se umístila TOP 09 s~11,1 procenta a téměř stejného zisku by dosáhly Věci Veřejné s~11 procenty. Lidovci by těsně překonali hranici nutnou pro vstup do parlamentu s~5,2 procenta. ČTĚTE TAKÉ: Volební spoty: lepší dobře ukrást než špatně vymyslet V přepočtu na mandáty by ČSSD získala 66 sněmovních křesel, ODS 51, KSČM 30, TOP 09 22, Věci veřejné 23 a KDU-ČSL by disponovala osmi mandáty. Pro sestavení většinové vlády bez podpory komunistů by tak ČSSD i ODS potřebovaly účast všech tří menších stran --- TOP 09, Věcí veřejných i KDU-ČSL. Výpočet mandátů je ale podle Factum Invenio zatížen výběrovou chybou, která může způsobit odchylku až dvou poslaneckých křesel. Koalici ČSSD, KDU-ČSL a Věcí veřejných přitom chybí k~většině jen tři křesla a pravicovému uskupení čtyři mandáty. Jen čtyři poslanci by také chyběli k~většině spojenectví ČSSD a KSČM. Foto: Jan Schejbal, ČTK}{Volby skončí patem, Zeman zůstane mimo}
+
+\mujpara{druhy}{Džungle naproti prezidentskému apartmá v~hotelu Taj Mahal v~Bombaji bude o víkendu jedním z~nejstřeženějších míst na světě. Zvláštní komanda vybavená dalekohledy s~nočním viděním budou dávat pozor na každé šustnutí. A to také kvůli opicím, které město v~poslední době doslova terorizují. Podle deníku The Daily Telegraph makakové neustále přebíhají přes vládní pozemky, překusují kabely, napadají lidi nesoucí jídlo a celkově vyvolávají paniku. Přestože místní noviny pravidelně píší o škodách, které opice napáchaly, a o obětech jejich hladových útoků, úřady se dosud neměly k~zásahu. Makak je totiž pro hinduisty symbolem opičího boha Hanumana. Kvůli Obamově návštěvě ale nemohou jinak, než přichystat potřebná opatření. Po zuby ozbrojené, speciálně cvičené protiteroristické jednotky tak doplní chytači opic. \uv{Rozmístíme policejní komanda, odstřelovače a také lidi na chytání makaků, abychom zvýšili Obamovu bezpečnost,} řekl jeden z~policistů listu The Hindustan Times. Kokosy mizí z~ulic Další hrozbu představují pro Obamu bombajské kokosovníky. Padající kokosy v~Indii každoročně zraní, ale i zabijí několik lidí. Aby se to nestalo i Obamovi, mizí postupně suché ořechy z~palem v~místech, kde se bude americký prezident při páteční návštěvě pohybovat. Indové už tak očesali kokosy například u Gándhího muzea, uvedla britská BBC. Dvoupatrový komplex, zasvěcený otci indické nezávislosti Mahátmovi Gándhímu, stojí na jihu Bombaje a cesta k~němu je lemována právě kokosovníky. V~domě je kromě muzea i pokoj, ve kterém Gándhí žil sedmnáct let. Obama Gándhího otevřeně obdivuje a říká o něm, že pro něj byl inspirací. Jeho portrét si dokonce pověsil do senátorské pracovny. I proto chce jeho muzeum navštívit. Indické úřady budovu na tuto událost připravily, například ji kompletně zrekonstruovaly.}{Indie se chystá na Obamovu návštěvu: chytá opice a očesává kokosy}
+
+U Článku~2 je vidět, proč jsem zavrhl u neomezených tématických kategorií možnost, že by byla na článek pouze jedna. Jak zvolit jedinou kategorii, ve které by článek byl --- byla by to \texttt{Indie}, \texttt{Obama}, \texttt{cesty prezidentů}, \texttt{opice}, \texttt{Taj Mahal}...?
+
+I přes povolení více kategorií je ale úloha ruční kategorizace poměrně složitá. Úlohu \uv{zvol jedno téma} jsem změnil na úlohu \uv{najdi všechna témata} --- o jakých všech tématech je ale Článek 2? Tím, že jsem si nedefinoval žádný přesnější rámec, může být tématem cokoliv, co je se článkem sémanticky spojeno, tj. \texttt{opice}, ale také např. \texttt{kabely}, \texttt{chystání státníků na zahraniční cesty}, \texttt{útoky přírody na člověka},...
+
+Ve skutečnosti jde s~kategoriemi jít až absurdně \uv{vysoko} a abstraktně; nebo naopak velmi \uv{nízko} a konkrétně. V~tom spočívá hlavní slabina mé snahy o ruční nalezení všech kategorických témat --- je jich prostě až příliš mnoho.
+
+V Tabulkách~\ref{tabulka:kategorie1} a \ref{tabulka:kategorie2} jsou moje kategorie pro ilustrační články. Je vidět, že jsem se snažil být poměrně střízlivý; i přesto vyšlo v~rámci celého ručního zatřiďování na 200 článků 324 kategorií, většina z~nich (přesně 236) obsahuje ale pouze jeden článek!
+
+Zatřiďování v~rámci obecných kategoriích je naopak mnohem jednodušší, roz\-ho\-do\-vá\-ní o ručním zatřídění trvá výrazně kratší dobu. Ke Článku~1 jsem přiřadil kategorii \texttt{Politika domácí}, ke Článku~2 jsem přiřadil kategorii \texttt{Politika svět}.
+
+\section{Hledání témat}
+\label{sec:hledanitemat_prezentace_vysledku}
+
+V této kapitole chci ukázat výsledky jednotlivých přístupů k~hledání témat ve článcích a ukázat na nich jejich výhody a nevýhody. Jedním z~úkolů bakalářské práce bylo i hledání něčeho, jako je \uv{okurková sezóna}; pokouším se tedy i zjistit, jestli vynesením některých veličin na časovou osu nějaké zajímavé trendy nenaleznu.
+
+
+\subsubsection{Triviální kategorizace}
+
+
+\jednatabulka{retard}{
+
+\begin{tabular}{ | r | r|r||r| r|r|}
+    \hline
+      $\rho_{\mu}$ & $\pi_{\mu}$ & $F_\mu$ & $\rho_{M}$ & $\pi_{M}$  & $F_M$  \\ \hline
+    1.67 \% & 4.50 \% & 2.44 \% & 0.31 \% & 0.01 \% & 0.03 \% \\ \hline
+    
+    
+  \end{tabular}
+
+}{Přesnost a úplnost triviální kategorizace}
+
+Pro srovnání s~dalšími metodami jsem otestoval i triviální kategorizaci, která každému článku přiřadí právě jednu kategorii, a to \texttt{ODS}. Výsledky evaluace jsou v~Tabulce~\ref{tabulka:retard}.
+
+\subsection{Frekvenční témata}
+\label{sec:ftemata}
+
+\jednatabulka{ftemata1} 
+{
+ \begin{tabular}{ |l |l | l | l | l | l | l | l | l | l | l | }
+        \hline
+        \textbf{lemma} & \texttt{být} & \texttt{a} & \texttt{s} & \texttt{procento} & \texttt{podle} & \texttt{veřejný} & \texttt{kdu} & \texttt{čsl} & \texttt{09} & \texttt{ksčm} \\ \hline
+        \textbf{četnost}  & 19 & 10 & 8 & 8 & 7 & 7 & 5 & 5 & 5 & 5 \\ \hline
+\end{tabular}
+} {Frekvenční témata na Článku 1} 
+
+\jednatabulka{ftemata2}{
+\begin{tabular}{ |l |l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    \textbf{lemma} & 
+    
+    \texttt{být} & 
+    \texttt{a} & 
+    \texttt{v} & 
+    \texttt{na} & 
+    \texttt{se} & 
+    \texttt{gándhí} &
+    \texttt{opice} & 
+    \texttt{i} & 
+    \texttt{o} & 
+    \texttt{kokos} \\ \hline
+    
+    \textbf{četnost} & 7 & 7 & 7 & 6 & 5 & 4 & 4 & 4 & 4 & 4 \\ \hline
+\end{tabular}
+} {Frekvenční témata na Článku 2}
+
+\dvetabulkypod{ftemata_best}{
+    \begin{tabular}{ |l | l |l |l |l |l |l |l |l |l |l | }
+        \hline
+        \textbf{lemma} & 
+        \texttt{v} &
+        \texttt{být} &
+        \texttt{a} &
+        \texttt{se} &
+        \texttt{na} & 
+        \texttt{ten} & 
+        \texttt{že} & 
+        \texttt{z} & 
+        \texttt{on}  
+        \\ \hline
+        
+        \textbf{četnost}  & 50619 & 50617 & 45068 & 44707 & 41691 & 15265 & 13904 & 11874 & 10437   \\ \hline
+    \end{tabular}    
+}{
+    \begin{tabular}{ |l | l |l |l |l |l |l |l |l |l |l | }
+        \hline
+		\texttt{s} & 
+        \texttt{který} & 
+        \texttt{rok} & 
+        \texttt{o} &
+        \texttt{mít} & 
+        \texttt{podle} & 
+        \texttt{do} &
+        \texttt{za} & 
+        \texttt{i} & 
+        \texttt{svůj} & 
+        \texttt{ale}   \\ \hline
+        
+        9937 & 9597& 7179  & 6930 & 5805 & 5727 & 5355 & 3814 & 3593 & 2452 & 2424 \\ \hline
+    \end{tabular}    
+}{Nejčetnější frekvenční témata}
+
+
+\jednatabulka{ftemata_eval}{
+
+\begin{tabular}{ | r | r|r||r| r|r|}
+    \hline
+      $\rho_{\mu}$ & $\pi_{\mu}$ & $F_\mu$ & $\rho_{M}$ & $\pi_{M}$  & $F_M$  \\ \hline
+     28.49 \% & 7.97 \% & 12.46 \% & 13.79 \% & 13.04 \% & 13.41 \%\\ \hline
+    
+    
+  \end{tabular}
+
+}{Přesnost a úplnost vyhledávání frekvenčních témat}
+
+Prvním pokusem o definování témat bylo jednoduché počítání frekvencí, bez zavedení stop slov. Jak jsem již popsal v~části~\ref{sec:frekvestopslo}, takto nalezená témata jsem nazval frekvenčními tématy; počet frekvenčních témat na jeden článek jsem určil jako 10. 
+
+Jak vyjdou frekvenční témata na ukázkových článcích ukazují Tabulky~\ref{tabulka:ftemata1} a \ref{tabulka:ftemata2}; nejčastější frekvenční témata, posčítaná na celém korpusu, jsou vidět v~Ta\-bul\-ce~\ref{tabulka:ftemata_best}. 
+
+Jak je z~těchto tabulek vidět, nemá toto počítání témat přílišný smysl --- nalezenými frekvenční tématy jsou většinou právě stop-slova, tedy pomocná slova bez jakéhokoliv významu. Pokud otestuji tato témata pomocí metrik $F_1$, vyjdou mi tristní výsledky, které jsou uvedeny v~Tabulce ~\ref{tabulka:ftemata_eval}; je vidět, že výsledky jsou té\-měř stej\-né, jako u triviálního vyhledávání témat.
+
+
+\subsection{Stop-témata}
+\label{sec:stemata}
+\grafff{lemmata2}{Četnosti lemmat}
+
+
+\jednatabulka{lemmatanasobky}{
+
+\begin{tabular}{ | r|r|r|r|r|r|r|r|r|r|}
+    \hline
+    
+    \textbf{počet lemmat} & 
+    4 & 
+    15 & 
+    49 & 
+    142 & 
+    350 & 
+    752 & 
+    1532 & 
+    3260 & 
+    8666 \\ \hline
+    
+    \textbf{zastoupení}
+     & 10\% 
+     & 20\% 
+     & 30\% 
+     & 40\% 
+     & 50\%
+     & 60\% 
+     & 70\%
+     & 80\% 
+     & 90\% \\ \hline
+
+  \end{tabular}
+
+}{Počet lemmat pro násobky $10 \%$}
+%\dvagrafy{lemmata}{lemmata_5000}{Graf četnosti všech lemmat}
+% %\grafff{lemmata}{Graf četnosti všech lemmat}
+
+% %\grafff{lemmata_5000}{Graf četnosti prvních 5 tisíc lemmat}
+
+Stop-tématy jsem si v~\ref{sec:frekvestopslo} nazval témata, počítána stále \uv{hloupě} přes frekvence, ale s~vynecháváním stop-slov.
+
+Stop-slova jsem neurčil \uv{ručně}, ale rozhodl jsem se je nalézt algoritmicky. K~tomu je dobré vědět, která slova se jak často vyskytují a jakou část textu zabírají --- proto jsem nejdříve zjistil frekvence všech lemmat v~celém textu. 
+
+Pokud se frekvence všech přibližně 185~tisíc typů lemmat zakreslí do grafu, stoupání je tak rychlé, že připomíná spíše pravý úhel; pokud se ale zakreslí pouze prvních 5~tisíc typů, je stoupání o něco pozvolnější. Oba grafy jsem pro úsporu místa nakreslil přes sebe do Grafu~\ref{graf:lemmata2} --- \uv{vnější} graf je všech typů, \uv{vnitřní} pouze nejčetnějších 5~tisíc.
+
+Na svislé ose je vyneseno procentuální zastoupení lemmatu v~celé databázi, na vodorovné ose jsou lemmata, seřazena dle četnosti. Pro ilustraci je na vodorovné ose každé dvacetitisícé slovo označeno. Dále je pro lepší ilustraci v~grafu označeno prvních 15 nejčetnějších lemmat. Vzhledem k~tomu, jak procentuální zastoupení rychle roste, je levá část Grafu~\ref{graf:lemmata2} v~podstatě zcela svislá čára a pravá část naopak zcela vodorovná.
+
+
+Ke zjištění vhodného počtu lemmat pro množinu stopslov jsem pro $k$ od 1 do 9 zjistil, kolik nejméně lemmat dá dohromady $10k$ či více procent textu; tyto hodnoty jsou v~Tabulce~\ref{tabulka:lemmatanasobky}.
+
+Je otázka, jak velkou vzít množinu stopslov --- pokud bude příliš velká, můžeme ignorovat i něco, co je pro článek důležité; pokud bude příliš malá, do stop-témat se můžou dostat i nerelevantní lemmata. Nakonec jsem se rozhodl vzít jako stopslova 200 lemmat, která potom zabírají $43.64$ procent veškerého textu.
+
+Již zde je ale zjevný problém tohoto přístupu k~hledání témat --- například slovo \texttt{ods} (lemma od názvu strany ODS) je už $44.$ nejčetnější --- dokonce četnější, než slova \texttt{nebo}, \texttt{aby}, \texttt{než}, \texttt{takový} apod. Stejně jako \texttt{ČSSD} je už $66.$ nejčetnější. A v~mé množině 200 nejčastějších lemmat je ještě například také slovo \texttt{nečas}, které je na $196.$ místě.
+
+
+\jednatabulka{stoptemata1}
+{
+    \begin{tabular}{ |l | r |r |r |r |r |r |r |r |r |r | }
+        \hline
+        \textbf{lemma} & 
+        \texttt{kdu} & 
+        \texttt{čsl} & 
+        \texttt{09} & 
+        \texttt{ksčm} & 
+        \texttt{mandát} &
+        \texttt{factum} & 
+        \texttt{většina} & 
+        \texttt{invenio} & 
+        \texttt{2} & 
+        \texttt{hlas} \\ \hline
+        
+        \textbf{četnost}  & 5 & 5 & 5 & 5 & 4 & 4 & 4 & 3 & 3 & 3 \\ \hline
+        
+        
+      \end{tabular}
+
+}{Stop-témata pro Článek 1}
+
+
+\jednatabulka{stoptemata2}
+{
+    \begin{tabular}{ | r |r |r |r |r |r |r |r |r |r | }
+        \hline
+        \texttt{gándhí} & 
+        \texttt{opice} & 
+        \texttt{kokos} & 
+        \texttt{makak} & 
+        \texttt{návštěva} & 
+        \texttt{muzeum} &
+        \texttt{indický} &
+        \texttt{mizet} & 
+        \texttt{the} & 
+        \texttt{kokosovník} \\ \hline
+        
+        
+        4  & 4  & 4  & 3 & 3 & 3  & 2 & 2 & 2 & 2 \\ \hline
+      \end{tabular}
+
+
+}{Stop-témata pro Článek 2}
+
+
+\jednatabulka{stoptemata_best}{
+
+\begin{tabular}{|l  | r |r |r |r |r |r |r |r |r |r |   }
+    \hline
+    
+    \textbf{lemma} & 
+    
+    \texttt{nehoda}  & 
+    \texttt{nemocnice}  & 
+    \texttt{řidič}  & 
+    \texttt{09}  & 
+    \texttt{1}  & 
+    \texttt{dům}  & 
+    \texttt{*} & 
+    \texttt{.} &
+    \texttt{skupina}  & 
+    \texttt{auto}   \\ \hline
+    
+    \textbf{četnost} & 
+    
+     1721  & 1635  & 1634  & 1566 & 1551 & 1532 & 1496 & 1291 & 1286  & 1269   \\ \hline
+    
+    
+  \end{tabular}
+
+}{Nejčetnější stop-témata}
+
+\grafff{stop2}{Průměrný počet stop-témat na článek}
+
+
+Velikost počtu stop-témat na článek jsem určil jako 10. Výsledky pro ukázkové články jsou v~Tabulkách~\ref{tabulka:stoptemata1} a \ref{tabulka:stoptemata2}, posčítaná stop-témata na celé databázi jsou v~Tabulce~\ref{tabulka:stoptemata_best}. K~té ještě uvedu, že lemma \texttt{09} nejspíše patří k~názvu politické strany TOP09 a lemmata \texttt{.} a \texttt{*} jsou způsobena mírnými chybami v~lemmatizátoru; \texttt{.} ovšem neznamená tečku na konci věty, kterou systém úspěšně ignoruje, ale tečku v~internetových adresách.
+
+Jak je vidět, stop-témata stále nejsou \emph{tématy} v~pravém slova smyslu; jak je vidět na ukázkových článcích, stále jde spíše o množinu klíčových slov. Například nelze říct, že by Článek~1 byl \uv{o většině} nebo druhý článek \uv{o Gándhím}; na druhou stranu už lze říci, že druhý článek je \uv{o opicích}, takže stop-témata zcela bez relevance také nejsou.
+
+Zkusím nyní nějak na základě vývoje stop-témat v~čase detekovat \uv{okurkovou sezónu} či nalézt jiné související trendy; prvním nápadem je vyzkoušet průměrný počet stop-témat na jeden článek.
+
+
+Jeho vývoj je vidět v~Grafu~\ref{graf:stop2}. Největší \uv{skoky} zde způsobují jednak nedokonalé ukládání článku na začátku a na závěr a potom dubnová změna způsobu stahování článků. Kromě toho se průměrný počet stop-témat mění, ale jedná se dle mého názoru o změnu spíše náhodnou. Tato veličina nám tedy nic příliš zajímavého neukazuje.
+
+\grafff{stop_nehoda_premier_bez}{Graf četnosti stop-témat \texttt{nehoda} a \texttt{premiér}}
+
+\grafff{stop_nehoda_premier}{Vyhlazený graf četnosti stop-témat \texttt{nehoda} a \texttt{premiér}}
+
+Zkusil jsem si do grafů zobrazit vývoj četnosti stop-témat, která se opakují často a u kterých by tento vývoj mohl být zajímavý --- nejdříve jsem si vybral slova \texttt{nehoda} a \texttt{premiér}. Jak je ale vidět na Grafu~\ref{graf:stop_nehoda_premier_bez}, změny jsou na čistém grafu příliš rychlé a obtížně interpretovatelné.
+
+\grafff{stop_ruznaslova_1}{Vyhlazený graf různých stop-témat}
+\grafff{stop_ruznaslova_2}{Vyhlazený graf různých stop-témat}
+
+
+Pro lepší interpretaci dat jsem v~grafech použil tzv. exponenciální vyhlazování, definované například v~\cite{nist} takto: pokud je původní sledovaná veličina $y$ závislá na čase, potom vyhlazená $S$ je definována jako $$S_0=y_0,$$ $$S_t=\alpha y_t+(1-\alpha)y_{t-1}.$$ $\alpha$ je konstantní. Vyhlazení má samozřejmě svá rizika a nevýhody, ale dovolil jsem si ho zde použít, jelikož na základě vyhlazených dat k~žádným \uv{velkým} závěrům nedocházím.
+
+
+Vyhlazená data (s koeficientem $\alpha=0.1$) jsou vidět v~Grafu~\ref{graf:stop_nehoda_premier}. Je vidět, že zavedení vyhlazování udělá výsledky o něco \uv{čitelnější}, na druhou stranu ale například zmenšuje maxima.
+
+Je ale například vidět, že v~březnu 2010 se stop-téma \texttt{premiér} stává častějším. Při prozkoumání archivu zjistíme, že v~této době pronesl předseda ODS Mirek Topolánek urážlivé výroky na adresu premiéra Fišera, tedy zvýšení četnosti tohoto stop-tématu nejspíše nebylo náhodné. Je ale otázkou, jestli bylo pro podobné zjištění nalézání stop-témat vůbec potřeba; možná by stačilo uvažovat počty \emph{jakýchkoliv} výskytů slova \texttt{premiér} ve článcích a získali bychom podobné, možná lepší křivky.
+
+
+
+Stejně tak nemůžeme četnosti článků s~tématem \texttt{premiér} nějak zobecnit a tvrdit, že v~té době se píše víc o politice a naopak, že \texttt{nehoda} znamená, že se nemá \uv{o čem psát} a jedná se pouze o \uv{výplň}. Pokud si totiž přidáme do grafu ještě například četnosti článků se stop-tématem \texttt{politika} a \texttt{demokrat}, které by v~případě obecnějšího trendu mělo nějak téma \texttt{premiér} následovat (Graf~\ref{graf:stop_ruznaslova_1}, už pouze vyhlazená data), a naopak pokud si přidáme ještě téma \texttt{modelka}, které má zase bulvární nádech (Graf~\ref{graf:stop_ruznaslova_2}, také pouze vyhlazená data), tak zjistíme, že trendy, které by nějak určovaly \uv{okurkovou sezónu}, na těchto dílčích stop-tématech vysledovatelné nejsou. 
+
+
+\jednatabulka{stop_eval}{
+
+\begin{tabular}{ | r | r|r||r| r|r|}
+    \hline
+      $\rho_{\mu}$ & $\pi_{\mu}$ & $F_\mu$ & $\rho_{M}$ & $\pi_{M}$  & $F_M$  \\ \hline
+      & 39.12 \% & 11.10 \% & 17.29 \% & 10.58 \% & 9.74 \% & 10.14 \%\\ \hline
+    
+    
+    
+  \end{tabular}
+
+}{Přesnost a úplnost vyhledávání stoptémat}
+
+Výsledky evaluace jsem zobrazil v~Tabulce~\ref{tabulka:stop_eval}. Je zajímavé, že úplnost je (vzhledem k~dosavadním metodám) o něco lepší; přesnost je ale stále malá, množství false positive je stále velké; to je částečně pochopitelné --- metoda vrací vždy 10 témat na článek, zatímco průměrný počet témat na článek je nižší.
+
+\subsection{tf-idf-témata}
+
+
+
+\dvetabulky{tfidf} {
+
+
+    \begin{tabular}{ |l | r | }
+        \hline
+        \textbf{slovo} & \textbf{TF-IDF} \\ \hline
+        
+        \texttt{factum} & $0.08$ \\ \hline
+        \texttt{invenio} & $0.06$ \\ \hline
+        \texttt{čsl} & $0.06$ \\ \hline
+        \texttt{kdu} & $0.06$ \\ \hline
+        \texttt{ksčm} & $0.06$ \\ \hline
+        \texttt{procento} & $0.05$ \\ \hline
+        \texttt{veřejný} & $0.05$ \\ \hline
+        \texttt{mandát} & $0.04$ \\ \hline
+        \texttt{top} & $0.04$ \\ \hline
+        \texttt{duben} & $0.04$ \\ \hline
+        \hline
+        
+        \texttt{čssd} & $0.03$ \\ \hline
+        \texttt{křeslo} & $0.03$ \\ \hline
+        \texttt{sestavení} & $0.03$ \\ \hline
+        \texttt{věc} & $0.03$ \\ \hline
+        \texttt{většina} & $0.03$ \\ \hline
+        \texttt{hlas} & $0.03$ \\ \hline
+        \texttt{ods} & $0.02$ \\ \hline
+        \texttt{podpora} & $0.02$ \\ \hline
+        \texttt{pravicový} & $0.02$ \\ \hline
+        \texttt{sněmovna} & $0.02$ \\ \hline
+        
+      \end{tabular}
+
+} {
+
+    \begin{tabular}{ |l | r | }
+        \hline
+        \textbf{slovo} & \textbf{TF-IDF} \\ \hline
+        
+        
+        \texttt{kokos} & $0.12$ \\ \hline
+        \texttt{gándhí} & $0.11$ \\ \hline
+        \texttt{opice} & $0.09$ \\ \hline
+        \texttt{makak} & $0.09$ \\ \hline
+        \texttt{kokosovník} & $0.08$ \\ \hline
+        \texttt{bombaj} & $0.05$ \\ \hline
+        \texttt{obamov} & $0.05$ \\ \hline
+        \texttt{muzeum} & $0.05$ \\ \hline
+        \texttt{překusovat} & $0.04$ \\ \hline
+        \texttt{hanuman} & $0.04$ \\ \hline
+        \hline
+        \texttt{očesávat} & $0.04$ \\ \hline
+        \texttt{mizet} & $0.04$ \\ \hline
+        \texttt{komando} & $0.04$ \\ \hline
+        \texttt{návštěva} & $0.04$ \\ \hline
+        \texttt{očesat} & $0.04$ \\ \hline
+        \texttt{chytač} & $0.04$ \\ \hline
+        \texttt{šustnutí} & $0.04$ \\ \hline
+        \texttt{hindustan} & $0.04$ \\ \hline
+        \texttt{indie} & $0.03$ \\ \hline
+        \texttt{indický} & $0.03$ \\ \hline
+        
+        
+      \end{tabular}
+
+
+} {Tf-idf-témata na ukázkových článcích}
+
+
+Jak jsem popsal výše, tf-idf-témata hledám přes váhovou funkci TF-IDF. 
+
+Výsledek na ukázkových článcích (s~počtem témat na článek $k=20$) je popsán v~Tabulce~\ref{tabulka:tfidf}. Výsledky jsou opticky ještě relevantnější, než stop-témata (i pokud srovnáme pouze prvních 10 tf-idf-témat --- naznačeno dvojitou čarou --- s~tabulkami \ref{tabulka:stoptemata1} a \ref{tabulka:stoptemata2}), ale stále je vidět, že je lepší je vnímat spíše jako klíčová slova než jako skutečně témata. Jen dodám, že \texttt{obamov} je chybně zlemmatizované slovo Obama.
+
+
+
+\jednatabulka{tfidf_top}{
+
+\begin{tabular}{ |l | r |r |r |r |r |r |r |r |r |r | }
+    \hline
+    \textbf{lemma} & 
+    \texttt{ods} & 
+    \texttt{čssd} &
+    \texttt{soud} & 
+    \texttt{procento} &
+    \texttt{volba} &
+    \texttt{blesk} & 
+    \texttt{strana} & 
+    \texttt{nehoda} & 
+    \texttt{*} & 
+    \texttt{nečas} \\ \hline
+    
+    
+ \textbf{četnost} & 2960& 2606 & 2306  & 1920 & 1893 & 1717 & 1711  & 1471 & 1437 & 1397 \\ \hline
+  \end{tabular}
+
+}{Nejčetnější tf-idf-témata}
+
+Nejčetnější tf-idf-témata (stále s~počtem $k=20$) na celé databázi jsou v~Tabulce~\ref{tabulka:tfidf_top} (je nutné dodat, že téma \texttt{volba} je zlemmatizovaná forma slova \texttt{volby}). Je zajímavé, že do první desítky se dostal i \texttt{blesk}, přitom další názvy deníků jsou mnohem méně četné; možná je to proto, že ve článcích Blesku je mnohem častěji zmiňován samotný název novin, než v~serioznějších denících.
+
+\grafff{rozdily}{Graf rozdílu tf-idf a stoptématu \texttt{premiér}}
+
+
+Ač na jednotlivých článcích dává tento algoritmus opticky lepší výsledky, pokud se srovná vývoj četností tf-idf-témat a stop-témat, je zřejmé, že trendy jsou velmi podobné. V~Grafu~\ref{graf:rozdily} jsem srovnal četnosti tématu \texttt{premiér} (četnosti i rozdíl jsou vyhlazené). 
+
+
+\grafff{tfidf_viceslov_1}{Četnosti politických tf-idf témat}
+
+\grafff{tfidf_viceslov_1_zkoumampropad}{Propad četnosti politických tf-idf  témat v~dubnu 2010}
+
+
+Co ale tentokrát můžeme udělat je podívat se \uv{zblízka} na témata \texttt{ods} a \texttt{čssd}, která byla jako stoptémata vyřazena, protože jsou to příliš častá slova. Četnost těchto témat jsem zanesl do Grafu~\ref{graf:tfidf_viceslov_1}, spolu s~dalšími politickými tématy. Je zajímavé, že témata \texttt{ods} a \texttt{čssd} mají maxima a minima v~podobných místech; další dvě politická témata tato témata částečně kopírují. 
+
+Zajímavé je, že všechna tato témata \uv{padají} právě okolo 1. dubna 2010, což je datum změny počtu a struktury článků. V~Grafu~\ref{graf:tfidf_viceslov_1_zkoumampropad} jsem přiblížil blíže na dny kolem tohoto \uv{propadu} (mimochodem, v~přiblížení jsou dobře vidět nepřesnosti exponenciálního vyhlazení). Je vidět, že například heslo \texttt{ods} mělo do 1. dubna téměř konstantně nad 10 článků denně, zatímco od 1. dubna naopak nad 10 článků za den téměř nedosáhlo. Spolu s~tím, že 1. dubna se žádná významná změna nekonala si spíše myslím, že tento pokles je opravdu způsoben odlišným způsobem stahování článků.
+
+Zajímavý je ale i další pohyb --- začátkem (a u \texttt{ods} i v~průběhu) června byla politická témata velmi častá, od července do poloviny října ale jejich četnost velmi poklesla, aby v~polovině října opět prudce stoupla.
+
+Je otázka, jak tyto pohyby interpretovat. Je možné, že opravdu jde o hledanou \uv{okurkovou sezónu} --- je ale možné, že vrchol četnosti na konci května 2010 může být způsoben tím, že 28. a 29. května se konaly volby do Poslanecké sněmovny Parlamentu České republiky a za normálních okolností by četnost politických zpráv v~květnu byla nižší. Pro opravdové zjištění, jestli se opravdu jedná o sezónní trend, by asi bylo třeba mít databázi, která pokrývá ještě delší časové období; podobnou databázi ale bohužel nemám k~dispozici.
+
+\jednatabulka{tfidf_eval}{
+
+
+\begin{tabular}{|l | r | r|r||r| r|r|}
+    \hline
+      &$\rho_{\mu}$ & $\pi_{\mu}$ & $F_\mu$ & $\rho_{M}$ & $\pi_{M}$  & $F_M$  \\ \hline
+     %37.59 \% & 10.50 \% & 16.41 \% & 10.27 \% & 9.42 \% & 9.83 \%\\ \hline
+      $k=10$ & 41.40 \% & 11.83 \% & 18.40 \% & 9.80 \% & 9.28 \% & 9.54 \% \\ \hline
+      $k=20$ & 51.72 \% & 7.60 \% & 13.25 \% & 6.79 \% & 5.95 \% & 6.34 \% \\ \hline
+    
+    
+    
+  \end{tabular}
+
+}{Přesnost a úplnost vyhledávání tf-idf témat}
+
+
+Evaluaci jsem provedl pro $k=10$ a $k=20$; vyšší množství témat na článek zvýší logicky úplnost, ale sníží přesnost. Je ale zajímavé, že zatímco \uv{opticky} dává TF-IDF lepší výsledky, než například stop-témata, tak F$_1$ metrika u této metody dopadne dokonce \emph{hůře}.
+
+\subsection{Kategorizace}
+Z výsledků je zatím vidět, že TF-IDF dává sice dobré výsledky, ale dají se spíše chápat jako klíčová slova než jako opravdová témata --- například v~Tabulce~\ref{tabulka:tfidf} je vidět, že ve Článku 1 jsou témata jako \texttt{duben} nebo \texttt{většina}.
+
+
+Na množině 200 článků jsem tedy ještě vyzkoušel tři algoritmy na klasickou klasifikaci, jak popisuji v~\ref{sec:kategorizace} --- algoritmy NaiveBayes, SVM a DecisionTree, a otestoval tak, jak popisuji v~části \ref{sec:evaluace}. 
+
+Je nutné dodat, že výsledky nelze úplně srovnávat s~výsledky z~předchozích částí, protože definice \emph{true positive} byla v~minulých částech o něco volnější, jak uvádím v~části \ref{sec:evaluace}.
+
+\label{sec:neomezene}
+
+\jednatabulka{kategorizer}{
+
+\begin{tabular}{ |l | r | r|r||r| r|r| }
+    \hline
+    &$\rho_{\mu}$ & $\pi_{\mu}$ & $F_\mu$ & $\rho_{M}$ & $\pi_{M}$  & $F_M$  \\ \hline
+    %dobre - 
+    %spatne - 
+    NaiveBayes - var.1 & 13.18 \% & 17.13 \% & 14.85 \% & 9.01 \% & 5.85 \% & 7.04 \% \\ \hline
+    NaiveBayes - var.2 & 5.36 \% & 5.69 \% & 5.50 \% & 4.02 \% & 1.19 \% & 1.75 \%\\ \hline
+     \hline
+    SVM - var.1 & 2.17 \% & 90.00 \% & 4.16 \% & 1.72 \% & 1.94 \% & 1.81 \% \\ \hline
+    SVM - var.2 & 0.00 \% & 100.00 \% & 0.00 \% & 0.00 \% & 0.00 \% & 0.00 \%\\ \hline
+    
+    \hline
+    DecisionTree - var.1 & 11.57 \% & 33.55 \% & 16.89 \% & 7.79 \% & 8.21 \% & 7.93 \%\\ \hline 
+    DecisionTree - var.2 & 9.00 \% & 13.93 \% & 10.77 \% & 5.34 \% & 5.25 \% & 5.25 \% \\ \hline 
+    
+  \end{tabular}
+
+}{Přesnost a úplnost klasifikátorů}
+
+
+Výsledky jsem uvedl v~Tabulce~\ref{tabulka:kategorizer}. V~cross-evaluaci jsem použil počet testů $k=10$. Variantou 1 nazývám tu variantu, kdy jako rysy článků beru 10 nej\-cha\-rak\-te\-ri\-sti\-čtěj\-ších slov podle TF-IDF, všechny s~konstantní vahou 1; variantou 2 nazývám tu variantu, kdy jako rysy nechám všechna slova s~jejich vahou spočítanou podle TF-IDF.
+
+Výsledky však nejsou příliš dobré ani v~jedné variantě. Z~obou variant je rozhodně lepší varianta 1 a z~klasifikačních algoritmů dopadá nejlépe algoritmus NaiveBayes (navíc má výhodu, že je z~těchto algoritmů nejrychlejší).
+
+
+% \jednatabulka{kategorizer_obec}{
+% 
+% \begin{tabular}{ |l | r | r|r||r| r|r| }
+%     \hline
+%      & $\rho_{\mu}$ & $\pi_{\mu}$ & $\rho_{M}$ & $\pi_{M}$  \\ \hline
+%     NaiveBayes - var.1 & 7.74 \% & 21.00 \% & 11.29 \% & 5.69 \% & 4.16 \% & 4.70 \% \\ \hline
+%     NaiveBayes - var.2 & 3.16 \% & 8.50 \% & 4.60 \% & 2.66 \% & 1.20 \% & 1.61 \%\\ \hline
+%      
+%     SVM - var.1 &  1.96 \% & 5.00 \% & 2.81 \% & 1.47 \% & 1.68 \% & 1.56 \% \\ \hline
+%     SVM - var.2 & 0.00 \% & 0.00 \% & 0.00 \% & 0.00 \% & 0.00 \% & 0.00 \%\\ \hline
+%     
+%     
+%     DecisionTree - var.1 & 6.63 \% & 18.00 \% & 9.67 \% & 4.82 \% & 5.38 \% & 5.03 \%\\ \hline 
+%     DecisionTree - var.2 & ?? \% & ?? \% & ?? \% & ?? \% \\ \hline 
+%     
+%   \end{tabular}
+% 
+% }{Přesnost a úplnost klasifikátorů velmi obecných kategoriích - PLACEHOLDER (kopie předchozí tabulky)}
+
+\jednatabulka{kategorizer_obec}{
+
+\begin{tabular}{ |l | r | r|r||r| r|r| }
+    \hline
+    &$\rho_{\mu}$ & $\pi_{\mu}$ & $F_\mu$ & $\rho_{M}$ & $\pi_{M}$  & $F_M$  \\ \hline
+    NaiveBayes - var.1 & 48.50 \% & 48.50 \% & 48.50 \% & 30.05 \% & 25.88 \% & 27.49 \% \\ \hline
+    NaiveBayes - var.2 & 31.50 \% & 31.50 \% & 31.50 \% & 12.69 \% & 7.92 \% & 9.40 \% \\ \hline
+    \hline
+    SVM - var.1 &16.00 \% & 16.00 \% & 16.00 \% & 13.75 \% & 14.90 \% & 13.33 \\ \hline
+    SVM - var.2 &  6.00 \% & 6.00 \% & 6.00 \% & 7.26 \% & 3.71 \% & 4.07 \% \\ \hline
+    \hline
+    
+    DecisionTree - var.1 & 24.50 \% & 24.50 \% & 24.50 \% & 16.96 \% & 18.75 \% & 17.41 \% \\ \hline 
+    DecisionTree - var.2 & 33.50 \% & 33.50 \% & 33.50 \% & 22.43 \% & 23.83 \% & 22.82 \% \\ \hline 
+    
+    
+  \end{tabular}
+
+}{Přesnost a úplnost klasifikátorů na velmi obecných kategoriích}
+
+Kromě toho jsem také vyzkoušel evaluaci na \uv{obecnějších} kategoriích. Výsledky jsem uvedl v~Tabulce \ref{tabulka:kategorizer_obac}; vyjdou o něco lépe, přesto ale nevychází tak dobře, aby se na klasifikátor dalo spolehnout. Navíc poměr takto obecně definovaných témata bude, dle mého, v~čase konstantní a spíše než na trendech bude záviset na zpravodajských zdrojích samých; tento názor ale nemůžu ničím podložit a jedná se čistě o mou spekulaci.
+
+\chapter*{Závěr}
+\addcontentsline{toc}{chapter}{Závěr}
+
+%V~práci jsem uvedl několik různých definic zpravodajského tématu
+
+
+
+V~práci jsem v~části \ref{sec:hledanitemat_hlavni} uvedl několik způsobů detekce zpravodajských témat, které jsem všechny vyhodnotil oproti ručnímu zatřiďování. Jak jsem ale ukázal v~části \ref{sec:rucnik}, je i samotné ruční zatřiďování do kategorií složité a v~naivní definici tématu z~kapitoly \ref{sec:sub_temata} i téměř nemožné; proto je evaluace proti němu problematická, stejně jako je problematické na těchto kategoriích učit algoritmy, založené na principu kategorizace se strojovým učením, definovaném v~části \ref{sec:kategorizace_def}.
+
+Je potom otázkou, jestli výsledky, prezentované v~části \ref{sec:hledanitemat_prezentace_vysledku}, je možno interpretovat jako dobré. Přiznávám se, že si nejsem zcela jist.
+
+Pokud bychom trvali na požadavku metriky, určené jako shody s~lidským zatřiďováním, bylo by asi nutné zlepšit definici kategorií pro ruční zatřiďování --- kromě velmi obecných kategorií, uvedených v~části \ref{sec:omezene_teorie}, se mi ale nepodařilo žádnou lepší definici nalézt. 
+
+Pokud bychom na požadavku metriky, založené na shodě s~lidským zatřiďováním, upustili, bylo by možná dobré dále zkoumat metody, popsané v~části \ref{sec:dalsimetody}.
+
+Dále se mi v~části \ref{sec:hledanitemat_prezentace_vysledku} podařilo určité pohyby v~počtu a složení detekovaných témat nalézt; nejsem si ale zcela jist, zda jde o projevy nějakého hlubšího trendu, zda tyto pohyby nesouvisí spíše s~jednotlivými událostmi, nebo zda se nejedná o pohyby čistě náhodné.
+
+
+\def\bibname{Seznam použité literatury}
+
+
+
+% \begin{thebibliography}{99}
+    
+    
+%\chapwithtoc{\bibname}
+   
+   %puvodne 
+   \bibliographystyle{csplainnat}
+    
+   \bibliography{prace}
+  
+\addcontentsline{toc}{chapter}{\bibname}
+
+
+
+
+%%% Tabulky v~bakalářské práci, existují-li.
+%\chapwithtoc{Seznam tabulek}
+
+%%% Použité zkratky v~bakalářské práci, existují-li, včetně jejich vysvětlení.
+%\chapwithtoc{Seznam použitých zkratek}
+
+%%% Přílohy k~bakalářské práci, existují-li (různé dodatky jako výpisy programů,
+%%% diagramy apod.). Každá příloha musí být alespoň jednou odkazována z~vlastního
+%%% textu práce. Přílohy se číslují.
+\chapwithtoc{Přílohy}
+\appendix
+
+\chapter{Seznam zpravodajských zdrojů}
+\label{sec:zpravozdroj}
+\begin{itemize}
+    \item \texttt{http://www.blesk.cz}
+    \item \texttt{http://www.idnes.cz}
+    \item \texttt{http://www.lidovky.cz}
+    \item \texttt{http://www.tyden.cz}
+    \item \texttt{http://www.ihned.cz}
+    \item \texttt{http://aktualne.centrum.cz}
+    \item \texttt{http://www.ceskenoviny.cz}
+    \item \texttt{http://www.financninoviny.cz}
+    \item \texttt{http://bleskove.centrum.cz}
+\end{itemize}
+
+\chapter{Obsah přiloženého DVD}
+
+Popsat, co je na DVD.
+
+
+
+\openright
+\end{document}
