@@ -13,8 +13,43 @@ Stejně tak je pro kreslení grafů (viz níže) nutné mít jako podadresář p
 
 Velmi tedy doporučuji mít jako pracovní adresář "hlavní adresář" projektu.
 
-Program též zapisuje data do adresáře "tmp/" pod pracovní adresář - toto bylo původně nutné proto, že na stroji ufallab2 jsem neměl přístup do defaultního adresáře "/tmp/".
+Program též zapisuje průběžná data do adresáře "./tmp/" pod pracovní adresář. Pokud chcete, aby program zapisoval do adresáře /tmp (například), je nutné tento adresář nalinkovat do pracovního adresáře jako "./tmp/".
 
+
+Součástí projektu je i aplikace pro manuální označování 
+
+
+Program potřebuje tyto moduly:
+IO::Socket
+Encode
+forks
+Moose
+Data::Validate::URI
+HTML::Encoding
+LWP::UserAgent
+MooseX::StrictConstructor
+MooseX::Storage
+File::Slurp
+Scalar::Util
+Time::Local
+HTML::DOM
+HTML::HeadParser
+YAML::XS
+Text::Unaccent
+AI::Categorizer::Learner::NaiveBayes
+AI::Categorizer::Learner::SVM
+AI::Categorizer::Learner::DecisionTree
+
+Kromě toho potřebuje program mít nainstalovaný a správně nastavený program TectoMT.
+
+
+
+Facebook
+
+Facebook::Graph
+Encode
+URI::Escape
+CGI
 
 ==
 Stahování nových článků
@@ -26,7 +61,7 @@ Zpravostroj::Updater::download_new_articles($recount_all_tf_idf_themes)
 
 Tato procedura stáhne nové články, slova převede na lemmata a spočítá je, články také pro všechna jejich slova přidá do IDF matice, články poté uloží do data/articles.
 
-$recount_all_tf_idf_themes je volitelná proměnná, která, pokud je rovná 1, spustí update všech tf-idf témat podle nově přidaných slov do IDF matice (při velkém počtu článků může trvat velmi dlouho, proto je defaultně nastavena jako 1).
+$recount_all_tf_idf_themes je volitelná proměnná, která, pokud je rovná 1, spustí update všech tf-idf témat podle nově přidaných slov do IDF matice (při velkém počtu článků může trvat velmi dlouho, proto je defaultně nastavena jako 0).
 
 Kromě toho jsou v adresáři archivedumpers/ skripty, které stahují články z jednotlivých serverů z archivu - tyto ale určitě nefungují - jednak proto, že i vnitřní API programu se od doby, co byly napsány, změnilo, a jednak proto, že HTML na daných serverech už se změnilo a nebylo updatováno; tyto skripty mám jako součást programu tedy spíše pro zajímavost a úplnost.
 
@@ -34,13 +69,13 @@ Kromě toho jsou v adresáři archivedumpers/ skripty, které stahují články 
 Témata u jednotlivých článků
 -
 
-Všechny články jsou objekty typu Zpravostroj::Article a různé druhy témat mají jako své procedury.
+Všechny články jsou objekty typu Zpravostroj::Article a různé druhy výpočtu témat mají jako své procedury.
 
 Pro načtení článku lze použít například metodu modulu Zpravostroj::AllDates
 
 Zpravostroj::AllDates::get_from_article_id($id)
 
-kde $id je string ve formátu "Y-M-D-A", kde Y je rok, M je měsíc, D je den a A je číslo článku v daném dni. Pokud jsou součástí projektu už načtené články z roku 2010, je možné jednoduše načíst dva ukázkové články z bakalářské práce pomocí metody modulu Zpravostroj::ThesisData
+kde $id je string ve formátu "Y-M-D-A", kde Y je rok, M je měsíc, D je den a A je číslo článku v daném dni. Pokud jsou součástí projektu už stažené články z roku 2010, je možné jednoduše načíst dva ukázkové články z bakalářské práce pomocí metody modulu Zpravostroj::ThesisData
 
 Zpravostroj::ThesisData::get_example_articles()
 

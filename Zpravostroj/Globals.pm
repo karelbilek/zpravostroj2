@@ -47,8 +47,6 @@ our $FREQUENCY_THEMES_SIZE = 10;
 our $STOP_THEMES_SIZE = 10;
 our $TF_IDF_THEMES_SIZE = 20;
 
-use IO::Uncompress::Bunzip2;
-use IO::Compress::Bzip2;
 
 use Scalar::Util qw(blessed reftype);
 use YAML::XS;
