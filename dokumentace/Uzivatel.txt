@@ -1,6 +1,10 @@
 Uživatelská dokumentace k projektu Zpravostroj
 ----------------------------------------------
 
+Projekt potřebuje operační systém Unixového typu a nainstalovaný Perl, minimálně ve verzi 5.8. Projekt byl testován pouze na operačních systémech s jádrem Linux, u jiných systémů by mohl být problém s nainstalováním programu TectoMT, který používám.
+
+Dále je nutné mít nainstalované některé základní unixové utility, přesněji wc, test a sort, a dále program bzip2. Program sort musí také znát option +, který je v GNU verzi, ale není v UNIX specifikaci.
+
 Celý projekt je pouze několik perl modulů. Pro spuštění jednotlivých úloh je nutné daný modul načíst pomocí příkazů use nebo require, přičemž musí být "hlavní adresář" (tj. adresář, nadřazený adresáři Zpravostroj) v PERL5LIB - jelikož je ale v PERL5LIB většinou obsažen odkaz na pracovní adresář ., stačí mít hlavní adresář jako pracovní adresář.
 
 Po načtení modulu (různé moduly pro různé úkoly) je možné různé úkoly spustit jedním zavoláním procedury. Kromě modulu Zpravostroj::Globals neexportuje žádný z modulů žádné procedury, je tedy nutné psát celé názvy procedur včetně názvu modulu.
@@ -16,7 +20,7 @@ Velmi tedy doporučuji mít jako pracovní adresář "hlavní adresář" projekt
 Program též zapisuje průběžná data do adresáře "./tmp/" pod pracovní adresář. Pokud chcete, aby program zapisoval do adresáře /tmp (například), je nutné tento adresář nalinkovat do pracovního adresáře jako "./tmp/".
 
 
-Součástí projektu je i aplikace pro manuální označování 
+Součástí projektu je i aplikace pro manuální označování témat, která byla původně zamýšlena jako webová aplikace pro více uživatelů, proto běží jako Facebook aplikace na adrese http://apps.facebook.com/zpravostroj_z/; tato aplikace je ale ve skutečnosti umístěna na serveru ufallab2.ms.mff.cuni.cz, který bude v průběhu roku 2011 vypnut a fungovat tedy přestane. Zdrojový kód k této Facebook aplikaci je modul Zpravostroj::HTMLOutput (a velmi krátký skript, který spustí Zpravostroj::HTMLOutput::generate_HTML, který není součástí projektu).
 
 
 Program potřebuje tyto moduly:
@@ -44,7 +48,7 @@ Kromě toho potřebuje program mít nainstalovaný a správně nastavený progra
 
 
 
-Facebook
+Facebook aplikace kromě toho potřebuje tyto moduly:
 
 Facebook::Graph
 Encode

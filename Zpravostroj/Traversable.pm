@@ -91,7 +91,7 @@ sub traverse(&$) {
 			say "Pred SPUSTENIM big_subroutiny.";
 			my $res = $big_subref->();
 			if ($res!=1) {
-				die "WTF. vykricnik je ".$!;
+				die "Error. vykricnik je ".$!;
 			}
 			say "Po SPUSTENI big_subroutiny.";
 		}

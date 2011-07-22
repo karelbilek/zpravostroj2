@@ -34,6 +34,7 @@ use Scalar::Util qw(reftype);
 
 
 mkdir "data";
+mkdir "data/idf/";
 
 #hlavní outcounter, kde je vše
 #to delete_on_start=>0 je tam důležité!
@@ -73,7 +74,6 @@ sub _set_last_saved {
 	$date->get_to_file("data/idf/date_last_counted");
 	write_file("data/idf/article_last_counted", $num);
 }
-
 
 #Updatne IDF matici
 sub update_all {

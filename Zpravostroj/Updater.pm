@@ -85,7 +85,6 @@ sub download_new_articles {
 		say "PO UPDATE update_saved_article_names";
 	
 	if ($recount_all_tf_idf_themes) {
-		say "BULL SHIT";
 		Zpravostroj::AllDates::get_statistics_tf_idf_themes();
 	}
 }
