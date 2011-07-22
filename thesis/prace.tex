@@ -239,7 +239,7 @@
 %% ale hlavně ho používáme k~uložení metadat do PDF (včetně obsahu).
 %% POZOR, nezapomeňte vyplnit jméno práce a autora.
 \usepackage[ps2pdf,unicode]{hyperref}   % Musí být za všemi ostatními balíčky
-\hypersetup{pdftitle=Sledování témat v elektronickém zpravodajství}
+\hypersetup{pdftitle=Sledování témat v~elektronickém zpravodajství}
 \hypersetup{pdfauthor=Karel Bílek}
 
 %%% Drobné úpravy stylu
@@ -395,7 +395,7 @@ RNDr. Ondřej Bojar, Ph.D., Ústav formální a aplikované lingvistiky
 % dle Organizační struktury MFF UK, případně plný název pracoviště mimo MFF UK
 
 Abstrakt:
-V~této práci se snažím nalézt definici zpravodajského tématu tak, aby byla detekce těchto témat v textu implementovatelná a kvalita této detekce měřitelná. Popisuji možné metody --- \uv{prosté} počítání slov, případně se zavedením stopslov; TF-IDF; dále popisuji problém textové kategorizace, mírně se dotknu text clusteringu. Dále popisuji přístupy, nazvané latent semantic indexing a latent Dirichlet allocation. Také popisuji experimenty s~\uv{prostým} počítáním slov, TF-IDF a textovou kategorizací na databázi článků z~několika elektronických zdrojů; vznik této databáze v~práci popisuji rovněž. Ke způsobu řešení pomocí textové kategorizace uvádím metriku pomocí měření přesnosti a úplnosti; podle těchto metrik měřím několik variant textové kategorizace.
+V~této práci se snažím nalézt definici zpravodajského tématu tak, aby byla detekce těchto témat v~textu implementovatelná a kvalita této detekce měřitelná. Popisuji možné metody --- \uv{prosté} počítání slov, případně se zavedením stopslov; TF-IDF; dále popisuji problém textové kategorizace, mírně se dotknu text clusteringu. Dále popisuji přístupy, nazvané latent semantic indexing a latent Dirichlet allocation. Také popisuji experimenty s~\uv{prostým} počítáním slov, TF-IDF a textovou kategorizací na databázi článků z~několika elektronických zdrojů; vznik této databáze v~práci popisuji rovněž. Ke způsobu řešení pomocí textové kategorizace uvádím metriku pomocí měření přesnosti a úplnosti; podle těchto metrik měřím několik variant textové kategorizace.
 % abstrakt v~rozsahu 80-200 slov; nejedná se však o opis zadání bakalářské práce
 
 Klíčová slova:
@@ -476,14 +476,14 @@ Jádrem bakalářské práce je na této množině článků najít \uv{témata}
 
 \chapter{Detekce témat}
 \label{sec:hledanitemat_hlavni}
-V této části uvedu několik postupů, jak je možné detekovat témata článku. \emph{Naivní} definici z~úvodu jsem si ponechal jako \uv{skutečnou} definici tématu; pro jednotlivé postupy potom platí, že v každém z~nich lze nakonec za definici tématu považovat \emph{ten} formální prvek, které dané postupy vyrábějí. 
+V této části uvedu několik postupů, jak je možné detekovat témata článku. \emph{Naivní} definici z~úvodu jsem si ponechal jako \uv{skutečnou} definici tématu; pro jednotlivé postupy potom platí, že v~každém z~nich lze nakonec za definici tématu považovat \emph{ten} formální prvek, které dané postupy vyrábějí. 
 
 Některé z~těchto postupů jsem neimplementoval; u těch, které jsem implementoval, hodnotím i to, jak moc se výsledky blíží naivní definici (která je samozřejmě už ze své podstaty \emph{velmi} vágní a nepřesná); tj. jak dobře lze říci, že témata, nalezena touto metodou, jsou opravdu to, \uv{o čem je tento článek}. Výsledky samotné včetně výsledků evaluace, kterou také popisuji dále v~této části, podrobněji zkoumám v~Kapitole~\ref{sec:experimenty}.
 
 \section{Frekvence a stopslova}
 \label{sec:frekvestopslo}
 
-První nápad na hledání témat je jednoduché počítání frekvencí ve článcích s~tím, že častější slova prohlásím automaticky za témata --- případně s~tím, že budu ignorovat tzv. stopslova.
+První nápad na hledání témat je jednoduché počítání frekvencí slov ve článcích s~tím, že častější slova prohlásím automaticky za témata --- případně s~tím, že budu ignorovat tzv. stopslova.
 
 Termín \emph{stopslova} (\emph{stopword}, případně \emph{stoplist} ve významu seznam stopslov) popisuje např. \cite{introduction} a další. Jde o po\-mě\-r\-ně ma\-lou mno\-ži\-nu ty\-pů slov, kte\-rá ale před\-sta\-vu\-je vel\-kou část to\-ke\-nů. (V angličtině je to např. po\-dle \cite{introduction} 40-50 pro\-cent; v~části~\ref{sec:stemata} ukazuji statistiky na vlastní databázi zpravodajských článků.) Jde převážně o spojky, částice a zá\-klad\-ní slovesa, co sama o sobě nenesou žádný obsah textu. Je nutno je buď definovat ručně, což je ale jaksi \uv{nesystémové} řešení; nebo se stopslova definují jako nej\-čas\-tě\-ji po\-u\-ží\-va\-ná slo\-va (jak je definuji i já), což s~sebou ne\-se ri\-zi\-ko, že se vel\-mi čas\-tá slo\-va, kte\-rá ale \emph{ne\-jsou} bez\-vý\-zna\-mo\-vá či po\-moc\-ná, ú\-pl\-ně i\-gno\-ru\-jí.
 %jsou jakoby prvním přiblížením, jak oddělit plnovýznamová slova od pomocných
@@ -492,7 +492,7 @@ Pro nalezení množiny témat pro daný článek potom vezmu prvních $k$ nej\-�
 
 Tento přístup je sice velmi jednoduchý a dobře definovaný, ale jak ukazuji v~části~\ref{sec:ftemata}, nedává příliš dobré výsledky. Je to proto, že četnost slova je brána jako \emph{jediné} kritérium pro určení daného slova jako tématu --- přičemž dané slovo může sice být ve článku četné, ale je podobně četné i v~ostatních článcích, takže velká četnost tohoto slova článek nijak nevymezuje vůči dalším článkům. V~podstatě jde o tentýž problém, který se snaží řešit stopslova, pouze v~menší míře --- nejedná se \emph{přímo} o stopslova, ale přesto tato slova nejsou pro článek natolik důležitá, aby byla jeho tématem.
 
-Dále mi nastává přesně opačný problém, než ten, který jsem nastínil --- protože stopslova beru pouze jako \emph{právě ta} nejčetnější slova v celé databázi, některá slova, která by se určitě dala chápat jako témata článku podle naivní definice, se kompletně ignorují (konkrétně jde například o jména politických stran).
+Dále mi nastává přesně opačný problém, než ten, který jsem nastínil --- protože stopslova beru pouze jako \emph{právě ta} nejčetnější slova v~celé databázi, některá slova, která by se určitě dala chápat jako témata článku podle naivní definice, se kompletně ignorují (konkrétně jde například o jména politických stran).
 
 S touto metodou, stejně jako s~následující, je spojen také další, významný problém --- tyto metody nacházejí pouze ta slova, která jsou v~samotném článku. Jak bude vidět na skutečných datech dále, je nutno je chápat spíše jako jakási klíčová slova --- je tedy problém správnost nalezení těchto témat měřit, přičemž návrh metriky kvality zatřídění je jedním z~úkolů bakalářské práce.
 
@@ -512,7 +512,7 @@ $idf_{i,j}$ je pak (taktéž např. podle \cite{understanding}) definována jako
 
 Potom platí jednoduché $$\mbox{TF-IDF}_{i,j}=tf_{i,j}\cdot idf_{i,j}.$$
 
-TF-IDF je opět pouze váhová funkce, tj. je třeba určit nějaké $k$, konstantní pro všechny články, a jako témata vzít pouze  $k$ slov s nejvyšším TF-IDF. Těmto tématům říkám \emph{tf-idf témata}.
+TF-IDF je opět pouze váhová funkce, tj. je třeba určit nějaké $k$, konstantní pro všechny články, a jako témata vzít pouze  $k$ slov s~nejvyšším TF-IDF. Těmto tématům říkám \emph{tf-idf témata}.
 
 Pro bigramy, trigramy apod. nedává TF-IDF dobré výsledky, protože IDF je pro bigramy ve většině případů a pro trigramy téměř ve všech případech 1. Stále také platí, že tato metoda najde pouze slova, která se ve článku vyskytují, tj. jde pouze o jakási klíčová slova --- platí tedy totéž, co jsem psal v~závěru části \ref{sec:frekvestopslo}.
 
@@ -689,7 +689,7 @@ V obou případech lze říci, že přesnost znázorňuje podíl toho, že pokud
 
 Technicky je nutné dořešit jeden problém, kterému se \cite{machine_intro} ne\-vě\-nu\-je. Jak přesně spočítat přesnost, pokud jsou $TP$ i $FP$ rovné nule, tj. klasifikátor nevydal ani jedno pozitivní rozhodnutí? Já tento problém vyřešil takto --- pokud jsou při výpočtu mikroprůměru $TP$ i $FP$ rovny nule --- tj. klasifikátor nevydal \emph{ani jedno} rozhodnutí, je $\pi_{\mu}$ rovno jedné, protože jsou jakoby všechna rozhodnutí správně. Stejně tak uvažuji ve výpočtu makroprůměru v~počítání \uv{malých} přesností pro každou kategorii.
 
-Ani přesnost, ani úplnost není možno brát jako samostatnou metriku --- například $\rho=1$ lze docílit triviálním klasifikátorem, který zatřídí každý článek do všech kategorií. K~průměrování těchto dvou hodnot k dosažení jediné metriky se používá F$_1$-skóre, které je (například opět podle \cite{machine_intro}) definováno jako $$F_1=\frac{2\pi\rho}{\pi+\rho}.$$ 
+Ani přesnost, ani úplnost není možno brát jako samostatnou metriku --- například $\rho=1$ lze docílit triviálním klasifikátorem, který zatřídí každý článek do všech kategorií. K~průměrování těchto dvou hodnot k~dosažení jediné metriky se používá F$_1$-skóre, které je (například opět podle \cite{machine_intro}) definováno jako $$F_1=\frac{2\pi\rho}{\pi+\rho}.$$ 
 
 Jelikož mám dvojí přesnost a úplnost, mám i dvojí F$_1$ skóre, jedno pro mikro- a jedno pro makroprůměr; označuji je $F_\mu$ a $F_M$. Tato dvě skóre tedy beru jako finální metriky kvality detekce kategorií.
 
@@ -698,7 +698,7 @@ Jelikož mám dvojí přesnost a úplnost, mám i dvojí F$_1$ skóre, jedno pro
 
 Jak jsem již uvedl v~sekcích \ref{sec:frekvestopslo} a \ref{sec:tfidf_teory}, tyto metody vrací spíše klíčová slova než témata. Je velmi obtížné pro kvalitu určování těchto klíčových slov navrhnout metriku, která by dávala smysluplné výsledky.
 
-Zkusil jsem pro evaluaci těchto metod využít stejnou metriku, co pro úlohu kategorizace --- tj. použít ručně zatříděná data a výsledky srovnat s nimi. Úlohu evaluace na těchto metodách jsem si pro tyto účely upravil takto:
+Zkusil jsem pro evaluaci těchto metod využít stejnou metriku, co pro úlohu kategorizace --- tj. použít ručně zatříděná data a výsledky srovnat s~nimi. Úlohu evaluace na těchto metodách jsem si pro tyto účely upravil takto:
 \begin{enumerate}
     \item Slova, která tyto metody vrací, jsou názvy kategorií, do kterých je článek strojem zatříděn; tj. z~metod, které nefungují na principu klasifikace, vyrobím svého druhu klasifikátory.
     \item Naopak názvy ručně určených kategorií jsou často víceslovné; proto chápu pro jednoduchost shodu mezi ruční kategorií, skládající se ze slov $a_1, a_2 \ldots a_n$ a strojem určenou kategorií, skládající se ze slova $b$ tak, že \emph{některé} ze slov $a_1$ až $a_n$ je rovno $b$.
@@ -706,7 +706,7 @@ Zkusil jsem pro evaluaci těchto metod využít stejnou metriku, co pro úlohu k
 \end{enumerate}
 
 Tento způsob evaluace má o něco volnější definici \emph{true positive}, tedy při srovnání s~evaluací klasických klasifikátorů dává lepší výsledky, než by jí možná odpovídalo.
-%Tato evaluace je sice dobře definovaná, ale jak ukážu v Kapitole \ref{sec:experimenty}, dává nesmyslně nízké výsledky.
+%Tato evaluace je sice dobře definovaná, ale jak ukážu v~Kapitole \ref{sec:experimenty}, dává nesmyslně nízké výsledky.
 
 \chapter{Další implementační problémy}
 V této kapitole se pokusím rozebrat jednotlivé problémy, které úkol sledování témat v~elektronickém zpravodajství má, a ukázat různé varianty jejich řešení. Zároveň s~tím zmíním některé implementační problémy samotného programu.
@@ -730,14 +730,14 @@ Jelikož drtivá většina českých zpravodajských serverů RSS kanály podpor
 \subsubsection{Archiv}
 Z technických důvodů mi ovšem RSS kanály určitou dobu nefungovaly. Proto jsem do programu přidal další funkci --- stahování článků přes archiv zpráv.
 
-Všechny mnou sledované weby (kromě, bohužel, serveru iHNed.cz\footnote{Server iHNed.cz má sice starší články na webu zdarma přístupné, ale nemá přístupný seznam více než 300 článků v každé kategorii, což odpovídá přibližně dvěma měsícům.}) mají nějakou formu archivu, který je zdarma přístupný. Každý z~těchto archivů je možno velmi jednoduše projít a články za období výpadku RSS stáhnout.
+Všechny mnou sledované weby (kromě, bohužel, serveru iHNed.cz\footnote{Server iHNed.cz má sice starší články na webu zdarma přístupné, ale nemá přístupný seznam více než 300 článků v~každé kategorii, což odpovídá přibližně dvěma měsícům.}) mají nějakou formu archivu, který je zdarma přístupný. Každý z~těchto archivů je možno velmi jednoduše projít a články za období výpadku RSS stáhnout.
 
 Je důležité si ale uvědomit, že články v~archivu nejsou vždy shodné se články v~RSS, což bude více vidět v~kapitole~\ref{sec:sberdat}. Proto se počet a struktura článků ve dnech, kde byly články stahovány první metodou, liší od dnů, kdy byly stahovány druhou metodou.
 
 
 
 \section{Vyčištění článku}
-Jak dobře popisuje například \cite{eliminating} či \cite{discovering}, kolem \uv{sku\-te\-č\-né\-ho} obsahu článku, který nese sémantickou informaci, je také velké množství dalšího textu, například odkazy na jiné články, navigační prvky apod. Tyto HTML elementy sice uživateli pomáhají lépe se orientovat na stránce a v~nej\-lep\-ším případě jsou pro člověka jasně vizuálně oddělitelné od obsahu článku, stroj má ale k dispozici pouze zdrojový HTML kód a od\-dělení \uv{skutečného} textu článku od \uv{zbytku} je netriviální problém. Na tento problém existuje několik možností řešení.
+Jak dobře popisuje například \cite{eliminating} či \cite{discovering}, kolem \uv{sku\-te\-č\-né\-ho} obsahu článku, který nese sémantickou informaci, je také velké množství dalšího textu, například odkazy na jiné články, navigační prvky apod. Tyto HTML elementy sice uživateli pomáhají lépe se orientovat na stránce a v~nej\-lep\-ším případě jsou pro člověka jasně vizuálně oddělitelné od obsahu článku, stroj má ale k~dispozici pouze zdrojový HTML kód a od\-dělení \uv{skutečného} textu článku od \uv{zbytku} je netriviální problém. Na tento problém existuje několik možností řešení.
 
 \subsubsection{Vyčištění vynechat}
 První řešení se nabízí vyčištění článku úplně vynechat a (například pomocí programu \texttt{links}) jako obsah článku vzít vše, co je zobrazeno.
@@ -1443,18 +1443,18 @@ Dále se mi v~části \ref{sec:hledanitemat_prezentace_vysledku} podařilo urči
 
 Na přiloženém DVD je obsaženo:
 \begin{itemize}
-    \item Tato práce ve formátech \LaTeX a PDF v adresáři \texttt{thesis}
-    \item Stažené zprávy a z nich získaná data data v adresáři \texttt{data}
-    \item Grafy, použité v této bakalářské práci, v adresáři \texttt{R\_graphs}
+    \item Tato práce ve formátech \LaTeX a PDF v~adresáři \texttt{thesis}
+    \item Stažené zprávy a z nich získaná data data v~adresáři \texttt{data}
+    \item Grafy, použité v~této bakalářské práci, v~adresáři \texttt{R\_graphs}
     
-    \item Program Zpravostroj, popisovaný v této bakalářské práci, v adresáři \texttt{Zpravostroj}
-    \item Krátká dokumentace k programu v adresáři \texttt{dokumentace}
+    \item Program Zpravostroj, popisovaný v~této bakalářské práci, v~adresáři \texttt{Zpravostroj}
+    \item Krátká dokumentace k~programu v~adresáři \texttt{dokumentace}
     
 \end{itemize}
 
-Práva ke staženým zprávám vlastní jejich autoři. Doufám, že jejich přiložením k této práci neporušuji autorský zákon.
+Práva ke staženým zprávám vlastní jejich autoři. Doufám, že jejich přiložením k~této práci neporušuji autorský zákon.
 
-Obsah DVD kromě stažených zpráv a z nich zjištěných dat je k dispozici též on-line na adrese \url{http://github.com/runn1ng/zpravostroj2}. Samotný program Zpravostroj je licencován pod licencí Apache 2.0.
+Obsah DVD kromě stažených zpráv a z nich zjištěných dat je k~dispozici též on-line na adrese \url{http://github.com/runn1ng/zpravostroj2}. Samotný program Zpravostroj je licencován pod licencí Apache 2.0.
 
 
 \openright
