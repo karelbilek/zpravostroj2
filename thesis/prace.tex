@@ -760,7 +760,7 @@ Utilita je o něco složitější, ale základní způsob, jakým určuje obsaho
 
 
 \section{Kontinuální zpracování}
-V zadání práce je nepřímo zmíněno, že sledování zpravodajství a vyhledávání témat bude probíhat dlouhodobě a kontinuálně.
+V zadání práce je nepřímo zmíněno, že sledování zpravodajství a detekce témat bude probíhat dlouhodobě a kontinuálně.
 
 To představuje mírný problém. Například TF-IDF váhová funkce se kontinuálně zlepšuje s~tím, jak do databáze přibývají nové a nové články. Vyvstává otázka, zda je třeba s~novými články, a tedy s~novými inverzními frekvencemi, měnit zpětně články s~už nalezenými tf-idf tématy. Algoritmus LSI pro SVD také potřebuje mít matici kompletní.
 
@@ -778,7 +778,7 @@ V rámci Ústavu formální a aplikované lingvistiky existuje projekt TectoMT, 
 Pro lemmatizaci používám lemmatizátor \texttt{TagHajic} --- sice vrací o něco horší výsledky, ale má menší paměťové nároky a pracuje o něco rychleji.
 
 \subsection{Pojmenované entity}
-Při vyhledávání klíčových slov si ještě mírně pomáhám vyhledáním tzv. \emph{pojmenovaných entit} (\emph{named entities}), taktéž pomocí vestavěných modulů v~\texttt{TectoMT}. Pojmenované entity jsou jména osob, míst, organizací a podobně.
+Při detekci klíčových slov si ještě mírně pomáhám detekcí tzv. \emph{pojmenovaných entit} (\emph{named entities}), taktéž pomocí vestavěných modulů v~\texttt{TectoMT}. Pojmenované entity jsou jména osob, míst, organizací a podobně.
 
 Předpokládám, že pojmenované entity budou mít vyšší důležitost, než ostatní slova. Proto jim v~rámci TF-IDF vážící funkce dám určitý \uv{náskok} --- tj. že počet výskytů $n_{i,j}$, tedy i celou váhovou funkci, vynásobím koeficientem $2$.
 
@@ -967,7 +967,7 @@ Pro srovnání s~dalšími metodami jsem otestoval i triviální kategorizaci, k
     
   \end{tabular}
 
-}{Přesnost a úplnost vyhledávání frekvenčních témat}
+}{Přesnost a úplnost detekce frekvenčních témat}
 
 Prvním pokusem o definování témat bylo jednoduché počítání frekvencí, bez zavedení stop slov. Jak jsem již popsal v~části~\ref{sec:frekvestopslo}, takto nalezená témata jsem nazval frekvenčními tématy; počet frekvenčních témat na jeden článek jsem určil jako 10. 
 
@@ -976,7 +976,7 @@ Jak vyjdou frekvenční témata na ukázkových článcích ukazují Tabulky~\re
 Jak je z~těchto tabulek vidět, nemá toto počítání témat přílišný smysl --- nalezenými frekvenční tématy jsou většinou právě stop-slova, tedy pomocná slova bez jakéhokoliv významu. 
 Pokud otestuji tato témata pomocí metrik $F_1$, vyjdou mi výsledky, které jsou uvedeny v~Tabulce ~\ref{tabulka:ftemata_eval}. Jsou si\-ce řá\-do\-vě lep\-ší, než u tri\-vi\-á\-lní\-ho vy\-hle\-dá\-vá\-ní témat, ale stále nejsou příliš dobré.
 
-%Pokud otestuji tato témata pomocí metrik $F_1$, vyjdou mi tristní výsledky, které jsou uvedeny v~Tabulce ~\ref{tabulka:ftemata_eval}; je vidět, že výsledky jsou té\-měř stej\-né, jako u triviálního vyhledávání témat.
+%Pokud otestuji tato témata pomocí metrik $F_1$, vyjdou mi tristní výsledky, které jsou uvedeny v~Tabulce ~\ref{tabulka:ftemata_eval}; je vidět, že výsledky jsou té\-měř stej\-né, jako u triviálního detekce témat.
 
 
 \subsection{Stop-témata}
@@ -1154,7 +1154,7 @@ Stejně tak nemůžeme četnosti článků s~tématem \texttt{premiér} nějak z
     
   \end{tabular}
 
-}{Přesnost a úplnost vyhledávání stoptémat}
+}{Přesnost a úplnost detekce stoptémat}
 
 Výsledky evaluace jsem zobrazil v~Tabulce~\ref{tabulka:stop_eval}. Je zajímavé, že úplnost je (vzhledem k~dosavadním metodám) o něco lepší; přesnost je ale stále malá, množství false positive je stále velké; to je částečně pochopitelné --- metoda vrací vždy 10 témat na článek, zatímco průměrný počet témat na článek je nižší.
 
@@ -1293,7 +1293,7 @@ Je otázka, jak tyto pohyby interpretovat. Je možné, že opravdu jde o hledano
     
   \end{tabular}
 
-}{Přesnost a úplnost vyhledávání tf-idf témat}
+}{Přesnost a úplnost detekce tf-idf témat}
 
 
 Evaluaci jsem provedl pro $k=10$ a $k=20$; vyšší množství témat na článek zvýší logicky úplnost, ale sníží přesnost. Je ale zajímavé, že zatímco \uv{opticky} dává TF-IDF lepší výsledky, než například stop-témata, tak F$_1$ metrika u této metody dopadne dokonce \emph{hůře}.
