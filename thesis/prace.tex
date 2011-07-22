@@ -532,12 +532,12 @@ Algoritmy klasifikace se \emph{strojovým učením} (\emph{machine learning}) js
 
 Přesněji popisuje opět \cite{machine_intro}: Vezmeme $\Omega \subset D$ podmnožinu všech dokumentů, na níž \emph{známe} výsledky cílové funkce $\bar{\Phi}$, a na základě této znalosti tvoříme funkci $\Phi$ (která se na $\Omega\times C$ může a nemusí shodovat s~$\bar{\Phi}$). Ono \uv{známe výsledky funkce} je právě ruční zatřiďování na podmnožině $\Omega$.
 
-Algoritmy pro klasifikaci, které jsem použil, jsou dobře popsány v~\cite{machine_intro}. Jelikož jsem tyto algoritmy neimplementoval přímo já, ale využil jsem perl modul \texttt{AI::Categorizer}, nebudu se zde o nich tolik zmiňovat a případně mohu odkázat na dokumentaci tohoto mo\-du\-lu, viz \cite{algorithmnaivebayes}. V~rámci tohoto mo\-du\-lu jsem použil algoritmy Naive Bayes, SVM a Decision Tree.
+V~\cite{machine_intro} jsou dobře popsány mnou použité algoritmy pro klasifikaci. Jelikož jsem tyto algoritmy neimplementoval přímo já, ale využil jsem perl modul \texttt{AI::Categorizer}, nebudu se zde o nich tolik zmiňovat a případně mohu odkázat na dokumentaci tohoto mo\-du\-lu, viz \cite{algorithmnaivebayes}. V~rámci tohoto mo\-du\-lu jsem použil algoritmy Naive Bayes, SVM a Decision Tree.
 
 
 \subsection{Rysy}
 
-Článek je pro všechny tyto algoritmy ale třeba nějak formálně reprezentovat. Pro účely klasifikace se používají takzvané \emph{rysy} (\emph{features}). Je to množina, která charakterizuje dokument. Formálně, opět podle \cite{machine_intro}, je možné reprezentaci pomocí rysů popsat takto: $T$ je množina všech rysů, a každý dokument je poté definován jako vektor $d_j=\left<w_{1_j}, \ldots w_{\left|T\right|_j}\right>$.
+Článek je pro všechny tyto algoritmy třeba nějak formálně reprezentovat. Pro účely klasifikace se používají takzvané \emph{rysy} (\emph{features}). Je to množina, která charakterizuje dokument. Formálně, opět podle \cite{machine_intro}, je možné reprezentaci pomocí rysů popsat takto: $T$ je množina všech rysů, a každý dokument je poté definován jako vektor $d_j=\left<w_{1_j}, \ldots w_{\left|T\right|_j}\right>$.
 
 Já jsem k~definování rysů použil už hotovou funkci TF-IDF, a to dvěma různými způsoby:
 
@@ -548,14 +548,14 @@ Já jsem k~definování rysů použil už hotovou funkci TF-IDF, a to dvěma rů
 
 \subsection{Kategorie}
 \label{sec:jakekategorie}
-Čeho jsem se zatím nedotkl je výběr samotných kategorií a potom také otázky, jestli články mohou být ve více než jedné kategorii. %Tyto otázky se ukazují jako zásadní pro vyřešení daného úkolu.
+Čeho jsem se zatím nedotkl, je výběr samotných kategorií a potom také otázky, jestli články mohou být ve více než jedné kategorii. %Tyto otázky se ukazují jako zásadní pro vyřešení daného úkolu.
 
 \subsubsection{Předem dané kategorie}
 \label{sec:omezene_teorie}
 
-Jedna z~možností je kategorie zadat explicitně předem a zatřiďovat do nich. Následuje otázka --- jak kategorie vybrat?
+Jedna z~možností je kategorie zadat explicitně předem a zatřiďovat do nich. Následuje otázka --- jaké kategorie navrhnout?
 
-Můžeme vybrat například kategorie velmi hrubě podle tématických kategorií, které budou přibližně zrcadlit kategorie na zpravodajských serverech. Tuto možnost jsem vyzkoušel s~těmito konkrétními kategoriemi: \texttt{Politika}, \texttt{Ekonomika}, \texttt{Krimi}, \texttt{Bulvár}, \texttt{Kultura}, \texttt{Studium}, \texttt{Věda}, \texttt{Technika}, \texttt{Počasí}, \texttt{Sport} a \texttt{Další}; každá z~nich je ještě rozdělena na \texttt{domácí} a \texttt{svět}. 
+Můžeme vybrat například kategorie velmi hrubě podle tématických kategorií, které budou přibližně zrcadlit sekce na zpravodajských serverech. Tuto možnost jsem vyzkoušel s~těmito konkrétními kategoriemi: \texttt{Politika}, \texttt{Ekonomika}, \texttt{Krimi}, \texttt{Bulvár}, \texttt{Kultura}, \texttt{Studium}, \texttt{Věda}, \texttt{Technika}, \texttt{Počasí}, \texttt{Sport} a \texttt{Další}; každá z~nich je ještě rozdělena na \texttt{domácí} a \texttt{svět}. 
 
 Kategorie můžeme pojmout i šířeji a vypůjčit si kategorie například z~českých WikiNews. Tuto možnost jsem zvažoval, ale nakonec nestihl otestovat.
 
@@ -563,7 +563,7 @@ Kategorie můžeme pojmout i šířeji a vypůjčit si kategorie například z~�
 \subsubsection{Neomezená množina kategorií}
 \label{sec:neomezene_teorie}
 
-Další možností je nedefinovat kategorie explicitně, ale vytvářet je až v~průběhu ručního zatřiďování, kde \uv{definice} kategorie kopíruje naivní definici tématu z~čá\-sti~\ref{sec:sub_temata}. Pokud jsou kategorie vytvářeny až člověkem při ručním zatřiďování, znamená to, že teoreticky není množina kategorií nijak omezená, a tedy jakýkoliv výraz, který nese sémantický význam, může být tématem článku.
+Další možností je nedefinovat kategorie explicitně předem, ale vytvářet je až v~průběhu ručního zatřiďování, kde \uv{definice} kategorie kopíruje naivní definici tématu z~čá\-sti~\ref{sec:sub_temata}. Pokud jsou kategorie vytvářeny až člověkem při ručním zatřiďování, znamená to, že teoreticky není množina kategorií nijak omezená, a tedy jakýkoliv výraz, který nese nějaký význam, může být tématem článku.
 
 Tato možnost je lepší v~tom, že se není třeba dopředu omezovat na seznam kategorií, není seznam kategorií třeba předem vytvářet a hlavně je mnohem jednodušší úloha ručního zatřiďování --- v~podstatě je redukovaná pouze na otázku \uv{O čem je tento článek?}. Tuto možnost jsem implementoval jako první.
 
@@ -588,7 +588,7 @@ U varianty s~neomezenou množinou kategorií jsem nechal možných kategorií na
 V~této části shrnuji další přístupy, které jsem ovšem neimplementoval, takže jejich případné výhody či nevýhody mohu posuzovat pouze teoreticky.
 
 \subsection{Shlukování}
-Další variantou je jít na problém jakoby z~druhé strany a použít metodu tzv. \emph{shlukování} (\emph{clustering}). Tento přístup dobře popisuje například \cite{clustering}.
+Další variantou je jít na problém jakoby z~druhé strany a použít metodu tzv. \emph{shlukování} (\emph{clustering}) --- tuto dobře popisuje například \cite{clustering}.
 
 Zjednodušeně řečeno jde o to, že na rozdíl od kategorizace se dokumentům nepřiřazují kategorie, ale dokumenty jsou rozděleny do množin na základě vzájemné podobnosti a případné názvy jsou těmto množinám --- tzv. \emph{shlukům} (\emph{clusterům}) přiřazovány až ex-post. 
 
@@ -603,7 +603,7 @@ Podstata LSI je v~tom, že matici $\left< \mathrm{dokumenty} \times \mathrm{term
 
 Přesněji je matice $X$ definovaná jako matice o velikosti $t\times d$, $t$ je počet termínů, $d$ je počet dokumentů. V~matici se na pozici $x_{termín, dokument}$ nachází počet výskytů termínu \emph{termín} v~dokumentu \emph{dokument}. 
 
-SVD metoda převede tuto matici na násobek tří matic $T\times S \times D'$, kde matice $S$ je čtvercová diagonální matice o velikosti $m\times m$ (kde $m\le \min\left(t, d\right)$), matice $T$ má ortonormální sloupce, stejně jako matice $D$, ke které je $D'$ komplexně sdruženou maticí --- matice $T$ je velká $t \times m$, matice $D'$ $m \times d$. \footnote{Konvence pro velikosti matic u SVD se liší zdroj od zdroje; zde jsem zvolil konvenci od \cite{lsi}.} Tento rozklad existuje pro \emph{každou} matici.
+Metoda SVD převede tuto matici na násobek tří matic $T\times S \times D'$, kde matice $S$ je čtvercová diagonální matice o velikosti $m\times m$ (kde $m\le \min\left(t, d\right)$), matice $T$ má ortonormální sloupce, stejně jako matice $D$, ke které je $D'$ komplexně sdruženou maticí --- matice $T$ je velká $t \times m$, matice $D'$ $m \times d$. \footnote{Konvence pro velikosti matic u SVD se liší zdroj od zdroje; zde jsem zvolil konvenci od \cite{lsi}.} Tento rozklad existuje pro \emph{každou} matici.
 
 Můžeme si tedy představit, že prostor termínů a prostor dokumentů má dimenzi $m$ \footnote{V \cite{lsi} je toto vysvětleno až u redukované matice, ale platí to analogicky i před redukcí} --- myšleno tak, že pro daný termín a dokument je pozice v~matici $X_{termín, dokument}$ skalárním součinem řádku odpovídajícímu danému termínu v~matici $TS^{\frac{1}{2}}$ a řádku odpovídajícímu danému dokumentu v~matici $DS^{\frac{1}{2}}$, které jsou oba velké $m$. 
 
@@ -660,7 +660,7 @@ Nalezení metriky kvality detekce témat bylo jedno ze zadání bakalářské pr
 
 Evaluaci u~klasifikátorů jsem provedl metodou \emph{cross-validace} (\emph{cross-va\-li\-da\-tion}), popsanou například opět v~\cite{machine_intro}, a jednotlivé testy v~cross-validaci jsem provedl pomocí \emph{makroprůměru} (\emph{macroaveraging}) i \emph{mikroprůměru} (\emph{microaveraging}), popsaných tamtéž.
 
-Cross-validace funguje tak, že z~množiny všech článků se vybere podbnožina $\Omega$, která je ručně zatříděna do kategorií. Tato množina je rozdělena do $k$ disjunktních množin $Te_1, Te_2, \ldots Te_k,$ a poté je na dvojicích $\left<Tv_i=\Omega-Te_{i}, Te_{i}\right>$ provedena klasická evaluace (pokaždé ale s~\emph{novým} klasifikátorem), nazývaná v~\cite{machine_intro} \emph{train-and-test}.
+Cross-validace funguje tak, že z~množiny všech článků se vybere podmnožina $\Omega$, která je ručně zatříděna do kategorií. Tato množina je rozdělena do $k$ disjunktních množin $Te_1, Te_2, \ldots Te_k,$ a poté je na dvojicích $\left<Tv_i=\Omega-Te_{i}, Te_{i}\right>$ provedena klasická evaluace (pokaždé ale s~\emph{novým} klasifikátorem), nazývaná v~\cite{machine_intro} \emph{train-and-test}.
 
 V metodě \emph{train-and-test} je klasifikátor natrénován testovaným algoritmem na množině $Tv$ a menší množinu článků $Te$ poté zatřiďuje do kategorií. Klasifikátor ruční zatřídění na množině $Te$ nezná a znát \emph{nesmí}.
 
