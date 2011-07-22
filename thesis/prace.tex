@@ -420,7 +420,7 @@ RNDr. Ondřej Bojar, Ph.D., Institute of Formal and Applied Linguistics
 % mimo MFF UK v~angličtině
 
 Abstract:
-In this thesis, I try to find a definition of a news topic to make topic detection implementable and its quality measurable. I describe various methods --- a ``simple'' words counting, optionally with stopwords. I also desribe TF-IDF and the text categorization problem. I touch the subject of text clustering. Then I describe approaches called latent semantic indexing and latent Dirichlet allocation. The thesis includes my experiments with ``simple'' words counting, TF-IDF and text categorization on database of articles from several online news websites; I also describe the creation of this database. Precision and recall are used as a metric to text categorization approach and I use this metric to measure several variants of text categorization. 
+In this thesis, I try to find a definition of a news topic to make topic detection implementable and its quality measurable. I describe various methods --- a ``simple'' words counting, optionally with stopwords. I also describe TF-IDF and the text categorization problem. I touch the subject of text clustering. Then I briefly describe approaches called latent semantic indexing and latent Dirichlet allocation. The thesis includes my experiments with ``simple'' words counting, TF-IDF and text categorization on database of articles from several online news websites; I also describe the creation of this database. Precision and recall are used as a metric to text categorization approach. 
 
 % abstrakt v~rozsahu 80-200 slov v~angličtiněrrrrz
 Keywords:
@@ -457,7 +457,7 @@ News, articles, topics, keywords
 
 \chapter{Úvod}
 
-Úkolem bakalářské práce je sledovat elektronické zdroje zpravodajství a na zá\-klad\-ě opakujících se slov zařazovat články do témat, tato témata sledovat v~čase a případně na základě tohoto sledování detekovat něco, jako je \uv{okurková sezóna}.
+Úkolem bakalářské práce je sledovat elektronické zdroje zpravodajství, na zá\-klad\-ě opakujících se slov zařazovat články do témat, tato témata sledovat v~čase a případně na základě tohoto sledování detekovat něco, jako je \uv{okurková sezóna}.
 
 V průběhu přípravy práce jsem zjistil, že úkol detekce tématu je poměrně častý v~oboru \emph{text mining}, respektive \emph{information retrieval}. Zadání práce se mi částečně splnit podařilo, součástí práce je také shrnutí dalších možných přístupů a pohledů na danou problematiku.
 
@@ -467,9 +467,11 @@ Výhoda zpravodajským webů je ta, že jsou za krátkou dobu (v řádu měsíc�
 
 Zpravodajství na jednotlivých serverech lze jednoduše rozdělit na jednotlivé dokumenty neboli články. Článek na zpravodajském webu má jasně daný obsah, kromě toho je důležité, že nese i informaci o čase vydání (jak datem, kdy se na webu objeví, tak datem, uvedeným v~popisu článku přímo na webu). Toho lze využít a informaci o čase dále zpracovávat.
 
+%TODO - struktura prace 4 radky
+
 \subsubsection{Témata}
 \label{sec:sub_temata}
-Jádrem bakalářské práce je na této množině článků najít \uv{témata} a jejich četnost případně vynést na časovou osu. Přesnou definici tématu v~bakalářské práci tedy teprve hledám. Je nutné se zatím spokojit s~tím, že téma nejasně definuji jako \uv{něco, o čem článek je}. Tuto definici jsem si nazval \emph{naivní} definice tématu.
+Jádrem bakalářské práce je na této množině článků najít \uv{témata} a jejich četnost případně vynést na časovou osu. Přesnou definici tématu v~bakalářské práci nicméně teprve hledám. Je nutné se zatím spokojit s~tím, že téma nejasně definuji jako \uv{něco, o čem článek je}. Tuto definici jsem si nazval \emph{naivní} definice tématu.
 
 
 \chapter{Detekce témat}
