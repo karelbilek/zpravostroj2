@@ -855,13 +855,13 @@ Pro ilustraci jsem z~těchto 200 článků vybral náhodně dva, na kterých uk�
 
 \mujpara{druhy}{Džungle naproti prezidentskému apartmá v~hotelu Taj Mahal v~Bombaji bude o víkendu jedním z~nejstřeženějších míst na světě. Zvláštní komanda vybavená dalekohledy s~nočním viděním budou dávat pozor na každé šustnutí. A to také kvůli opicím, které město v~poslední době doslova terorizují. Podle deníku The Daily Telegraph makakové neustále přebíhají přes vládní pozemky, překusují kabely, napadají lidi nesoucí jídlo a celkově vyvolávají paniku. Přestože místní noviny pravidelně píší o škodách, které opice napáchaly, a o obětech jejich hladových útoků, úřady se dosud neměly k~zásahu. Makak je totiž pro hinduisty symbolem opičího boha Hanumana. Kvůli Obamově návštěvě ale nemohou jinak, než přichystat potřebná opatření. Po zuby ozbrojené, speciálně cvičené protiteroristické jednotky tak doplní chytači opic. \uv{Rozmístíme policejní komanda, odstřelovače a také lidi na chytání makaků, abychom zvýšili Obamovu bezpečnost,} řekl jeden z~policistů listu The Hindustan Times. Kokosy mizí z~ulic Další hrozbu představují pro Obamu bombajské kokosovníky. Padající kokosy v~Indii každoročně zraní, ale i zabijí několik lidí. Aby se to nestalo i Obamovi, mizí postupně suché ořechy z~palem v~místech, kde se bude americký prezident při páteční návštěvě pohybovat. Indové už tak očesali kokosy například u Gándhího muzea, uvedla britská BBC. Dvoupatrový komplex, zasvěcený otci indické nezávislosti Mahátmovi Gándhímu, stojí na jihu Bombaje a cesta k~němu je lemována právě kokosovníky. V~domě je kromě muzea i pokoj, ve kterém Gándhí žil sedmnáct let. Obama Gándhího otevřeně obdivuje a říká o něm, že pro něj byl inspirací. Jeho portrét si dokonce pověsil do senátorské pracovny. I proto chce jeho muzeum navštívit. Indické úřady budovu na tuto událost připravily, například ji kompletně zrekonstruovaly.}{Indie se chystá na Obamovu návštěvu: chytá opice a očesává kokosy}
 
-U Článku~2 je vidět, proč jsem zavrhl u neomezených tématických kategorií možnost, že by byla na článek pouze jedna. Jak zvolit jedinou kategorii, ve které by článek byl --- byla by to \texttt{Indie}, \texttt{Obama}, \texttt{cesty prezidentů}, \texttt{opice}, \texttt{Taj Mahal}...?
+Na Článku~2 lze demonstrovat, proč jsem zavrhl u neomezených tématických kategorií možnost, že by byla na článek pouze jedna. Jak zvolit jedinou kategorii, ve které by článek byl --- byla by to \texttt{Indie}, \texttt{Obama}, \texttt{cesty prezidentů}, \texttt{opice}, \texttt{Taj Mahal}...?
 
 I přes povolení více kategorií je ale úloha ruční kategorizace poměrně složitá. Úlohu \uv{zvol jedno téma} jsem změnil na úlohu \uv{najdi všechna témata} --- o jakých všech tématech je ale Článek 2? Tím, že jsem si nedefinoval žádný přesnější rámec, může být tématem cokoliv, co je se článkem sémanticky spojeno, tj. \texttt{opice}, ale také např. \texttt{kabely}, \texttt{chystání státníků na zahraniční cesty}, \texttt{útoky přírody na člověka},...
 
 Ve skutečnosti jde s~kategoriemi jít až absurdně \uv{vysoko} a abstraktně; nebo naopak velmi \uv{nízko} a konkrétně. V~tom spočívá hlavní slabina mé snahy o ruční nalezení všech kategorických témat --- je jich prostě až příliš mnoho.
 
-V Tabulkách~\ref{tabulka:kategorie1} a \ref{tabulka:kategorie2} jsou moje kategorie pro ilustrační články. Je vidět, že jsem se snažil být poměrně střízlivý; i přesto vyšlo v~rámci celého ručního zatřiďování na 200 článků 324 kategorií, většina z~nich (přesně 236) obsahuje ale pouze jeden článek!
+V Tabulkách~\ref{tabulka:kategorie1} a \ref{tabulka:kategorie2} jsou moje kategorie pro ilustrační články. Na nich lze demostrovat, že jsem se snažil být poměrně střízlivý; i přesto vyšlo v~rámci celého ručního zatřiďování na 200 článků 324 kategorií, většina z~nich (přesně 236) obsahuje ale pouze jeden článek!
 
 Zatřiďování v~rámci obecných kategoriích je naopak mnohem jednodušší, roz\-ho\-do\-vá\-ní o ručním zatřídění trvá výrazně kratší dobu. Ke Článku~1 jsem přiřadil kategorii \texttt{Politika domácí}, ke Článku~2 jsem přiřadil kategorii \texttt{Politika svět}.
 
@@ -981,7 +981,7 @@ Pokud otestuji tato témata pomocí metrik $F_1$, vyjdou mi výsledky, které js
 
 \subsection{Stop-témata}
 \label{sec:stemata}
-\grafff{lemmas_combined}{Četnosti lemmat}
+\grafff{lemmas_combined}{Četnosti všech lemmat a nejčastějších 5000 (výřez}
 
 
 \jednatabulka{lemmatanasobky}{
@@ -1114,7 +1114,7 @@ Již zde je ale zjevný problém tohoto přístupu k~hledání témat --- např�
 
 Velikost počtu stop-témat na článek jsem určil jako 10. Výsledky pro ukázkové články jsou v~Tabulkách~\ref{tabulka:stoptemata1} a \ref{tabulka:stoptemata2}, posčítaná stop-témata na celé databázi jsou v~Tabulce~\ref{tabulka:stoptemata_best}. K~té ještě uvedu, že lemma \texttt{09} nejspíše patří k~názvu politické strany TOP09 a lemmata \texttt{.} a \texttt{*} jsou způsobena mírnými chybami v~lemmatizátoru; \texttt{.} ovšem neznamená tečku na konci věty, kterou systém úspěšně ignoruje, ale tečku v~internetových adresách.
 
-Jak je vidět, stop-témata stále nejsou \emph{tématy} v~pravém slova smyslu; jak je vidět na ukázkových článcích, stále jde spíše o množinu klíčových slov. Například nelze říct, že by Článek~1 byl \uv{o většině} nebo druhý článek \uv{o Gándhím}; na druhou stranu už lze říci, že druhý článek je \uv{o opicích}, takže stop-témata zcela bez relevance také nejsou.
+Jak je vidět, stop-témata stále nejsou \emph{tématy} v~pravém slova smyslu; je zřejmé, že na ukázkových článcích jde stále spíše o množinu klíčových slov. Například nelze říct, že by Článek~1 byl \uv{o většině} nebo druhý článek \uv{o Gándhím}; na druhou stranu už lze říci, že druhý článek je \uv{o opicích}, takže stop-témata zcela bez relevance také nejsou.
 
 Zkusím nyní nějak na základě vývoje stop-témat v~čase detekovat \uv{okurkovou sezónu} či nalézt jiné související trendy; prvním nápadem je vyzkoušet průměrný počet stop-témat na jeden článek.
 
@@ -1134,7 +1134,7 @@ Zkusil jsem si do grafů zobrazit vývoj četnosti stop-témat, která se opakuj
 Pro lepší interpretaci dat jsem v~grafech použil tzv. exponenciální vyhlazování, definované například v~\cite{nist} takto: pokud je původní sledovaná veličina $y$ závislá na čase, potom vyhlazená $S$ je definována jako $$S_0=y_0,$$ $$S_t=\alpha y_t+(1-\alpha)y_{t-1}.$$ $\alpha$ je konstantní. Vyhlazení má samozřejmě svá rizika a nevýhody, ale dovolil jsem si ho zde použít, jelikož na základě vyhlazených dat k~žádným \uv{velkým} závěrům nedocházím.
 
 
-Vyhlazená data (s koeficientem $\alpha=0.1$) jsou vidět v~Grafu~\ref{graf:stop_nehoda_premier_smooth}. Je vidět, že zavedení vyhlazování udělá výsledky o něco \uv{čitelnější}, na druhou stranu ale například zmenšuje maxima.
+Vyhlazená data (s koeficientem $\alpha=0.1$) jsou vidět v~Grafu~\ref{graf:stop_nehoda_premier_smooth}. Je evidentní, že zavedení vyhlazování udělá výsledky o něco \uv{čitelnější}, na druhou stranu ale například zmenšuje maxima.
 
 Je ale například vidět, že v~březnu 2010 se stop-téma \texttt{premiér} stává častějším. Při prozkoumání archivu zjistíme, že v~této době pronesl předseda ODS Mirek Topolánek urážlivé výroky na adresu premiéra Fišera, tedy zvýšení četnosti tohoto stop-tématu nejspíše nebylo náhodné. Je ale otázkou, jestli bylo pro podobné zjištění nalézání stop-témat vůbec potřeba; možná by stačilo uvažovat počty \emph{jakýchkoliv} výskytů slova \texttt{premiér} ve článcích a získali bychom podobné, možná lepší křivky.
 
@@ -1232,7 +1232,7 @@ Výsledky evaluace jsem zobrazil v~Tabulce~\ref{tabulka:stop_eval}. Je zajímav�
 
 Jak jsem popsal výše, tf-idf-témata hledám přes váhovou funkci TF-IDF. 
 
-Výsledek na ukázkových článcích (s~počtem témat na článek $k=20$) je popsán v~Tabulce~\ref{tabulka:tfidf}. Výsledky jsou opticky ještě relevantnější, než stop-témata (i pokud srovnáme pouze prvních 10 tf-idf-témat --- naznačeno dvojitou čarou --- s~tabulkami \ref{tabulka:stoptemata1} a \ref{tabulka:stoptemata2}), ale stále je vidět, že je lepší je vnímat spíše jako klíčová slova než jako skutečně témata. Jen dodám, že \texttt{obamov} je chybně zlemmatizované slovo Obama.
+Výsledek na ukázkových článcích (s~počtem témat na článek $k=20$) je popsán v~Tabulce~\ref{tabulka:tfidf}. Výsledky jsou opticky ještě relevantnější, než stop-témata (i pokud srovnáme pouze prvních 10 tf-idf-témat --- naznačeno dvojitou čarou --- s~tabulkami \ref{tabulka:stoptemata1} a \ref{tabulka:stoptemata2}), ale stále je lepší je vnímat spíše jako klíčová slova než jako skutečně témata. Jen dodám, že \texttt{obamov} je chybně zlemmatizované slovo Obama.
 
 
 
@@ -1273,7 +1273,7 @@ Ač na jednotlivých článcích dává tento algoritmus opticky lepší výsled
 
 Co ale tentokrát můžeme udělat je podívat se \uv{zblízka} na témata \texttt{ods} a \texttt{čssd}, která byla jako stoptémata vyřazena, protože jsou to příliš častá slova. Četnost těchto témat jsem zanesl do Grafu~\ref{graf:tf_idf_various}, spolu s~dalšími politickými tématy. Je zajímavé, že témata \texttt{ods} a \texttt{čssd} mají maxima a minima v~podobných místech; další dvě politická témata tato témata částečně kopírují. 
 
-Zajímavé je, že všechna tato témata \uv{padají} právě okolo 1. dubna 2010, což je datum změny počtu a struktury článků. V~Grafu~\ref{graf:tf_idf_zoom} jsem přiblížil blíže na dny kolem tohoto \uv{propadu} (mimochodem, v~přiblížení jsou dobře vidět nepřesnosti exponenciálního vyhlazení). Je vidět, že například heslo \texttt{ods} mělo do 1. dubna téměř konstantně nad 10 článků denně, zatímco od 1. dubna naopak nad 10 článků za den téměř nedosáhlo. Spolu s~tím, že 1. dubna se žádná významná změna nekonala si spíše myslím, že tento pokles je opravdu způsoben odlišným způsobem stahování článků.
+Zajímavé je, že všechna tato témata \uv{padají} právě okolo 1. dubna 2010, což je datum změny počtu a struktury článků. V~Grafu~\ref{graf:tf_idf_zoom} jsem přiblížil blíže na dny kolem tohoto \uv{propadu} (mimochodem, v~přiblížení jsou dobře vidět nepřesnosti exponenciálního vyhlazení). Například heslo \texttt{ods} mělo do 1. dubna téměř konstantně nad 10 článků denně, zatímco od 1. dubna naopak nad 10 článků za den téměř nedosáhlo. Spolu s~tím, že 1. dubna se žádná významná změna nekonala si spíše myslím, že tento pokles je opravdu způsoben odlišným způsobem stahování článků.
 
 Zajímavý je ale i další pohyb --- začátkem (a u \texttt{ods} i v~průběhu) června byla politická témata velmi častá, od července do poloviny října ale jejich četnost velmi poklesla, aby v~polovině října opět prudce stoupla.
 
