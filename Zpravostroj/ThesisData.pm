@@ -553,15 +553,19 @@ sub categorizer_results_on_example {
 	
 	my @articles = get_example_articles();
 	
-	for my $catType(1) {
-		for my $AIType ("AI::Categorizer::Learner::NaiveBayes") {
-			for my $featureType (0) {
-				Zpravostroj::Categorizer::Evaluator::do_example_categorizing (
+	my $res="";
+	
+	for my $catType(1,0) {
+		for my $AIType ("AI::Categorizer::Learner::NaiveBayes", "AI::Categorizer::Learner::SVM", "AI::Categorizer::Learner::DecisionTree") {
+			for my $featureType (0,1) {
+				$res .= Zpravostroj::Categorizer::Evaluator::do_example_categorizing (
 						"Zpravostroj::Categorizer::AICategorizer", $catType, \@articles,
 						{name=>$AIType, all_themes_as_features=>$featureType, one_category=>!($catType)});
 			}
 		}
 	}
+	
+	print $res;
 	
 }
 

@@ -70,18 +70,25 @@ sub do_example_categorizing {
 	my @filtered_tuples = grep {!exists $examples_ID_hash{$_->{article}->ID}} @$tuples;
 	
 	say "velikost filtered je ", scalar @filtered_tuples;
-	die "BITCH";
+#	die "BITCH";
 	
 	my $categorizer = $categorizer_classname->new(\@filtered_tuples, @categorizer_options);
 	
 	my @tagged = $categorizer->categorize(@$examples_ref);
 
+	my $res="";
 	for (@tagged) {
-		say $_->{article}->title();
-		say join ("|", $_->tags);
-		say "========";
+		$res .= $_->{article}->title();
+		$res .= "\n";
+		$res .=join ("|", @{$_->{tags}});
+		$res .= "\n";
+		
+		$res .= "========";
+		$res .= "\n";
+		
 	}
 	
+	return $res;
 }
 
 #Načtu články, které jsou ručně ohodnocené, a k nim potom ono ohodnocení
