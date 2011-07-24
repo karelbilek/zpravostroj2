@@ -483,7 +483,7 @@ Některé z~těchto postupů jsem neimplementoval; u těch, které jsem implemen
 \section{Frekvence a stopslova}
 \label{sec:frekvestopslo}
 
-První nápad na hledání témat je jednoduché počítání frekvencí slov ve článcích s~tím, že častější slova prohlásím automaticky za témata --- případně s~tím, že budu ignorovat tzv. stopslova.
+První nápad na detekci témat je jednoduché počítání frekvencí slov ve článcích s~tím, že častější slova prohlásím automaticky za témata --- případně s~tím, že budu ignorovat tzv. stopslova.
 
 Termín \emph{stopslova} (\emph{stopword}, případně \emph{stoplist} ve významu seznam stopslov) popisuje např. \cite{introduction} a další. Jde o po\-mě\-r\-ně ma\-lou mno\-ži\-nu ty\-pů slov, kte\-rá ale před\-sta\-vu\-je vel\-kou část to\-ke\-nů. (V angličtině je to např. po\-dle \cite{introduction} 40-50 pro\-cent; v~části~\ref{sec:stemata} ukazuji statistiky na vlastní databázi zpravodajských článků.) Jde převážně o spojky, částice a zá\-klad\-ní slovesa, co sama o sobě nenesou žádný obsah textu. Je nutno je buď definovat ručně, což je ale jaksi \uv{nesystémové} řešení; nebo se stopslova definují jako nej\-čas\-tě\-ji po\-u\-ží\-va\-ná slo\-va (jak je definuji i já), což s~sebou ne\-se ri\-zi\-ko, že se vel\-mi čas\-tá slo\-va, kte\-rá ale \emph{ne\-jsou} bez\-vý\-zna\-mo\-vá či po\-moc\-ná, ú\-pl\-ně i\-gno\-ru\-jí.
 %jsou jakoby prvním přiblížením, jak oddělit plnovýznamová slova od pomocných
@@ -656,7 +656,9 @@ Pro doplnění je dobré dodat, že tzv. online LDA algoritmus na stavbu LDA mod
 \label{sec:evaluace}
 Nalezení metriky kvality detekce témat bylo jedno ze zadání bakalářské práce. Zatímco klasifikace má sama o sobě dobře definovanou metriku, u dalších metod je evaluace problematická.
 
-\subsubsection{Klasifikace}
+\subsection{Klasifikace}
+\label{sec:evaluace_klasifikace}
+
 
 Evaluaci u~klasifikátorů jsem provedl metodou \emph{cross-validace} (\emph{cross-va\-li\-da\-tion}), popsanou například opět v~\cite{machine_intro}, a jednotlivé testy v~cross-validaci jsem provedl pomocí \emph{makroprůměru} (\emph{macroaveraging}) i \emph{mikroprůměru} (\emph{microaveraging}), popsaných tamtéž.
 
@@ -693,7 +695,7 @@ Ani přesnost, ani úplnost není možno brát jako samostatnou metriku --- nap�
 
 Jelikož mám dvojí přesnost a úplnost, mám i dvojí F$_1$ skóre, jedno pro mikro- a jedno pro makroprůměr; označuji je $F_\mu$ a $F_M$. Tato dvě skóre tedy beru jako finální metriky kvality detekce kategorií.
 
-\subsubsection{Další metody}
+\subsection{Další metody}
 \label{sec:dalsimetody}
 
 Jak jsem již uvedl v~sekcích \ref{sec:frekvestopslo} a \ref{sec:tfidf_teory}, tyto metody vrací spíše klíčová slova než témata. Je velmi obtížné pro kvalitu určování těchto klíčových slov navrhnout metriku, která by dávala smysluplné výsledky.
@@ -707,6 +709,8 @@ Zkusil jsem pro evaluaci těchto metod využít stejnou metriku, co pro úlohu k
 
 Tento způsob evaluace má o něco volnější definici \emph{true positive}, tedy při srovnání s~evaluací klasických klasifikátorů dává lepší výsledky, než by jí možná odpovídalo.
 %Tato evaluace je sice dobře definovaná, ale jak ukážu v~Kapitole \ref{sec:experimenty}, dává nesmyslně nízké výsledky.
+
+
 
 \chapter{Další implementační problémy}
 V této kapitole se pokusím rozebrat jednotlivé problémy, které úkol sledování témat v~elektronickém zpravodajství má, a ukázat různé varianty jejich řešení. Zároveň s~tím zmíním některé implementační problémy samotného programu.
@@ -865,26 +869,16 @@ V Tabulkách~\ref{tabulka:kategorie1} a \ref{tabulka:kategorie2} jsou moje kateg
 
 Zatřiďování v~rámci obecných kategoriích je naopak mnohem jednodušší, roz\-ho\-do\-vá\-ní o ručním zatřídění trvá výrazně kratší dobu. Ke Článku~1 jsem přiřadil kategorii \texttt{Politika domácí}, ke Článku~2 jsem přiřadil kategorii \texttt{Politika svět}.
 
-\section{Hledání témat}
+\section{Detekce témat a trendů}
 \label{sec:hledanitemat_prezentace_vysledku}
 
-V této kapitole chci ukázat výsledky jednotlivých přístupů k~hledání témat ve článcích a ukázat na nich jejich výhody a nevýhody. Jedním z~úkolů bakalářské práce bylo i hledání něčeho, jako je \uv{okurková sezóna}; pokouším se tedy i zjistit, jestli vynesením některých veličin na časovou osu nějaké zajímavé trendy nenaleznu.
+V této kapitole chci ukázat výsledky jednotlivých přístupů k~detekci témat ve článcích a ukázat na nich jejich výhody a nevýhody. Jedním z~úkolů bakalářské práce bylo i hledání něčeho, jako je \uv{okurková sezóna}; pokouším se tedy i zjistit, jestli vynesením některých veličin na časovou osu nějaké zajímavé trendy nenaleznu.
 
 
 \subsubsection{Triviální kategorizace}
 
 
-\jednatabulka{retard}{
 
-\begin{tabular}{ | r | r|r||r| r|r|}
-    \hline
-      $\rho_{\mu}$ & $\pi_{\mu}$ & $F_\mu$ & $\rho_{M}$ & $\pi_{M}$  & $F_M$  \\ \hline
-    1.67 \% & 4.50 \% & 2.44 \% & 0.31 \% & 0.01 \% & 0.03 \% \\ \hline
-    
-    
-  \end{tabular}
-
-}{Přesnost a úplnost triviální kategorizace}
 
 Pro srovnání s~dalšími metodami jsem otestoval i triviální kategorizaci, která každému článku přiřadí právě jednu kategorii, a to \texttt{ODS}. Výsledky evaluace jsou v~Tabulce~\ref{tabulka:retard} --- jsou, dle očekávání, téměř nulové.
 
@@ -957,17 +951,7 @@ Pro srovnání s~dalšími metodami jsem otestoval i triviální kategorizaci, k
 }{Nejčetnější frekvenční témata}
 
 
-\jednatabulka{ftemata_eval}{
 
-\begin{tabular}{ | r | r|r||r| r|r|}
-    \hline
-      $\rho_{\mu}$ & $\pi_{\mu}$ & $F_\mu$ & $\rho_{M}$ & $\pi_{M}$  & $F_M$  \\ \hline
-     28.49 \% & 7.97 \% & 12.46 \% & 13.79 \% & 13.04 \% & 13.41 \%\\ \hline
-    
-    
-  \end{tabular}
-
-}{Přesnost a úplnost detekce frekvenčních témat}
 
 Prvním pokusem o definování témat bylo jednoduché počítání frekvencí, bez zavedení stop slov. Jak jsem již popsal v~části~\ref{sec:frekvestopslo}, takto nalezená témata jsem nazval frekvenčními tématy; počet frekvenčních témat na jeden článek jsem určil jako 10. 
 
@@ -1032,7 +1016,7 @@ Ke zjištění vhodného počtu lemmat pro množinu stopslov jsem pro $k$ od 1 d
 
 Je otázka, jak velkou vzít množinu stopslov --- pokud bude příliš velká, můžeme ignorovat i něco, co je pro článek důležité; pokud bude příliš malá, do stop-témat se můžou dostat i nerelevantní lemmata. Nakonec jsem se rozhodl vzít jako stopslova 200 lemmat, která potom zabírají $43.64$ procent veškerého textu.
 
-Již zde je ale zjevný problém tohoto přístupu k~hledání témat --- například slovo \texttt{ods} (lemma od názvu strany ODS) je už $44.$ nejčetnější --- dokonce četnější, než slova \texttt{nebo}, \texttt{aby}, \texttt{než}, \texttt{takový} apod. Stejně jako \texttt{ČSSD} je už $66.$ nejčetnější. A v~mé množině 200 nejčastějších lemmat je ještě například také slovo \texttt{nečas}, které je na $195.$ místě.
+Již zde je ale zjevný problém tohoto přístupu k~detekci témat --- například slovo \texttt{ods} (lemma od názvu strany ODS) je už $44.$ nejčetnější --- dokonce četnější, než slova \texttt{nebo}, \texttt{aby}, \texttt{než}, \texttt{takový} apod. Stejně jako \texttt{ČSSD} je už $66.$ nejčetnější. A v~mé množině 200 nejčastějších lemmat je ještě například také slovo \texttt{nečas}, které je na $195.$ místě.
 
 
 \jednatabulka{stoptemata1}
@@ -1143,18 +1127,6 @@ Je ale například vidět, že v~březnu 2010 se stop-téma \texttt{premiér} st
 Stejně tak nemůžeme četnosti článků s~tématem \texttt{premiér} nějak zobecnit a tvrdit, že v~té době se píše víc o politice a naopak, že \texttt{nehoda} znamená, že se nemá \uv{o čem psát} a jedná se pouze o \uv{výplň}. Pokud si totiž přidáme do grafu ještě například četnosti článků se stop-tématem \texttt{politika} a \texttt{demokrat}, které by v~případě obecnějšího trendu mělo nějak téma \texttt{premiér} následovat (Graf~\ref{graf:stop_nehoda_premier_various_1}, už pouze vyhlazená data), a naopak pokud si přidáme ještě téma \texttt{modelka}, které má zase bulvární nádech (Graf~\ref{graf:stop_nehoda_premier_various_2}, také pouze vyhlazená data), tak zjistíme, že trendy, které by nějak určovaly \uv{okurkovou sezónu}, na těchto dílčích stop-tématech vysledovatelné nejsou. 
 
 
-\jednatabulka{stop_eval}{
-
-\begin{tabular}{ | r | r|r||r| r|r|}
-    \hline
-      $\rho_{\mu}$ & $\pi_{\mu}$ & $F_\mu$ & $\rho_{M}$ & $\pi_{M}$  & $F_M$  \\ \hline
-      39.12 \% & 11.10 \% & 17.29 \% & 10.58 \% & 9.74 \% & 10.14 \%\\ \hline
-    
-    
-    
-  \end{tabular}
-
-}{Přesnost a úplnost detekce stoptémat}
 
 Výsledky evaluace jsem zobrazil v~Tabulce~\ref{tabulka:stop_eval}. Je zajímavé, že úplnost je (vzhledem k~dosavadním metodám) o něco lepší; přesnost je ale stále malá, množství false positive je stále velké; to je částečně pochopitelné --- metoda vrací vždy 10 témat na článek, zatímco průměrný počet témat na článek v ruční kategorizaci je nižší.
 
@@ -1279,21 +1251,7 @@ Zajímavý je ale i další pohyb --- začátkem (a u \texttt{ods} i v~průběhu
 
 Je otázka, jak tyto pohyby interpretovat. Je možné, že opravdu jde o hledanou \uv{okurkovou sezónu} --- je ale možné, že vrchol četnosti na konci května 2010 může být způsoben tím, že 28. a 29. května se konaly volby do Poslanecké sněmovny Parlamentu České republiky a za normálních okolností by četnost politických zpráv v~květnu byla nižší. Pro opravdové zjištění, jestli se opravdu jedná o sezónní trend, by asi bylo třeba mít databázi, která pokrývá ještě delší časové období; podobnou databázi ale bohužel nemám k~dispozici.
 
-\jednatabulka{tfidf_eval}{
 
-
-\begin{tabular}{|l | r | r|r||r| r|r|}
-    \hline
-      &$\rho_{\mu}$ & $\pi_{\mu}$ & $F_\mu$ & $\rho_{M}$ & $\pi_{M}$  & $F_M$  \\ \hline
-     %37.59 \% & 10.50 \% & 16.41 \% & 10.27 \% & 9.42 \% & 9.83 \%\\ \hline
-      $k=10$ & 41.40 \% & 11.83 \% & 18.40 \% & 9.80 \% & 9.28 \% & 9.54 \% \\ \hline
-      $k=20$ & 51.72 \% & 7.60 \% & 13.25 \% & 6.79 \% & 5.95 \% & 6.34 \% \\ \hline
-    
-    
-    
-  \end{tabular}
-
-}{Přesnost a úplnost detekce tf-idf témat}
 
 
 Evaluaci jsem provedl pro $k=10$ a $k=20$; vyšší množství témat na článek zvýší logicky úplnost, ale sníží přesnost. Je ale zajímavé, že zatímco \uv{opticky} dává TF-IDF lepší výsledky, než například stop-témata, tak F$_1$ metrika u této metody dopadne dokonce \emph{hůře}.
@@ -1308,73 +1266,59 @@ Je nutné dodat, že výsledky nelze úplně srovnávat s~výsledky z~předchoz�
 
 \label{sec:neomezene}
 
-\jednatabulka{kategorizer}{
-
-\begin{tabular}{ |l | r | r|r||r| r|r| }
-    \hline
-    &$\rho_{\mu}$ & $\pi_{\mu}$ & $F_\mu$ & $\rho_{M}$ & $\pi_{M}$  & $F_M$  \\ \hline
-    %dobre - 
-    %spatne - 
-    NaiveBayes - var.1 & 13.18 \% & 17.13 \% & 14.85 \% & 9.01 \% & 5.85 \% & 7.04 \% \\ \hline
-    NaiveBayes - var.2 & 5.36 \% & 5.69 \% & 5.50 \% & 4.02 \% & 1.19 \% & 1.75 \%\\ \hline
-     \hline
-    SVM - var.1 & 2.17 \% & 90.00 \% & 4.16 \% & 1.72 \% & 1.94 \% & 1.81 \% \\ \hline
-    SVM - var.2 & 0.00 \% & 100.00 \% & 0.00 \% & 0.00 \% & 0.00 \% & 0.00 \%\\ \hline
-    
-    \hline
-    DecisionTree - var.1 & 11.57 \% & 33.55 \% & 16.89 \% & 7.79 \% & 8.21 \% & 7.93 \%\\ \hline 
-    DecisionTree - var.2 & 9.00 \% & 13.93 \% & 10.77 \% & 5.34 \% & 5.25 \% & 5.25 \% \\ \hline 
-    
-  \end{tabular}
-
-}{Přesnost a úplnost klasifikátorů}
-
 
 Výsledky jsem uvedl v~Tabulce~\ref{tabulka:kategorizer}. V~cross-evaluaci jsem použil počet testů $k=10$. Variantou 1 nazývám tu variantu, kdy jako rysy článků beru 10 nej\-cha\-rak\-te\-ri\-sti\-čtěj\-ších slov podle TF-IDF, všechny s~konstantní vahou 1; variantou 2 nazývám tu variantu, kdy jako rysy nechám všechna slova s~jejich vahou spočítanou podle TF-IDF.
 
 Výsledky však nejsou příliš dobré ani v~jedné variantě. Z~obou variant je rozhodně lepší varianta 1 a z~klasifikačních algoritmů dopadá nejlépe algoritmus NaiveBayes (navíc má výhodu, že je z~těchto algoritmů nejrychlejší).
 
 
-% \jednatabulka{kategorizer_obec}{
-% 
-% \begin{tabular}{ |l | r | r|r||r| r|r| }
-%     \hline
-%      & $\rho_{\mu}$ & $\pi_{\mu}$ & $\rho_{M}$ & $\pi_{M}$  \\ \hline
-%     NaiveBayes - var.1 & 7.74 \% & 21.00 \% & 11.29 \% & 5.69 \% & 4.16 \% & 4.70 \% \\ \hline
-%     NaiveBayes - var.2 & 3.16 \% & 8.50 \% & 4.60 \% & 2.66 \% & 1.20 \% & 1.61 \%\\ \hline
-%      
-%     SVM - var.1 &  1.96 \% & 5.00 \% & 2.81 \% & 1.47 \% & 1.68 \% & 1.56 \% \\ \hline
-%     SVM - var.2 & 0.00 \% & 0.00 \% & 0.00 \% & 0.00 \% & 0.00 \% & 0.00 \%\\ \hline
-%     
-%     
-%     DecisionTree - var.1 & 6.63 \% & 18.00 \% & 9.67 \% & 4.82 \% & 5.38 \% & 5.03 \%\\ \hline 
-%     DecisionTree - var.2 & ?? \% & ?? \% & ?? \% & ?? \% \\ \hline 
-%     
-%   \end{tabular}
-% 
-% }{Přesnost a úplnost klasifikátorů velmi obecných kategoriích - PLACEHOLDER (kopie předchozí tabulky)}
 
-\jednatabulka{kategorizer_obec}{
+Kromě toho jsem také vyzkoušel evaluaci na \uv{obecnějších} kategoriích. Výsledky jsem uvedl v~Tabulce \ref{tabulka:kategorizer_obec}; vyjdou o něco lépe, přesto ale nevychází tak dobře, aby se na klasifikátor dalo spolehnout. Navíc poměr takto obecně definovaných témat bude, dle mého, v~čase konstantní a spíše než na trendech bude záviset na zpravodajských zdrojích samých, takže trendy příliš dobře sledovat nepůjdou; tento názor ale nemůžu ničím podložit a jedná se čistě o mou spekulaci.
 
-\begin{tabular}{ |l | r | r|r||r| r|r| }
+\section{Evaluace jednotlivých přístupů}
+
+\jednatabulka{mega}{
+
+\begin{tabular}{|l || r | r|r||r| r|r|}
     \hline
-    &$\rho_{\mu}$ & $\pi_{\mu}$ & $F_\mu$ & $\rho_{M}$ & $\pi_{M}$  & $F_M$  \\ \hline
-    NaiveBayes - var.1 & 48.50 \% & 48.50 \% & 48.50 \% & 30.05 \% & 25.88 \% & 27.49 \% \\ \hline
-    NaiveBayes - var.2 & 31.50 \% & 31.50 \% & 31.50 \% & 12.69 \% & 7.92 \% & 9.40 \% \\ \hline
-    \hline
-    SVM - var.1 &16.00 \% & 16.00 \% & 16.00 \% & 13.75 \% & 14.90 \% & 13.33 \\ \hline
-    SVM - var.2 &  6.00 \% & 6.00 \% & 6.00 \% & 7.26 \% & 3.71 \% & 4.07 \% \\ \hline
-    \hline
+     & $\rho_{\mu}$ & $\pi_{\mu}$ & $F_\mu$ & $\rho_{M}$ & $\pi_{M}$  & $F_M$  \\ \hline
+    Triviální & 1.67 & 4.50 & 2.44 & 0.31 & 0.01 & 0.03 \\ \hline \hline
+    Frekvenční témata & 28.49 & 7.97 & 12.46 & 13.79 & 13.04 & 13.41 \\ \hline\hline
+    Stop témata & 39.12 & 11.10 & 17.29 & 10.58 & 9.74 & 10.14 \\ \hline \hline
     
-    DecisionTree - var.1 & 24.50 \% & 24.50 \% & 24.50 \% & 16.96 \% & 18.75 \% & 17.41 \% \\ \hline 
-    DecisionTree - var.2 & 33.50 \% & 33.50 \% & 33.50 \% & 22.43 \% & 23.83 \% & 22.82 \% \\ \hline 
+    TF-IDF, $k=10$ & 41.40  & 11.83  & 18.40  & 9.80  & 9.28  & 9.54  \\ \hline\hline
+    TF-IDF, $k=20$ & 51.72  & 7.60  & 13.25  & 6.79  & 5.95  & 6.34  \\ \hline \hline
     
+    Neomezené - NaiveBayes - var.1 & 13.18  & 17.13  & 14.85  & 9.01  & 5.85  & 7.04  \\ \hline
+    Neomezené - NaiveBayes - var.2 & 5.36  & 5.69  & 5.50  & 4.02  & 1.19  & 1.75 \\ \hline
+    Neomezené - SVM - var.1 & 2.17  & 90.00  & 4.16  & 1.72  & 1.94  & 1.81  \\ \hline
+    Neomezené - SVM - var.2 & 0.00  & 100.00  & 0.00  & 0.00  & 0.00  & 0.00 \\ \hline
+    Neomezené - DecisionTree - var.1 & 11.57  & 33.55  & 16.89  & 7.79  & 8.21  & 7.93 \\ \hline 
+    Neomezené - DecisionTree - var.2 & 9.00  & 13.93  & 10.77  & 5.34  & 5.25  & 5.25  \\ \hline \hline
+    
+    Omezené - NaiveBayes - var.1 & 48.50  & 48.50  & 48.50  & 30.05  & 25.88  & 27.49  \\ \hline
+    Omezené - NaiveBayes - var.2 & 31.50  & 31.50  & 31.50  & 12.69  & 7.92  & 9.40  \\ \hline
+    Omezené - SVM - var.1 &16.00  & 16.00  & 16.00  & 13.75  & 14.90  & 13.33 \\ \hline
+    Omezené - SVM - var.2 &  6.00  & 6.00  & 6.00  & 7.26  & 3.71  & 4.07  \\ \hline
+    
+    Omezené - DecisionTree - var.1 & 24.50  & 24.50  & 24.50  & 16.96  & 18.75  & 17.41  \\ \hline 
+    Omezené - DecisionTree - var.2 & 33.50  & 33.50  & 33.50  & 22.43  & 23.83  & 22.82  \\ \hline
     
   \end{tabular}
 
-}{Přesnost a úplnost klasifikátorů na velmi obecných kategoriích}
+}{Přesnosti a úplnosti, v procentech}
 
-Kromě toho jsem také vyzkoušel evaluaci na \uv{obecnějších} kategoriích. Výsledky jsem uvedl v~Tabulce \ref{tabulka:kategorizer_obec}; vyjdou o něco lépe, přesto ale nevychází tak dobře, aby se na klasifikátor dalo spolehnout. Navíc poměr takto obecně definovaných témat bude, dle mého, v~čase konstantní a spíše než na trendech bude záviset na zpravodajských zdrojích samých, takže trendy příliš dobře sledovat nepůjdou; tento názor ale nemůžu ničím podložit a jedná se čistě o mou spekulaci.
+Metrikou, kterou popisuji v~části~\ref{sec:evaluace_klasifikace} a rozšiřuji na algoritmy, které nefungují na principu klasifikace, v~části~\ref{sec:dalsimetody}, jsem porovnal tyto způsoby vyhledávání témat:
+
+\begin{itemize}
+    \item \emph{Triviální kategorizaci}, která každému článku přiřadí jednu kategorii, a to \texttt{ODS} (je uvedena hlavně pro srovnání),
+    \item \emph{frekvenční témata}, popsaná v části v~části~\ref{sec:frekvestopslo}, pro 10 témat na článek,
+    \item \emph{stop-témata}, definovaná též v~části~\ref{sec:frekvestopslo}, pro 10 témat na článek,
+    \item \emph{tf-idf témata}, definovaná v~části~\ref{sec:tfidf_teory}, pro 10 témat na článek,
+    \item \emph{klasifikaci}, definovanou v~části~\ref{sec:kategorizace}, ve stejných variantách, jako v části XXX.
+\end{itemize}
+
+
 
 \chapwithtoc{Závěr}
 
