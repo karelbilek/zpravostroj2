@@ -52,6 +52,38 @@ sub load_manual_categories_and_evaluate {
 
 }
 
+sub do_example_categorizing {
+	
+	my $categorizer_classname = shift;
+	
+	my $unlimited_categories = shift;
+	
+	my $examples_ref = shift;
+	my %examples_ID_hash = map {($_->ID)=>undef} @$examples_ref;
+	
+	
+	my @categorizer_options = @_;
+	
+	my $trial_count = $TRIAL_COUNT;
+	my $tuples = _load_tuples($unlimited_categories);
+	
+	my @filtered_tuples = grep {!exists $examples_ID_hash{$_->{article}->ID}} @$tuples;
+	
+	say "velikost filtered je ", scalar @filtered_tuples;
+	die "BITCH";
+	
+	my $categorizer = $categorizer_classname->new(\@filtered_tuples, @categorizer_options);
+	
+	my @tagged = $categorizer->categorize(@$examples_ref);
+
+	for (@tagged) {
+		say $_->{article}->title();
+		say join ("|", $_->tags);
+		say "========";
+	}
+	
+}
+
 #Načtu články, které jsou ručně ohodnocené, a k nim potom ono ohodnocení
 #(dalo by se zlepšit, že nenačítá celé články, protože to dlouze načítá data z .bz2 souborů, které
 #	stejně nepoužívám skoro na nic)
