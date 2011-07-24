@@ -483,7 +483,7 @@ Některé z~těchto postupů jsem neimplementoval; u těch, které jsem implemen
 \section{Frekvence a stopslova}
 \label{sec:frekvestopslo}
 
-První nápad na hledání témat je jednoduché počítání frekvencí slov ve článcích s~tím, že častější slova prohlásím automaticky za témata --- případně s~tím, že budu ignorovat tzv. stopslova.
+První nápad na detekci témat je jednoduché počítání frekvencí slov ve článcích s~tím, že častější slova prohlásím automaticky za témata --- případně s~tím, že budu ignorovat tzv. stopslova.
 
 Termín \emph{stopslova} (\emph{stopword}, případně \emph{stoplist} ve významu seznam stopslov) popisuje např. \cite{introduction} a další. Jde o po\-mě\-r\-ně ma\-lou mno\-ži\-nu ty\-pů slov, kte\-rá ale před\-sta\-vu\-je vel\-kou část to\-ke\-nů. (V angličtině je to např. po\-dle \cite{introduction} 40-50 pro\-cent; v~části~\ref{sec:stemata} ukazuji statistiky na vlastní databázi zpravodajských článků.) Jde převážně o spojky, částice a zá\-klad\-ní slovesa, co sama o sobě nenesou žádný obsah textu. Je nutno je buď definovat ručně, což je ale jaksi \uv{nesystémové} řešení; nebo se stopslova definují jako nej\-čas\-tě\-ji po\-u\-ží\-va\-ná slo\-va (jak je definuji i já), což s~sebou ne\-se ri\-zi\-ko, že se vel\-mi čas\-tá slo\-va, kte\-rá ale \emph{ne\-jsou} bez\-vý\-zna\-mo\-vá či po\-moc\-ná, ú\-pl\-ně i\-gno\-ru\-jí.
 %jsou jakoby prvním přiblížením, jak oddělit plnovýznamová slova od pomocných
@@ -656,7 +656,9 @@ Pro doplnění je dobré dodat, že tzv. online LDA algoritmus na stavbu LDA mod
 \label{sec:evaluace}
 Nalezení metriky kvality detekce témat bylo jedno ze zadání bakalářské práce. Zatímco klasifikace má sama o sobě dobře definovanou metriku, u dalších metod je evaluace problematická.
 
-\subsubsection{Klasifikace}
+\subsection{Klasifikace}
+\label{sec:evaluace_klasifikace}
+
 
 Evaluaci u~klasifikátorů jsem provedl metodou \emph{cross-validace} (\emph{cross-va\-li\-da\-tion}), popsanou například opět v~\cite{machine_intro}, a jednotlivé testy v~cross-validaci jsem provedl pomocí \emph{makroprůměru} (\emph{macroaveraging}) i \emph{mikroprůměru} (\emph{microaveraging}), popsaných tamtéž.
 
@@ -693,7 +695,7 @@ Ani přesnost, ani úplnost není možno brát jako samostatnou metriku --- nap�
 
 Jelikož mám dvojí přesnost a úplnost, mám i dvojí F$_1$ skóre, jedno pro mikro- a jedno pro makroprůměr; označuji je $F_\mu$ a $F_M$. Tato dvě skóre tedy beru jako finální metriky kvality detekce kategorií.
 
-\subsubsection{Další metody}
+\subsection{Další metody}
 \label{sec:dalsimetody}
 
 Jak jsem již uvedl v~sekcích \ref{sec:frekvestopslo} a \ref{sec:tfidf_teory}, tyto metody vrací spíše klíčová slova než témata. Je velmi obtížné pro kvalitu určování těchto klíčových slov navrhnout metriku, která by dávala smysluplné výsledky.
@@ -707,6 +709,8 @@ Zkusil jsem pro evaluaci těchto metod využít stejnou metriku, co pro úlohu k
 
 Tento způsob evaluace má o něco volnější definici \emph{true positive}, tedy při srovnání s~evaluací klasických klasifikátorů dává lepší výsledky, než by jí možná odpovídalo.
 %Tato evaluace je sice dobře definovaná, ale jak ukážu v~Kapitole \ref{sec:experimenty}, dává nesmyslně nízké výsledky.
+
+
 
 \chapter{Další implementační problémy}
 V této kapitole se pokusím rozebrat jednotlivé problémy, které úkol sledování témat v~elektronickém zpravodajství má, a ukázat různé varianty jejich řešení. Zároveň s~tím zmíním některé implementační problémy samotného programu.
@@ -865,10 +869,10 @@ V Tabulkách~\ref{tabulka:kategorie1} a \ref{tabulka:kategorie2} jsou moje kateg
 
 Zatřiďování v~rámci obecných kategoriích je naopak mnohem jednodušší, roz\-ho\-do\-vá\-ní o ručním zatřídění trvá výrazně kratší dobu. Ke Článku~1 jsem přiřadil kategorii \texttt{Politika domácí}, ke Článku~2 jsem přiřadil kategorii \texttt{Politika svět}.
 
-\section{Hledání témat}
+\section{Detekce témat a trendů}
 \label{sec:hledanitemat_prezentace_vysledku}
 
-V této kapitole chci ukázat výsledky jednotlivých přístupů k~hledání témat ve článcích a ukázat na nich jejich výhody a nevýhody. Jedním z~úkolů bakalářské práce bylo i hledání něčeho, jako je \uv{okurková sezóna}; pokouším se tedy i zjistit, jestli vynesením některých veličin na časovou osu nějaké zajímavé trendy nenaleznu.
+V této kapitole chci ukázat výsledky jednotlivých přístupů k~detekci témat ve článcích a ukázat na nich jejich výhody a nevýhody. Jedním z~úkolů bakalářské práce bylo i hledání něčeho, jako je \uv{okurková sezóna}; pokouším se tedy i zjistit, jestli vynesením některých veličin na časovou osu nějaké zajímavé trendy nenaleznu.
 
 
 \subsubsection{Triviální kategorizace}
@@ -1032,7 +1036,7 @@ Ke zjištění vhodného počtu lemmat pro množinu stopslov jsem pro $k$ od 1 d
 
 Je otázka, jak velkou vzít množinu stopslov --- pokud bude příliš velká, můžeme ignorovat i něco, co je pro článek důležité; pokud bude příliš malá, do stop-témat se můžou dostat i nerelevantní lemmata. Nakonec jsem se rozhodl vzít jako stopslova 200 lemmat, která potom zabírají $43.64$ procent veškerého textu.
 
-Již zde je ale zjevný problém tohoto přístupu k~hledání témat --- například slovo \texttt{ods} (lemma od názvu strany ODS) je už $44.$ nejčetnější --- dokonce četnější, než slova \texttt{nebo}, \texttt{aby}, \texttt{než}, \texttt{takový} apod. Stejně jako \texttt{ČSSD} je už $66.$ nejčetnější. A v~mé množině 200 nejčastějších lemmat je ještě například také slovo \texttt{nečas}, které je na $195.$ místě.
+Již zde je ale zjevný problém tohoto přístupu k~detekci témat --- například slovo \texttt{ods} (lemma od názvu strany ODS) je už $44.$ nejčetnější --- dokonce četnější, než slova \texttt{nebo}, \texttt{aby}, \texttt{než}, \texttt{takový} apod. Stejně jako \texttt{ČSSD} je už $66.$ nejčetnější. A v~mé množině 200 nejčastějších lemmat je ještě například také slovo \texttt{nečas}, které je na $195.$ místě.
 
 
 \jednatabulka{stoptemata1}
@@ -1375,6 +1379,17 @@ Výsledky však nejsou příliš dobré ani v~jedné variantě. Z~obou variant j
 }{Přesnost a úplnost klasifikátorů na velmi obecných kategoriích}
 
 Kromě toho jsem také vyzkoušel evaluaci na \uv{obecnějších} kategoriích. Výsledky jsem uvedl v~Tabulce \ref{tabulka:kategorizer_obec}; vyjdou o něco lépe, přesto ale nevychází tak dobře, aby se na klasifikátor dalo spolehnout. Navíc poměr takto obecně definovaných témat bude, dle mého, v~čase konstantní a spíše než na trendech bude záviset na zpravodajských zdrojích samých, takže trendy příliš dobře sledovat nepůjdou; tento názor ale nemůžu ničím podložit a jedná se čistě o mou spekulaci.
+
+\section{Evaluace jednotlivých přístupů}
+Metrikou, kterou popisuji v~části~\ref{sec:evaluace_klasifikace} a rozšiřuji na algoritmy, které nefungují na principu klasifikace, v~části~\ref{sec:dalsimetody}, jsem porovnal tyto způsoby vyhledávání témat:
+
+\begin{itemize}
+    \item \emph{Triviální kategorizaci}, která každému článku přiřadí jednu kategorii, a to \texttt{ODS} (je uvedena hlavně pro srovnání),
+    \item \emph{frekvenční témata}, popsaná v části v~části~\ref{sec:frekvestopslo}, pro 10 témat na článek,
+    \item \emph{stop-témata}, definovaná též v~části~\ref{sec:frekvestopslo},
+    \item \emph{tf-idf témata}, definovaná v~části~\ref{sec:tfidf_teory},
+    \item \emph{klasifikaci}, definovanou v~části~\ref{sec:kategorizace}, pomocí tam uvedených algoritmů.
+\end{itemize}
 
 \chapwithtoc{Závěr}
 
