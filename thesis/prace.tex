@@ -878,17 +878,7 @@ V této kapitole chci ukázat výsledky jednotlivých přístupů k~detekci tém
 \subsubsection{Triviální kategorizace}
 
 
-\jednatabulka{retard}{
 
-\begin{tabular}{ | r | r|r||r| r|r|}
-    \hline
-      $\rho_{\mu}$ & $\pi_{\mu}$ & $F_\mu$ & $\rho_{M}$ & $\pi_{M}$  & $F_M$  \\ \hline
-    1.67 \% & 4.50 \% & 2.44 \% & 0.31 \% & 0.01 \% & 0.03 \% \\ \hline
-    
-    
-  \end{tabular}
-
-}{Přesnost a úplnost triviální kategorizace}
 
 Pro srovnání s~dalšími metodami jsem otestoval i triviální kategorizaci, která každému článku přiřadí právě jednu kategorii, a to \texttt{ODS}. Výsledky evaluace jsou v~Tabulce~\ref{tabulka:retard} --- jsou, dle očekávání, téměř nulové.
 
@@ -1339,28 +1329,9 @@ Výsledky jsem uvedl v~Tabulce~\ref{tabulka:kategorizer}. V~cross-evaluaci jsem 
 Výsledky však nejsou příliš dobré ani v~jedné variantě. Z~obou variant je rozhodně lepší varianta 1 a z~klasifikačních algoritmů dopadá nejlépe algoritmus NaiveBayes (navíc má výhodu, že je z~těchto algoritmů nejrychlejší).
 
 
-% \jednatabulka{kategorizer_obec}{
-% 
-% \begin{tabular}{ |l | r | r|r||r| r|r| }
-%     \hline
-%      & $\rho_{\mu}$ & $\pi_{\mu}$ & $\rho_{M}$ & $\pi_{M}$  \\ \hline
-%     NaiveBayes - var.1 & 7.74 \% & 21.00 \% & 11.29 \% & 5.69 \% & 4.16 \% & 4.70 \% \\ \hline
-%     NaiveBayes - var.2 & 3.16 \% & 8.50 \% & 4.60 \% & 2.66 \% & 1.20 \% & 1.61 \%\\ \hline
-%      
-%     SVM - var.1 &  1.96 \% & 5.00 \% & 2.81 \% & 1.47 \% & 1.68 \% & 1.56 \% \\ \hline
-%     SVM - var.2 & 0.00 \% & 0.00 \% & 0.00 \% & 0.00 \% & 0.00 \% & 0.00 \%\\ \hline
-%     
-%     
-%     DecisionTree - var.1 & 6.63 \% & 18.00 \% & 9.67 \% & 4.82 \% & 5.38 \% & 5.03 \%\\ \hline 
-%     DecisionTree - var.2 & ?? \% & ?? \% & ?? \% & ?? \% \\ \hline 
-%     
-%   \end{tabular}
-% 
-% }{Přesnost a úplnost klasifikátorů velmi obecných kategoriích - PLACEHOLDER (kopie předchozí tabulky)}
-
 \jednatabulka{kategorizer_obec}{
 
-\begin{tabular}{ |l | r | r|r||r| r|r| }
+\begin{tabular}{ |l| | r | r|r||r| r|r| }
     \hline
     &$\rho_{\mu}$ & $\pi_{\mu}$ & $F_\mu$ & $\rho_{M}$ & $\pi_{M}$  & $F_M$  \\ \hline
     NaiveBayes - var.1 & 48.50 \% & 48.50 \% & 48.50 \% & 30.05 \% & 25.88 \% & 27.49 \% \\ \hline
@@ -1386,10 +1357,23 @@ Metrikou, kterou popisuji v~části~\ref{sec:evaluace_klasifikace} a rozšiřuji
 \begin{itemize}
     \item \emph{Triviální kategorizaci}, která každému článku přiřadí jednu kategorii, a to \texttt{ODS} (je uvedena hlavně pro srovnání),
     \item \emph{frekvenční témata}, popsaná v části v~části~\ref{sec:frekvestopslo}, pro 10 témat na článek,
-    \item \emph{stop-témata}, definovaná též v~části~\ref{sec:frekvestopslo},
-    \item \emph{tf-idf témata}, definovaná v~části~\ref{sec:tfidf_teory},
-    \item \emph{klasifikaci}, definovanou v~části~\ref{sec:kategorizace}, pomocí tam uvedených algoritmů.
+    \item \emph{stop-témata}, definovaná též v~části~\ref{sec:frekvestopslo}, pro 10 témat na článek,
+    \item \emph{tf-idf témata}, definovaná v~části~\ref{sec:tfidf_teory}, pro 10 témat na článek,
+    \item \emph{klasifikaci}, definovanou v~části~\ref{sec:kategorizace}, ve stejných variantách, jako v části XXX.
 \end{itemize}
+
+\jednatabulka{mega}{
+
+\begin{tabular}{|l || | r | r|r||r| r|r|}
+    \hline
+     & $\rho_{\mu}$ & $\pi_{\mu}$ & $F_\mu$ & $\rho_{M}$ & $\pi_{M}$  & $F_M$  \\ \hline
+    Triviální & 1.67 & 4.50 & 2.44 & 0.31 & 0.01 & 0.03 \\ \hline
+    
+    
+  \end{tabular}
+
+}{Přesnost a úplnost triviální kategorizace}
+
 
 \chapwithtoc{Závěr}
 
