@@ -162,6 +162,7 @@ sub get_article_tags {
 	my $self = shift;
 	my $article = shift;
 	
+	
 	my $features = get_features_from_article($article, $self->all_themes_as_features);
 	
 	my $document = new AI::Categorizer::Document(name => $article->url());
@@ -174,6 +175,7 @@ sub get_article_tags {
 	
 	
 	my @categories = ($self->one_category)?($hypothesis->best_category()) : ($hypothesis->categories()); #
+	
 	
 	return @categories;
 }

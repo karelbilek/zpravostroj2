@@ -486,6 +486,8 @@ sub most_frequent_tf_idf_themes {
 }
 
 
+
+
 #Několik procedur, kterými zkouším různé kategorizéry.
 
 #(Evaluator už vrací rovnou procenta v TeX tvaru do tabulky)
@@ -546,5 +548,25 @@ sub try_categorizer {
 	}
 }
 
+sub categorizer_results_on_example {
+	Zpravostroj::Categorizer::Evaluator::preload_articles(1,1);
+	
+	my @articles = get_example_articles();
+	
+	my $res="";
+	
+	for my $catType(1,0) {
+		for my $AIType ("AI::Categorizer::Learner::NaiveBayes", "AI::Categorizer::Learner::SVM", "AI::Categorizer::Learner::DecisionTree") {
+			for my $featureType (0,1) {
+				$res .= Zpravostroj::Categorizer::Evaluator::do_example_categorizing (
+						"Zpravostroj::Categorizer::AICategorizer", $catType, \@articles,
+						{name=>$AIType, all_themes_as_features=>$featureType, one_category=>!($catType)});
+			}
+		}
+	}
+	
+	print $res;
+	
+}
 
 1;
