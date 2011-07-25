@@ -1,0 +1,602 @@
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+		<title>
+			Dokumentace k projektu Zpravostroj 
+		</title>
+	</head>
+	<body>
+		<h1>
+			Dokumentace k projektu Zpravostroj 
+		</h1>
+		<p>
+			<a href="index.html">Zpět</a>
+		</p>
+		<hr>
+		
+		<h2>
+			Úvod
+		</h2>
+		<p>
+		Zpravostroj je projekt, který stahuje zprávy z vybraných internetových zdrojů, tyto zprávy stahuje a ukládá. Zároveň implementuje některé formy automatické detekce zpravodajských témat, z nichž některé jsou založeny na ručním třídění. Také je implementovaná evaluace různých způsobů této detekce. Také je implementováno vykreslování množství daných typů témat do grafu.
+		</p><p>
+		Projekt je velmi experimentální, jeho výstupy a způsoby jeho volání tedy nejsou příliš uživatelsky přívětivé a program vypisuje velké množství "dočasných" údajů. Dále je na projektu zřejmé, že byl vypracováván současně s bakalářskou prací, tudíž například metody, vykreslující grafy, vytváří právě ty grafy, které jsou použity v bakalářské práci.
+		</p><p>
+		Předpokládaným uživatelem je programátor v Perlu, který bude s projektem experimentovat a zkoušet jeho API.
+		</p>
+		
+		
+		<p>
+			Součástí projektu je i aplikace pro manuální označování témat, která byla původně zamýšlena jako webová aplikace pro více uživatelů, proto běží jako Facebook aplikace na adrese <a href="http://apps.facebook.com/zpravostroj_z/">http://apps.facebook.com/zpravostroj_z/</a>; je ale ve skutečnosti umístěna na serveru ufallab2.ms.mff.cuni.cz, který bude v průběhu roku 2011 vypnut a aplikace fungovat asi přestane.
+		</p>
+		
+		<h2>
+			Požadavky projektu
+		</h2>
+		<p>
+			Projekt potřebuje operační systém Unixového typu a nainstalovaný Perl, minimálně ve verzi 5.8. Projekt byl testován pouze na operačních systémech s jádrem Linux, u jiných systémů by mohl být problém s nainstalováním programu TectoMT, který používám.
+		</p>
+		<p>
+			Program potřebuje tyto CPAN moduly:
+		</p>
+		<ul>
+			<li>
+				<code>IO::Socket</code>
+			</li>
+			<li>
+				<code>Encode</code>
+			</li>
+			<li>
+				<code>forks</code>
+			</li>
+			<li>
+				<code>Moose</code>
+			</li>
+			<li>
+				<code>Data::Validate::URI</code>
+			</li>
+			<li>
+				<code>HTML::Encoding</code>
+			</li>
+			<li>
+				<code>LWP::UserAgent</code>
+			</li>
+			<li>
+				<code>MooseX::StrictConstructor</code>
+			</li>
+			<li>
+				<code>MooseX::Storage</code>
+			</li>
+			<li>
+				<code>File::Slurp</code>
+			</li>
+			<li>
+				<code>Scalar::Util</code>
+			</li>
+			<li>
+				<code>Time::Local</code>
+			</li>
+			<li>
+				<code>HTML::DOM</code>
+			</li>
+			<li>
+				<code>HTML::HeadParser</code>
+			</li>
+			<li>
+				<code>YAML::XS</code>
+			</li>
+			<li>
+				<code>Text::Unaccent</code>
+			</li>
+			<li>
+				<code>AI::Categorizer</code>
+			</li>
+			<li>
+				<code>AI::DecisionTree</code>
+			</li>
+			<li>
+				<code>Algorithm::NaiveBayes</code>
+			</li>
+			<li>
+				<code>Algorithm::SVM</code>
+			</li>
+			<li>
+				<code>Time::Progress</code>
+			</li>
+		</ul>
+		<p>
+			Kromě toho potřebuje program mít nainstalovaný a správně nastavený program TectoMT. Pro kreslení grafů je nutné mít nainstalován program R a R balíček ggplot2.
+		</p>
+		<p>
+			Facebook aplikace kromě toho potřebuje tyto moduly:
+		</p>
+		<ul>
+			<li>
+				<code>Facebook::Graph</code>
+			</li>
+			<li>
+				<code>Encode</code>
+			</li>
+			<li>
+				<code>URI::Escape</code>
+			</li>
+			<li>
+				<code>CGI</code>
+			</li>
+		</ul>
+		
+		
+		
+		
+		
+		<h2>
+			Instalace
+		</h2>
+		<p>
+			Celý projekt je tvořen pouze několika perlovými moduly. Pro spuštění jednotlivých úloh je nutné daný modul načíst pomocí příkazů use nebo require, přičemž musí být "hlavní adresář" (tj. adresář, nadřazený adresáři Zpravostroj) v PERL5LIB - jelikož je ale v PERL5LIB většinou obsažen odkaz na pracovní adresář <code>.</code>, stačí mít hlavní adresář jako pracovní adresář.
+		</p>
+		<p>
+			Po načtení modulu (různé moduly pro různé úkoly) je možné různé úkoly spustit jedním zavoláním procedury. Kromě modulu <code>Zpravostroj::Globals</code> neexportuje žádný z modulů žádné procedury, je tedy nutné psát celé názvy procedur včetně názvu modulu.
+		</p>
+		<p>
+			Program vypisuje velké množství pracovních výpisů na standardní výstup; toto je možné vypnout spuštěním procedury <code>Zpravostroj::Globals::_shut_up()</code>. Všechny kontrolní výpisy programu jsou v kódování utf-8.
+		</p>
+		<p>
+			Všechna data (články, výsledky analýz) zapisuje a čte program do adresáře <code>./data/</code>, tj. umístění je závislé na pracovním adresáři. Pokud jsou součástí projektu i stažené články (jsou na DVD k bakalářské práci, ale kvůli copyrightu je nezveřejňuji na veřejném git repository), jsou v adresáři <code>data</code>, který je podadresář hlavního adresáře, je tedy nutné mít hlavní adresář jako pracovní.
+		</p>
+		<p>
+			Stejně tak je pro kreslení grafů (viz níže) nutné mít jako podadresář pracovního adresáře adresář "/R_graphs", který obsahuje zdrojové kódy v jazyce R pro kreslení grafů.
+		</p>
+		<p>
+			Velmi tedy doporučuji mít jako pracovní adresář "hlavní adresář" projektu.
+		</p>
+		<p>
+			Program též zapisuje průběžná data do adresáře <code>./tmp/</code> pod pracovní adresář. Pokud chcete, aby program zapisoval do adresáře <code>/tmp</code> (například), je nutné tento adresář nalinkovat do pracovního adresáře jako <code>./tmp/</code>.
+		</p>
+		
+		
+		
+		
+		<h2>
+			Moduly
+		</h2>
+		
+		
+			<p>
+				Důležitější moduly jsem si rozdělil pro účely této dokumentace do několika částí: data, infrastruktura, prezentace, výpočty. Rozdělení je pouze orientační, hlavně část infrastrukturní a výpočtová se velmi výrazně překrývá.
+			</p>
+			
+			<p>
+				Jako datové mohu nazvat tyto moduly:
+			</p>
+			<ul>
+				<li><code>Zpravostroj::Word</code> reprezentuje slovo, u kterého může být případně skóre.
+				</li>
+				<li>
+					<code>Zpravostroj::Article</code> reprezentuje článek.
+				</li>
+				<li>
+					<code>Zpravostroj::Date</code> reprezentuje datum.
+				</li>
+				<li>
+					<code>Zpravostroj::RSS</code> reprezentuje RSS čtečku.
+				</li>
+				
+				<li>
+					<code>Zpravostroj::ManualCategorization::ManualCategorization</code>, <code>Zpravostroj::ManualCategorization::NewsTopics</code> a <code>Zpravostroj::ManualCategorization::Unlimited</code> slouží k načítání a ukládání ručních kategorií
+				</li>
+			</ul>
+			<p>
+				Jako infrastrukturní mohu nazvat tyto moduly:
+			</p>
+				<ul>
+					<li>
+						<code>Zpravostroj::DateArticles</code> reprezentuje všechny články jednoho dne.
+					</li>
+					
+					<li>
+						<code>Zpravostroj::AllDates</code> reprezentuje všechny dny. 
+					</li>
+					
+					<li>
+						<code>Zpravostroj::Traversable</code> je zobecnění objektu, který má více podobjektů, které lze postupně načítat a na kterých lze něco postupně spouštět (traverzovat)
+					</li>
+					<li>
+						<code>Zpravostroj::Forker</code> je objekt, který mi "pomáhá" s paralelizací
+					</li>
+					
+					<li>
+						 <code>Zpravostroj::OutCounter</code> je objekt, který mi "pomáhá" se sčítáním dat pomocí vnějšího třídění
+					</li>
+					
+					<li>
+						<code>Zpravostroj::InverseDocumentFrequencies</code> vrací IDF vektor,
+					</li>
+					
+					<li>
+						<code>Zpravostroj::TectoClient</code> a <code>Zpravostroj::TectoServer</code> fungují pro lemmatizaci textu
+					</li>
+					
+					
+				</ul>
+			
+			<p>
+				Jako výpočtové mohu nazvat tyto moduly:
+			</p>
+				<ul>
+					<li>
+						<code>Zpravostroj::Categorizer::Categorizer</code> je obecný, abstraktní kategorizér
+					</li>
+					<li>
+							<code>Zpravostroj::Categorizer::Evaluator</code> evaluuje libovolný kategorizér srovnáním s ruční kategorizací
+					</li>
+					<li>
+						<code>Zpravostroj::Categorizer::TotallyRetarded</code> je triviální kategorizér
+					</li>
+					<li>
+						<code>Zpravostroj::Categorizer::FreqThemes</code>, <code>Zpravostroj::Categorizer::StopThemes</code> a <code>Zpravostroj::Categorizer::TfIdfThemes</code> dávají do kategorií podle témat, hledaných pouze z článku samého
+					</li>
+					<li>
+						<code>Zpravostroj::Categorizer::AICategorizer</code> je učící se kategorizér, který je třeba nejdříve naučit na už určených kategoriích. Používá CPAN modul AI::Categorizer
+					</li>
+					
+					<li>
+						<code>Zpravostroj::Readability</code> je modul k vyčištění zdrojového HTML a získání obsahu článku
+					</li>
+					
+					<li>
+						<code>Zpravostroj::Updater</code> stahuje nové články a ukládá je do databáze
+					</li>
+					
+					
+				</ul>
+			<p>
+				Jako prezentační mohu chápat tyto moduly:
+			</p>
+			<ul>
+				<li>
+					<code>Zpravostroj:HTMLOutput</code> je modul pro již zmiňovanou Facebook aplikaci, pomocí které lze zatřizovat články do kategorií
+				</li>
+				
+				
+					<li>
+						<code>Zpravostroj::ThesisData</code> je modul, přímo určený pro výstup dat pro bakalářskou práci
+					</li>
+					
+				
+				
+				
+				
+				
+				
+				<li>
+					<code>Zpravostroj::Categorizer::Categorizer</code> a <code>Zpravostroj::Categorizer::Evaluator</code> jsem velmi stručně popsal též výše
+				</li>
+				<li>
+					<code>Zpravostroj::Categorizer::TotallyRetarded</code> je triviální kategorizér
+				</li>
+				<li>
+					<code>Zpravostroj::Categorizer::FreqThemes</code>, <code>Zpravostroj::Categorizer::StopThemes</code> a <code>Zpravostroj::Categorizer::TfIdfThemes</code> dávají do kategorií podle témat, hledaných pouze z článku samého
+				</li>
+				<li>
+					<code>Zpravostroj::Categorizer::AICategorizer</code> je učící se kategorizér, který je třeba nejdříve naučit na už určených kategoriích. Používá CPAN modul AI::Categorizer
+				</li>
+			</ul>
+			<p> V následující části důležité moduly popíši; přijde mi ale zbytečné opisovat komentáře v kódu, proto nebudu popisovat veškeré procedury kompletně.</p>
+		
+		
+		<h2>Data</h2>
+		
+		
+		
+		
+		<h3>
+			Uložení článků
+		</h3>
+		<p>
+			Články jsou uloženy ve složce <code>data/articles</code>, v souboru na adrese <code>data/articles/Y/M/D/N.bz2</code>, kde <code>Y</code> je rok, <code>M</code> je měsíc, <code>D</code> je den a <code>N</code> je číslo článku. Jsou serializovány pomocí <code>YAML::XS</code> a MooseX::Storage, a jsou zazipovány programem bzip2.
+		</p>
+		<p>
+			Motivace pro zvolení serializace jako způsobu ukládání byla to, že jsem chtěl mít všechna data o článcích "pohromadě", ale neměl jsem k dispozici klasickou databázi. Pohlíženo zpětně nebyla serializace dobrý nápad, protože trvá, spolu se bzipováním, velmi dlouho.
+		</p>
+		<p>
+			Bzipování bylo naopak poměrně potřeba - od začátku jsem si chtěl ukládat jak původní HTML kód, tak vyčištěnou část článku, tak všechna slova zlemmatizovaná. Tyto informace v "čistém" textu zabíraly příliš dat, proto jsem radši vše bzipoval.
+		</p>
+		
+		<h3>
+			Články a druhy témat
+		</h3>
+		<p>
+			Všechny články jsou objekty typu Zpravostroj::Article a různé druhy výpočtu témat mají jako své procedury.
+		</p>
+		<p>
+			Pro načtení článku lze použít například metodu modulu Zpravostroj::AllDates <code>Zpravostroj::AllDates::get_from_article_id($id)</code><br>
+			<br>
+			kde <code>$id</code> je string ve formátu "Y-M-D-A", kde Y je rok, M je měsíc, D je den a A je číslo článku v daném dni. Pokud jsou součástí projektu už stažené články z roku 2010, je možné jednoduše načíst dva ukázkové články z bakalářské práce pomocí metody modulu <code>Zpravostroj::ThesisData</code><br>
+			<code>Zpravostroj::ThesisData::get_example_articles()</code><br>
+			<br>
+			která vrací 2 články, které jsou jako ukázkové v bakalářské práci, v perlovském poli.
+		</p>
+		<p>
+			Každý článek má tyto metody pro čtení témat:<br>
+		</p>
+		<ul>
+			<li>
+				<code>$article-&gt;frequency_themes()</code>vrací frekvenční témata (pole objektů Zpravostroj::Word)
+			</li>
+			<li>
+				<code>$article-&gt;stop_themes()</code>vrací stop-témata (pole objektů Zpravostroj::Word)
+			</li>
+			<li>
+				<code>$article-&gt;unlimited_manual_tags()</code> vrací "neomezená" ručně zatřízená témata, pokud jsou (pole textových řetězců)
+			</li>
+			<li>
+				<code>$article-&gt;news_topics_manual_tags()</code> vrací "omezená" ručně zatřízená témata, pokud jsou (pole textových řetězců)
+			</li>
+			<li>
+				<code>$article-&gt;has_tf_idf_themes()</code> je 1 nebo 0 podle toho, jestli článek má, nebo nemá spočítaná TF-IDF témata
+			</li>
+			<li>
+				<code>$article-&gt;count_tf_idf_themes($idf_hash, $article_count)</code>TF-IDF témata spočítá - $idf_hash je IDF matice, $article_count je počet všech článků, obojí je nepovinné - pokud není zadáno, načte se v count_tf_idf_themes()
+			</li>
+			<li>
+				<code>$article-&gt;tf_idf_themes()</code> jsou tato témata (reference na pole objektů Zpravostroj::Word)
+			</li>
+		</ul>
+		<p>
+			<code>Zpravostroj::Word</code> je objekt, který má metody:
+		</p>
+		<ul>
+			<li>
+				<code>$word-&gt;form()</code> - vrací tvar slova
+			</li>
+			<li>
+				<code>$word-&gt;lemma()</code> - vrací lemma slova
+			</li>
+			<li>
+				<code>$word-&gt;score()</code> - vrací ohodnocení slova jako tématu - u frequency_themes a stop_themes znamená frekvence, u tf_idf_themes znamená hodnotu tf_idf
+			</li>
+		</ul>
+		
+		<h2>Infrastruktura</h2>
+		
+		
+		
+		<h3>
+			Forker
+		</h3>
+		<p>
+			Při experimentování jsem zjistil, že pro rychlejší a spolehlivější uvolňování paměti po operacích náročných na paměť, jako je například načítání článků, je lepší použít modul <code>forks</code>, pomocí něho vytvořit nový proces, náročnější operaci udělat v separátním procesu a výsledky nasdílet zpátky. Program tak uvolní paměť ihned po skončení procesu. (Tento fakt jsem si posléze ověřil i na jiném, nesouvisejícím projektu.)
+		</p>
+		<p>
+			Modul <code>forks</code> funguje jako "náhrada" vestavěných perl threadů, které ale nejsou příliš praktické. <code>forks</code> používá naprosto stejný syntax, jako modul <code>threads</code>, včetně sdílení proměnných pomocí <code>shared</code> (pro sdílení dat si modul forks vytvoří "nadřazený" proces a např. zámky implementuje pomocí socketů).
+		</p>
+		<p>
+			Kromě toho jsem zjistil, že při načítání většího množství článků je "bottleneck" rozbalování z bz2 a deserializace; je ale možné načítání článků mírně paralelizovat tak, že např. při rozbalování jednoho článku může systém zároveň dělat něco jiného, tím i případně využít více jader procesoru, čímž se vše zrychlí.
+		</p>
+		<p>
+			Pro tuto paralelizaci ale není možné, aby běželo příliš mnoho procesů najednou. Proto jsem si vytvořil objekt <code>Zpravostroj::Forker</code>, který za mě hlídá postupné spouštění forků.
+		</p>
+		<p>
+			Funguje tak, že se mu dávají odkazy na subroutiny pomocí <code>$forker-&gt;run($subroutine)</code>, tyto si pamatuje v poli jako ve frontě. Z fronty potom postupně subroutiny spouští v separátních forcích tak, aby nebylo zároveň spuštěno víc forků, než má <code>Forker</code> povoleno. Počet povolených forků je <code>Forker</code>u zadáno při konstrukci.
+		</p>
+		<p>
+			<code>Forker</code> ale nemá, jak by sám tyto forky spouštěl "mimo" běh hlavního programu (není možné určit vlastní fork na spouštění forků, protože odkazy na subroutiny není možno sdílet mezi jednotlivými forky). Proto je nutné po zadání všech subroutin pomocí <code>$forker-&gt;run()</code> buď pravidelně spouštět <code>$forker-&gt;check_waiting()</code>, který jednou zkontroluje počet běžících forků a případně nějaké další spustí, nebo jednou spustit <code>$forker-&gt;wait()</code>, což je funkce, která počká na doběhnutí všech nedoběhnutých forků (která pravidelně spouští <code>$forker-&gt;check_waiting</code>). Pokud se jakékoliv výsledky vrací zpátky do nějaké proměnné, která existuje mimo subroutinu, tak tato musí být sdílená přes modul <code>forks::shared</code>, jinak se při zapisování (perlí fork funguje na principu copy-on-write) vytvoří <i>kopie</i> této proměnné.
+		</p>
+		<p>
+			Forkery mohou být "vnořené" do sebe - tj. v subroutině, kterou dostane a bude spouštět jeden <code>Forker</code> může být zase jiný <code>Forker</code>. Forkery ale není možno sdílet mezi forky, tj. "vnitřní" Forker musí být v subroutině vytvořen a v ní opět zaniknout. 
+		</p>
+		<h3>
+			Traversable
+		</h3>
+		<p>
+			<code>Zpravostroj::Traversable</code> je zobecnění objektu, který má více podobjektů, které lze postupně načítat a na kterých lze něco postupně spouštět (traverzovat). V mém případě jsou to dva objekty - jednak objekt <code>Zpravostroj::AllDates</code>, který představuje všechny dny (a který nemá žádné vlastnosti, tj. všechny jeho instance jsou jakoby datově shodné), a objekt Zpravostroj::DateArticles, který představuje všechny články daného dne. V případě <code>Zpravostroj::AllDates</code> jsou "podřazené" objekty, přes které se "traverzuje", objekty <code>Zpravostroj::DateArticles</code>, objektům <code>Zpravostroj::DateArticles</code> jsou zase "podřazené" objekty <code>Zpravostroj::Article</code>.
+		</p>
+		<p>
+			<code>Zpravostroj::Traversable</code> je abstraktní třída (v řeči <code>Moose</code> "role"), která funguje tak, že všechny podřazené objekty zároveň nikdy nejsou v paměti (protože by se všechny články naráz do paměti nevešly), ale jednak má abstraktní metodu <code>_get_traversed_array</code>, která vrátí pole řetězců, které jakoby představují podřazené objekty, a abstraktní metodu <code>_get_object_from_string</code>, která objekt z řetězce vyrobí.
+		</p>
+		<p>
+			Poté má (neabstraktní) metodu <code>traverse($sub, $count)</code>, která dostane odkaz na subroutinu, kterou postupně spouští na každý podřazený objekt. Načtení podobjektu a samotné spuštění subroutiny proběhne v separátním forku, spouštěného pomocí modulu <code>Zpravostroj::Forker</code> (viz výše), forků je zároveň povoleno spouštět <code>$count</code>. Pokud je <code>$count</code> 0 nebo 1, žádné forkování neprobíhá a subroutiny se spouštějí všechny ve stejném procesu. (Nemůžu zde napsat "v hlavním procesu", protože zatímco traverzování přes <code>AllDates</code> může forkovat, traverzování přes <code>DateArticles</code> nemusí; naopak, stejně jako můžou být Forkery "vnořovány" do sebe, tak může být traverzování vnořováno do sebe).
+		</p>
+		<p>
+			Opět, jelikož jsou subroutiny spouštěny přes <code>Forker</code>, pokud jsou nějaké výsledky vraceny ven ze subroutiny do nějaké proměnné, je nutné tuto proměnou sdílet mezi forky pomocí forks::shared.
+		</p>
+		<p>
+			Kromě toho má <code>Zpravostroj::Traversable</code> abstraktní metodu <code>_after_traverse</code>, která vždy proběhne na každém podobjektu po spuštění <code>$sub</code>. Tato metoda dostane jako parametry to, co vrací <code>$sub</code>. Používám to pouze pro ukládání článků po případné změně - návratová hodnota mi potom říká, jestli se článek změnil, nebo nezměnil.
+		</p>
+		
+		
+		<h3>
+			OutCounter
+		</h3>
+		<p>
+			V projektu často potřebuji sečíst velké množství dat, které jsou ve formátu klíč-hodnota (například pro IDF potřebuji zjistit pro jednotlivá slova počet dokumentů, ve kterých se vyskytují). Pro menší množství dat lze použít velký perl hash, do kterého se postupně přičítá; pro větší množství dat se nemusí tento hash vejít do paměti, nebo v případě, že používám metodu forkování, popsanou výše, trvá dlouho sdílení hashů mezi thready a je nutno je nějak zamykat.
+		</p>
+		<p>
+			Místo toho lze ale využít vnějšího třídění pomocí unixovského příkazu sort. Všechny dvojice klíč-hodnota postupně vypisuji do souboru, poté seřadím podle klíče a poté jedním průchodem sečtu a rovnou vypisuji sečtené hodnoty. Pokud potřebuji ještě naopak seřadit vše podle hodnot (např. pro nejčastější témata některého typu), znovu použiji příkaz sort.
+		</p>
+		<p>
+			Jak píšu v uživatelské části, používám k sortu option +, který je v GNU verzi, ale nemusí být v jiných verzích (např. mám pocit, že není na systému Mac OS X).
+		</p>
+		<p>
+			Všechny výše popsané úkony dělám pomocí objektu <code>Zpravostroj::OutCounter</code>, kterému při vytvoření řeknu cestu k souboru, kam má zapisovat, a binární příznak, jestli má při už existující soubor smazat, nebo ne. Podrobněji je postup popsán v komentářích tohoto modulu.
+		</p>
+		
+		
+		<h2>Výpočty, prezentace</h2>
+		<h3>
+			Postup zpracovávání článků
+		</h3>
+		<p>
+			O stahování nových článků se "stará" modul <code>Zpravostroj::Updater</code>. Pro stáhnutí nových článků do archivu stačí spustit<br>
+			<code>Zpravostroj::Updater::download_new_articles($recount_all_tf_idf_themes)</code><br>
+			<br>
+			Tato procedura stáhne nové články, slova převede na lemmata a spočítá je, články také pro všechna jejich slova přidá do IDF matice, články poté uloží do data/articles.
+		</p>
+		<p>
+			<code>$recount_all_tf_idf_themes</code> je volitelná proměnná, která, pokud je rovná 1, spustí update všech tf-idf témat podle nově přidaných slov do IDF matice (při velkém počtu článků může trvat velmi dlouho, proto je defaultně nastavena jako 0).
+		</p>
+		
+		<p>
+			Nejprve je jím spuštěn <code>Zpravostroj::TectoServer</code>, což je separátní fork (více o forcích výše), ve kterém běží <code>TectoMT</code>.
+		</p>
+		<p>
+			Potom jsou staženy adresy článků pomocí modulu <code>Zpravostroj::RSS</code> (adresy RSS kanálů a adresy stažených článků jsou v adresáři <code>data/articles/RSS</code>). Poté je článek stáhnut pomocí modulu <code>Zpravostroj::WebReader</code>, poté se pomocí <code>Zpravostroj::Readability</code> z HTML zdroje získá samotný článek bez okolních textů. Poté se modul <code>Zpravostroj::TectoClient</code> spojí s <code>TectoServer</code>em a pošle mu slova ve článku; <code>TectoServer</code> tato zlemmatizuje a určí pojmenované entity.
+		</p>
+		<p>
+			Tato "kaskáda" operací se spouští díky Moose konstruktoru v modulu <code>Zpravostroj::Article</code>.
+		</p>
+		<p>
+			Články jsou poté uloženy pomocí subrutiny <code>Zpravostroj::Globals::dump_bz2</code>.
+		</p>
+		
+		
+			<p>
+				Kromě toho jsou v adresáři archivedumpers/ skripty, které stahují články z jednotlivých serverů z archivu - tyto ale určitě nefungují - jednak proto, že i vnitřní API programu se od doby, co byly napsány, změnilo, a jednak proto, že HTML na daných serverech už se změnilo a nebylo updatováno; tyto skripty mám jako součást programu tedy spíše pro zajímavost a úplnost.
+			</p>
+		
+		
+		
+		<h3>
+			Tf-Idf témata
+		</h3>
+		<p>
+			Pro TF-IDF témata je nejprve nutné znát IDF vektor (podrobněji viz bakalářská práce); tento lze načíst pomocí modulu <code>Zpravostroj::InverseDocumentFrequencies</code>, který si vektor ukládá v adresáři data/idf.
+		</p>
+		<p>
+			Pokud IDF vektor není znám, je možné jej také spočítat pomocí <code>Zpravostroj::InverseDocumentFrequencies</code>; pokud už spočítaný je, ale přibydou nové články, není nutné jej celý přepočítávat - modul <code>Zpravostroj::InverseDocumentFrequencies</code> si pamatuje poslední článek, který byl započítán, a přidá všechny novější.
+		</p>
+		<p>
+			Pokud by bylo potřeba opravdu přepočítat celý IDF vektor znovu, je nutné smazat celý adresář <code>data/idf/</code>.
+		</p>
+		<p>
+			Pokud chci článku vypočítat TF-IDF témata, je třeba článek načíst, spustit na něj <code>count_tf_idf_themes</code> a znovu ho uložit; toto dělá <code>Zpravostroj::AllDates::get_statistics_tf_idf_themes</code> (o metodách <code>get_statistics_</code> píšu více v uživatelské části dokumentace).
+		</p>
+		
+		
+		
+		<h3>
+			Evaluace
+		</h3>
+		<p>
+			Různé klasifikátory lze evaluovat pomocí modulu <code>Zpravostroj::Categorizer::Evaluator</code> a podtříd modulu <code>Zpravostroj::Categorizer</code>. Aby ale nebylo třeba zadávat všechny parametry znovu, je již předpřipravena evaluace s parametry, které byly použity v bakalářské práci, v modulu <code>Zpravostroj::ThesisData</code>, a to následovně:
+		</p>
+		<ul>
+			<li>
+				<code>Zpravostroj::ThesisData::try_trivial</code> vyzkouší triviální zatřizování do kategorie "ODS"
+			</li>
+			<li>
+				<code>Zpravostroj::ThesisData::try_f_themes</code> vyzkouší zatřizování do frekvenčních témat
+			</li>
+			<li>
+				<code>Zpravostroj::ThesisData::try_stop_themes</code> vyzkouší zatřizování do stop témat
+			</li>
+			<li>
+				<code>Zpravostroj::ThesisData::try_tf_idf_themes</code> vyzouší zatřizování do tf-idf témat
+			</li>
+			<li>
+				<code>Zpravostroj::ThesisData::try_categorizer</code> zkusí různé "skutečné" kategorizéry se strojovým učením s různými parametry. Pozor, trvá velmi dlouho (na mém stroji kolem 6 hodin)
+			</li>
+		</ul>
+		<p>
+			Všechny zkoušky už rovnou vypisují TeXovské řetězce, kde na každém řádku jsou procenta úspěšnosti v pořadí: micro ro, micro pi, micro F, macro ro, macro pi, macro F. Pozor, tyto řetězce jsou vypsány na obrazovku pomocí stejných metod, jako vypisuji kontrolní výpisy, tedy <code>Zpravostroj::Globals::_shut_up()</code> vypne i výsledné výpisy. Uznávám, že toto řešení není příliš čisté a do budoucna by bylo lepší jej změnit.
+		</p>
+		
+		<p>
+			Tuto evaluaci popisuji poměrně podrobně v bakalářské práci.
+		</p>
+		
+		
+		<h3>
+			Statistiky, grafy
+		</h3>
+		<p>
+			Počítání většiny statistik je jakoby "dvojúrovňové". První, časově výrazně náročnější část je průchod všemi články v archivu, kdy pro každý den se daná statistika uloží do adresáře data/daycounters a ještě v tomto kroku se z těchto denních statistik spočítají statistiky pro celý archiv. Konkrétně se například ukládá pro každý den statistika všech tf-idf témat.
+		</p>
+		<p>
+			Druhá část je pak velmi rychlý průchod těmito výsledky a vykreslení některých statistik do grafu v PDF - například historie vybraného tf-idf tématu. PDF soubory jsou ukládány do adresáře R_graphs/, data, potřebná pro kreslení těchto grafů, jsou v adresáři <code>data/R_data</code>.
+		</p>
+		<p>
+			První úroveň se spouští veškerá přes modul Zpravostroj::AllDates, a to následovně:
+		</p>
+		<ul>
+			<li>
+				<code>Zpravostroj::AllDates::get_statistics_f_themes()</code> spočítá f-témata u článků, ukládá statistiky do souborů <code>data/daycounters/f_themes_Y-M-D</code>, a statistiky všech f-témat ukládá do souboru <code>data/allresults/f_themes_counted_sorted_by_frequency</code>
+			</li>
+			<li>
+				<code>Zpravostroj::AllDates::get_statistics_stop_themes()</code> spočítá stop-témata u článků, ukládá statistiky do souborů <code>data/daycounters/stop_themes_Y-M-D</code>, a statistiky všech stop-témat ukládá do souboru <code>data/allresults/stop_themes_counted_sorted_by_frequency</code>
+			</li>
+			<li>
+				<code>Zpravostroj::AllDates::get_statistics_news_source()</code> spočítá zpravodajské zdroje u článků, ukládá statistiky do souborů <code>data/daycounters/news_source_Y-M-D</code>, a statistiky všech f-témat ukládá do souboru <code>data/allresults/news_source_counted_sorted_by_frequency</code>
+			</li>
+			<li>
+				<code>Zpravostroj::AllDates::get_statistics_tf_idf_themes()</code> spočítá pro každý článek tf-idf témata, uloží je zpět do článku, statistiky denních tf-idf témat uloží do souborů <code>data/daycounters/tf_idf_Y-M-D</code> a všech do <code>data/allresults/tf_idf_counted_sorted_by_frequency</code>
+			</li>
+			<li>
+				<code>Zpravostroj::AllDates::get_most_frequent_lemmas</code> spočítá nejčastější lemmata, denní výsledky ale neukládá, uloží pouze výsledky z celého archivu a uloží je do <code>data/allresults/lemmas_counted_sorted_by_frequency</code>
+			</li>
+		</ul>
+		<p>
+			Druhá úroveň už je celá v modulu Zpravostroj::ThesisData (název je ThesisData proto, že jdou vykreslit v podstatě pouze ty grafy, které mám v bakalářské práci), a to následovně:
+		</p>
+		<ul>
+			<li>
+				<code>Zpravostroj::ThesisData::graph_average_stop_themes_on_article()</code> vykreslí průměrný počet stoptémat na článek na den
+			</li>
+			<li>
+				<code>Zpravostroj::ThesisData::graph_average_tf_idf_themes_on_article()</code> vykreslí průměrný počet tf-idf témat na článek na den
+			</li>
+			<li>
+				<code>Zpravostroj::ThesisData::graph_article_count()</code> vykreslí průměrný počet článků na den
+			</li>
+			<li>
+				<code>Zpravostroj::ThesisData::graph_news_source()</code> vykreslí poměr článků z různých zdrojů na den
+			</li>
+			<li>
+				<code>Zpravostroj::ThesisData::graph_lemma_count()</code> vykreslí počty lemmat do grafu
+			</li>
+			<li>
+				<code>Zpravostroj::ThesisData::graph_selected_words($result_name, $type, $smooth, $words_ref, $colors_ref, $max, $lines_ref, $from, $to, $width, $height)</code> vykreslí historii <code>$type</code>-témat <code>$words_ref</code> barvami <code>$colors_ref</code> do grafu v souboru <code>$result_name</code>, parametr <code>$smooth</code> určuje, jestli bude graf vyhlazený, <code>$max</code> určuje maximální Y v grafu, <code>$lines_ref</code> umístění horizontálních čar, <code>$from</code> a <code>$to</code> případné "přiblížení" a <code>$width</code> a <code>$height</code> velikost grafu v palcích
+			</li>
+			<li>
+				<code>Zpravostroj::ThesisData::graph_selected_words_from_thesis($type)</code> spustí předcházející proceduru s takovými parametry, aby odpovídala grafům v bakalářské práci, kde <code>$type</code> je číslo od 1 do 8
+			</li>
+		</ul>
+		
+		
+		
+		<h3>
+			Další data
+		</h3>
+		<p>
+			<code>Zpravostroj::ThesisData</code> ještě vypisuje další data pro bakalářskou práci, a to následovně:
+		</p>
+		<ul>
+			<li>
+				<code>Zpravostroj::ThesisData::example_unlimited_manual_tags()</code> vypisuje pro ukázkové články moje "neomezené" manuální tagy
+			</li>
+			<li>
+				<code>Zpravostroj::ThesisData::example_text()</code> vypisuje pro ukázkové články jejich text
+			</li>
+			<li>
+				<code>Zpravostroj::ThesisData::example_f_themes()</code> vypisuje pro ukázkové články jejich frekvenční témata
+			</li>
+			<li>
+				<code>Zpravostroj::ThesisData::example_stop_themes()</code> vypisuje pro ukázkové články jejich stop témata
+			</li>
+			<li>
+				<code>Zpravostroj::ThesisData::example_tf_idf_themes()</code> vypisuje pro ukázkové články jejich tf-idf témata
+			</li>
+			<li>
+				<code>Zpravostroj::ThesisData::most_frequent_f_themes()</code> vypisuje nejčastější frekvenční témata
+			</li>
+			<li>
+				<code>Zpravostroj::ThesisData::most_frequent_stop_themes()</code> vypisuje nejčastější frekvenční témata
+			</li>
+			<li>
+				<code>Zpravostroj::ThesisData::most_frequent_tf_idf_themes()</code> vypisuje nejčastější tf-idf témata
+			</li>
+		</ul>
+		
+	</body>
+</html>
