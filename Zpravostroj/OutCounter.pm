@@ -149,7 +149,7 @@ sub count_and_sort_it {
 	my $s = shift;
 	$s->count_it;
 	
-	system("sort -n -r -T tmp/ +1 -2 ".$s->countedname." > ".$s->sorted_by_frequencyname);
+	system("sort -n -r -T tmp/ -k 2 ".$s->countedname." > ".$s->sorted_by_frequencyname);
 	
 }
 
@@ -180,7 +180,7 @@ sub count_it {
 		
 		#adresář je tmp/, protože na ufallab2 jsem neměl přístup do /tmp/
 		
-		system("sort -T tmp/ +0 -1 ".$s->tempname." > ".$s->sortname);
+		system("sort -T tmp/ -k 1 ".$s->tempname." > ".$s->sortname);
 		
 		open my $if, "<:utf8", $s->sortname;
 		open my $of, ">:utf8", $s->countedname;
