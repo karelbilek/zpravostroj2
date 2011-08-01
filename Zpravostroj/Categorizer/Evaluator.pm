@@ -283,10 +283,13 @@ sub _count_precision_recall {
 	my $macro_pi_sum=0;
 	my $macro_ro_sum=0;
 	
-	#teoreticky bych tady mel iterovat pres all_tags_hash, ale nahore by byla stejne vzdycky nula
+
 	for my $tag (keys %$TP) {
 		$macro_pi_sum += _safe_fraction($TP->{$tag}, $FP->{$tag}); 
 		$macro_ro_sum += _safe_fraction($TP->{$tag}, $FN->{$tag}); 
+		
+		say "Pro tag ",$tag," je TP/TP+FP ",_safe_fraction($TP->{$tag}, $FP->{$tag})," a TP/TP+FN ",_safe_fraction($TP->{$tag}, $FN->{$tag});
+		
 	}
 	
 	my $macro_pi = $macro_pi_sum/$category_count;
