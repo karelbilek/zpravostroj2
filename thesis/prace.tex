@@ -487,7 +487,7 @@ Některé z~těchto postupů jsem neimplementoval; u těch, které jsem implemen
 
 První nápad na detekci témat je jednoduché počítání frekvencí slov ve článcích s~tím, že častější slova prohlásím automaticky za témata --- případně s~tím, že budu ignorovat tzv. stopslova.
 
-Termín \emph{stopslova} (\emph{stopword}, případně \emph{stoplist} ve významu seznam stopslov) popisuje např. \cite{introduction} a další. Jde o po\-mě\-r\-ně ma\-lou mno\-ži\-nu ty\-pů slov, kte\-rá ale před\-sta\-vu\-je vel\-kou část to\-ke\-nů. (V angličtině je to např. po\-dle \cite{introduction} 40-50 pro\-cent; v~části~\ref{sec:stemata} ukazuji statistiky na vlastní databázi zpravodajských článků.) Jde převážně o spojky, částice a zá\-klad\-ní slovesa, co sama o sobě nenesou žádný obsah textu. Je nutno je buď definovat ručně, což je ale jaksi \uv{nesystémové} řešení; nebo se stopslova definují jako nej\-čas\-tě\-ji po\-u\-ží\-va\-ná slo\-va (jak je definuji i já), což s~sebou ne\-se ri\-zi\-ko, že se vel\-mi čas\-tá slo\-va, kte\-rá ale \emph{ne\-jsou} bez\-vý\-zna\-mo\-vá či po\-moc\-ná, ú\-pl\-ně i\-gno\-ru\-jí.
+Termín \emph{stopslova} (\emph{stopword}, případně \emph{stoplist} ve významu seznam stopslov) popisuje např. \cite{introduction} a další. Jde o po\-mě\-r\-ně ma\-lou mno\-ži\-nu ty\-pů slov, kte\-rá ale před\-sta\-vu\-je vel\-kou část to\-ke\-nů. (V angličtině je to např. po\-dle \cite{introduction} 40-50 pro\-cent; v~části~\ref{sec:stemata} ukazuji statistiky na vlastní databázi zpravodajských článků.) Jde převážně o spojky, částice a zá\-klad\-ní slovesa, která sama o sobě nenesou žádný obsah textu. Je nutno je buď definovat ručně, což je ale jaksi \uv{nesystémové} řešení; nebo se stopslova definují jako nej\-čas\-tě\-ji po\-u\-ží\-va\-ná slo\-va (jak je definuji i já), což s~sebou ne\-se ri\-zi\-ko, že se vel\-mi čas\-tá slo\-va, kte\-rá ale \emph{ne\-jsou} bez\-vý\-zna\-mo\-vá či po\-moc\-ná, ú\-pl\-ně i\-gno\-ru\-jí.
 %jsou jakoby prvním přiblížením, jak oddělit plnovýznamová slova od pomocných
 
 Pro nalezení množiny témat pro daný článek potom vezmu prvních $k$ nej\-ča\-s\-tě\-j\-ších slov --- buď bez ohledu na stopslova, nebo s~jejich vyřazením, kde $k$ je konstantní pro celou databázi.
@@ -704,14 +704,14 @@ Jelikož mám dvojí přesnost a úplnost, mám i dvojí F$_1$ skóre, jedno pro
 
 Jak jsem již uvedl v~sekcích \ref{sec:frekvestopslo} a \ref{sec:tfidf_teory}, tyto metody vrací spíše klíčová slova než témata. Je velmi obtížné pro kvalitu určování těchto klíčových slov navrhnout metriku, která by dávala smysluplné výsledky.
 
-Zkusil jsem pro evaluaci těchto metod využít stejnou metriku, co pro úlohu kategorizace --- tj. použít ručně zatříděná data a výsledky srovnat s~nimi. Úlohu evaluace na těchto metodách jsem si pro tyto účely upravil takto:
+Zkusil jsem pro evaluaci těchto metod využít stejnou metriku, jako pro úlohu klasifikace --- tj. použít ručně zatříděná data a výsledky srovnat s~nimi. Úlohu evaluace na těchto metodách jsem si pro tyto účely upravil takto:
 \begin{enumerate}
     \item Slova, která tyto metody vrací, jsou názvy kategorií, do kterých je článek strojem zatříděn; tj. z~metod, které nefungují na principu klasifikace, vyrobím svého druhu klasifikátory.
     \item Naopak názvy ručně určených kategorií jsou často víceslovné; proto chápu pro jednoduchost shodu mezi ruční kategorií, skládající se ze slov $a_1, a_2 \ldots a_n$ a strojem určenou kategorií, skládající se ze slova $b$ tak, že \emph{některé} ze slov $a_1$ až $a_n$ je rovno $b$.
     \item Protože takto definované klasifikátory se nijak neučí, není potřeba dělit množinu článků na testovací a trénovací část a provádět cross-evaluaci --- je možné \emph{rovnou} spočítat $\pi$, $\rho$ a $F_1$, vše podle definic, uvedených výše.
 \end{enumerate}
 
-Tento způsob evaluace má o něco volnější definici \emph{true positive}, tedy při srovnání s~evaluací klasických klasifikátorů dává lepší výsledky, než by jí možná odpovídalo.
+Tento způsob evaluace má o něco volnější definici \emph{true positive} a dále probíhá evaluace vlastně na mírně jiných datech, než cross-evaluace v~případě klasifikátorů; proto nejsou výsledky této evaluace přímo srovnatelné s~výsledkami evaluace a raději je tedy uvádím v~části \ref{sec:evaluace_jedn_prist} zvlášť.
 %Tato evaluace je sice dobře definovaná, ale jak ukážu v~Kapitole \ref{sec:experimenty}, dává nesmyslně nízké výsledky.
 
 
@@ -1305,14 +1305,20 @@ První článek klasifikátory nemají, asi díky vysokému počtu slov, souvise
 
 Na těchto dvou článcích se dá demonstrovat to, že klasifikátory mají \emph{někdy} tendenci dávat správné výsledky a zatřiďovat do správných kategorií, ale celkově nejsou výsledky příliš přesvědčivé. Může to být i tím, že 200 článků opravdu není příliš, ale, jak jsem se snažil ukázat v~části~\ref{sec:rucnik}, ruční zatřiďování je samo o sobě poměrně náročné.
 
-Rozhodl jsem se klasifikátory netestovat na všech uložených článcích jako v~předcházejících částech --- jednak kvůli tomu, že trénovací množina je velká pouze 200 článků, kdežto celkový počet článků je 63735, tedy přibližně 300-krát větší; poté kvůli tomu, že (jak bude vidět v~části~\ref{sec:evaluace_jedn_prist}) klasifikátory nedávají až tak dobré výsledky; a nakonec proto, že, kromě algoritmu NaiveBayes, jsou klasifikátory opravdu velmi pomalé.
 
+Rozhodl jsem se, že klasifikátory nebudu testovat na celé databázi a výsledky nebudu vynášet na časovou osu tak, jako v~předcházejících částech --- jednak kvůli tomu, že trénovací množina je velká pouze 200 článků, kdežto celkový počet článků je 63735, tedy přibližně 300-krát větší; poté kvůli tomu, že (jak bude vidět v~části~\ref{sec:evaluace_jedn_prist}) klasifikátory nedávají až tak dobré výsledky; a nakonec proto, že, kromě algoritmu NaiveBayes, jsou klasifikátory opravdu velmi pomalé.
 
 \section{Evaluace jednotlivých přístupů}
 
 \label{sec:evaluace_jedn_prist}
 
-\jednatabulka{mega}{
+Jednotlivé přístupy jsem porovnal metrikou, popisovanou pro klasifikátory v~části \ref{sec:evaluace_klasifikace} a rozšířenou na další metody (zde jsem si je nazval \emph{neklasifikační}) v~části \ref{sec:dalsimetody}. Protože evaluace je provedena u neklasifikačních metod rozdílně, nedají se oba přístupy přímo porovnávat a proto uvádím výsledky zvlášť.
+
+
+
+\section{Neklasifikační metody}
+
+\jednatabulka{neklas}{
 
 \begin{tabular}{|l || r | r|r||r| r|r|}
     \hline
@@ -1324,10 +1330,31 @@ Rozhodl jsem se klasifikátory netestovat na všech uložených článcích jako
     TF-IDF, $k=10$ & 41.40  & 11.83  & 18.40  & 9.80  & 9.28  & 9.54  \\ \hline
     TF-IDF, $k=20$ & 51.72  & 7.60  & 13.25  & 6.79  & 5.95  & 6.34  \\ \hline 
     
-    
-    \multicolumn{1}{l}{} \\
-    
-     \hline
+  \end{tabular}
+
+}{Přesnosti a úplnosti neklasifikačních metod}
+
+Metrikou, kterou popisuji v~části~\ref{sec:evaluace_klasifikace} a v~části~\ref{sec:dalsimetody} ji rozšiřuji na algoritmy, které nefungují na principu klasifikace, jsem porovnal různé způsoby detekce témat; výsledky jsou uvedeny v~tabulce~\ref{tabulka:mega}.
+
+\subsubsection{Triviální kategorizace}
+Pro srovnání s~dalšími metodami jsem otestoval i \uv{triviální kategorizaci}, která každému článku přiřadí právě jednu kategorii, a to \texttt{ODS}. Výsledky evaluace jsou, dle očekávání, téměř nulové.
+
+\subsubsection{Frekvenční témata}
+Frekvenční témata dávají možná lepší výsledky, než by se zdálo ze zběžného prohlížení nalezených témat, jak jsem činil v~části \ref{sec:ftemata}. To, že úplnost je téměř 30 \%, zatímco přesnost je méně než 10 \%, je nejspíš tím, že metoda vrací vždy 10 témat na článek, zatímco průměrný počet témat na článek v ruční kategorizaci je nižší. Zmenšením počtu témat na článek bychom zvýšili přesnost, ale snížili úplnost, jak je vidět i dále na části s~TF-IDF.
+
+\subsubsection{Stop témata}
+Je zajímavé, že zatímco \uv{opticky} a v~mikroprůměru jsou výsledky stop témat lepší, v~makroprůměru se výsledky zhorší. U tohoto jevu si nejsem schopen vysvětlit příčiny; jako čistou spekulaci mohu uvést to, že 
+
+\subsubsection{TF-IDF}
+Zvýšením počtu témat se zvedla, dle očekávání, úplnost, ale snížila přesnost. Pokud ale necháme počet témat na článek stejný, jako u stop-témat a frekvenčních témat, všechny výsledky v~mikroprůměru se zlepší. Naopak se opakuje situace, kdy i přes \uv{opticky} lepší výsledky a lepší mikroprůměr dostáváme u makroprůměru horší výsledky.
+
+\section{Klasifikační metody}
+
+\jednatabulka{klas}{
+
+\begin{tabular}{|l || r | r|r||r| r|r|}
+    \hline
+     & $\rho_{\mu}$ & $\pi_{\mu}$ & $F_\mu$ & $\rho_{M}$ & $\pi_{M}$  & $F_M$  \\ \hline
     
     NaiveBayes - var.1 & 13.18  & 17.13  & 14.85  & 9.01  & 5.85  & 7.04  \\ \hline
     NaiveBayes - var.2 & 5.36  & 5.69  & 5.50  & 4.02  & 1.19  & 1.75 \\ \hline
@@ -1346,26 +1373,11 @@ Rozhodl jsem se klasifikátory netestovat na všech uložených článcích jako
     
   \end{tabular}
 
-}{Přesnosti a úplnosti, v procentech}
+}{Přesnosti a úplnosti klasifikátorů}
 
-Metrikou, kterou popisuji v~části~\ref{sec:evaluace_klasifikace} a v~části~\ref{sec:dalsimetody} ji rozšiřuji na algoritmy, které nefungují na principu klasifikace, jsem porovnal různé způsoby detekce témat; výsledky jsou uvedeny v~tabulce~\ref{tabulka:mega}.
-
-\subsubsection{Triviální kategorizace}
-Pro srovnání s~dalšími metodami jsem otestoval i \uv{triviální kategorizaci}, která každému článku přiřadí právě jednu kategorii, a to \texttt{ODS}. Výsledky evaluace jsou, dle očekávání, téměř nulové.
-
-\subsubsection{Frekvenční témata}
-Frekvenční témata dávají možná lepší výsledky, než by se zdálo ze zběžného prohlížení nalezených témat, jak jsem činil v~části \ref{sec:ftemata}. To, že úplnost je téměř 30 \%, zatímco přesnost je méně než 10 \%, je nejspíš tím, že metoda vrací vždy 10 témat na článek, zatímco průměrný počet témat na článek v ruční kategorizaci je nižší. Zmenšením počtu témat na článek bychom zvýšili přesnost, ale snížili úplnost, jak je vidět i dále na části s~TF-IDF.
-
-\subsubsection{Stop témata}
-Je zajímavé, že zatímco \uv{opticky} a v~mikroprůměru jsou výsledky stop témat lepší, v~makroprůměru se výsledky zhorší. U tohoto jevu si nejsem schopen vysvětlit příčiny.
-
-\subsubsection{TF-IDF}
-Zvýšením počtu témat se zvedla, dle očekávání, úplnost, ale snížila přesnost. Pokud ale necháme počet témat na článek stejný, jako u stop-témat a frekvenčních témat, všechny výsledky v~mikroprůměru se zlepší. Naopak se opakuje situace, kdy i přes \uv{opticky} lepší výsledky a lepší mikroprůměr dostáváme u makroprůměru horší výsledky.
-
-\subsubsection{Klasifikace}
 Varianty u klasifikátorů jsou shodné s~variantami, definovanými v~části~\ref{sec:klasifikace_priklady}. 
 
-Je nutné dodat, že výsledky nelze úplně srovnávat s~výsledky z~předchozích částí, protože definice \emph{true positive} byla v~minulých částech výrazně volnější, jak uvádím v~části \ref{sec:evaluace}. I přesto lze říci, že výsledky dopadají velmi tristně. Vždy dopadá lépe varianta, kdy jako rysy je bráno pouze prvních 10 slov; taktéž je ze všech klasifikátorů nejúspěšnější NaiveBayes (který má také výhodu, že je nejrychlejší).
+Lze říci, že výsledky dopadají velmi tristně. Vždy dopadá lépe varianta, kdy jako rysy je bráno pouze prvních 10 slov; taktéž je ze všech klasifikátorů nejúspěšnější NaiveBayes (který má také výhodu, že je nejrychlejší).
 
 Taktéž dopadá lépe verze, kdy kategorie jsou velmi obecné. Je ale otázka, zda by na těchto kategoriích šly sledovat trendy a jestli by naopak nebyl poměr těchto kategorií v~čase stále konstantní; s~jistotou ale nevím a tak můžu pouze spekulovat. Možná, že by bylo lepší se opravdu soustředit pouze na takto definované kategorie, jelikož zatřiďování do nich je rychlé a klasifikátory nemají tak špatné výsledky.
 
