@@ -716,7 +716,7 @@ Tento způsob evaluace má o něco volnější definici \emph{true positive}, te
 
 
 
-\chapter{Další implementační problémy}
+\chapter{Problémy implementace}
 V této kapitole se pokusím rozebrat jednotlivé problémy, které úkol sledování témat v~elektronickém zpravodajství má, a ukázat různé varianty jejich řešení. Zároveň s~tím zmíním některé implementační problémy samotného programu.
 
 \section{Výběr serverů}
@@ -959,7 +959,7 @@ Jak je z~těchto tabulek vidět, nemá toto počítání témat přílišný smy
 
 \subsection{Stop-témata}
 \label{sec:stemata}
-\grafff{lemmas_combined}{Četnosti všech lemmat a nejčastějších 5000 (výřez}
+\grafff{lemmas_combined}{Četnosti všech lemmat a nejčastějších 5000 (výřez)}
 
 
 \jednatabulka{lemmatanasobky}{
@@ -1266,14 +1266,9 @@ Je otázka, jak tyto pohyby interpretovat. Je možné, že opravdu jde o hledano
      & \texttt{ČSSD} &    &   & \\ 
      & \texttt{průzkum} &    &  & \\ \hline
     
-\end{tabular}
 
-%hack for horizontal space :-(
-\begin{tabular}{l}
-    \\
-\end{tabular}
+\multicolumn{1}{l}{} \\
 
-\begin{tabular}{|l || l|l|l|l|}
   \hline
   \textbf{Článek 2} & var. 1 & var. 2 & var. 3 & var. 4  \\ \hline \hline
 
@@ -1327,7 +1322,12 @@ Rozhodl jsem se klasifikátory netestovat na všech uložených článcích jako
     Stop témata & 39.12 & 11.10 & 17.29 & 10.58 & 9.74 & 10.14 \\ \hline \hline
     
     TF-IDF, $k=10$ & 41.40  & 11.83  & 18.40  & 9.80  & 9.28  & 9.54  \\ \hline
-    TF-IDF, $k=20$ & 51.72  & 7.60  & 13.25  & 6.79  & 5.95  & 6.34  \\ \hline \hline
+    TF-IDF, $k=20$ & 51.72  & 7.60  & 13.25  & 6.79  & 5.95  & 6.34  \\ \hline 
+    
+    
+    \multicolumn{1}{l}{} \\
+    
+     \hline
     
     NaiveBayes - var.1 & 13.18  & 17.13  & 14.85  & 9.01  & 5.85  & 7.04  \\ \hline
     NaiveBayes - var.2 & 5.36  & 5.69  & 5.50  & 4.02  & 1.19  & 1.75 \\ \hline
@@ -1354,7 +1354,7 @@ Metrikou, kterou popisuji v~části~\ref{sec:evaluace_klasifikace} a v~části~\
 Pro srovnání s~dalšími metodami jsem otestoval i \uv{triviální kategorizaci}, která každému článku přiřadí právě jednu kategorii, a to \texttt{ODS}. Výsledky evaluace jsou, dle očekávání, téměř nulové.
 
 \subsubsection{Frekvenční témata}
-Frekvenční témata dávají možná lepší výsledky, než by se zdálo ze zběžného prohlížení nalezených témat, jak jsem činil v~části \ref{sec:ftemata}. To, že úplnost je téměř 30 \%, zatímco přesnost je méně, než 10 \%, je nejspíš tím, že metoda vrací vždy 10 témat na článek, zatímco průměrný počet témat na článek v ruční kategorizaci je nižší. Zmenšením počtu témat na článek bychom zvýšili přesnost, ale snížili úplnost, jak je vidět i dále na části s~TF-IDF.
+Frekvenční témata dávají možná lepší výsledky, než by se zdálo ze zběžného prohlížení nalezených témat, jak jsem činil v~části \ref{sec:ftemata}. To, že úplnost je téměř 30 \%, zatímco přesnost je méně než 10 \%, je nejspíš tím, že metoda vrací vždy 10 témat na článek, zatímco průměrný počet témat na článek v ruční kategorizaci je nižší. Zmenšením počtu témat na článek bychom zvýšili přesnost, ale snížili úplnost, jak je vidět i dále na části s~TF-IDF.
 
 \subsubsection{Stop témata}
 Je zajímavé, že zatímco \uv{opticky} a v~mikroprůměru jsou výsledky stop témat lepší, v~makroprůměru se výsledky zhorší. U tohoto jevu si nejsem schopen vysvětlit příčiny.
@@ -1375,7 +1375,7 @@ Taktéž dopadá lépe verze, kdy kategorie jsou velmi obecné. Je ale otázka, 
 
 
 
-V~práci jsem v~části \ref{sec:hledanitemat_hlavni} uvedl několik způsobů detekce zpravodajských témat, které jsem některé vyhodnotil, jak pomocí demonstrace na několika ukázkových článcích, tak přesně definovaným porovnáním oproti ručnímu zatřiďování. Kon\-krét\-ně šlo o algoritmy počítání frekvencí slov, TF-IDF a klasifikátory se strojovým učením.
+V~práci jsem v~části \ref{sec:hledanitemat_hlavni} uvedl několik způsobů detekce zpravodajských témat. Některé z nich jsem vyhodnotil, a to jak pomocí demonstrace na několika ukázkových článcích, tak přesně definovaným porovnáním oproti ručnímu zatřiďování. Kon\-krét\-ně šlo o algoritmy počítání frekvencí slov, TF-IDF a klasifikátory se strojovým učením.
 
 V~části \ref{sec:evaluace_jedn_prist} jsem prezentoval výsledky porovnání těchto algoritmů s~ručním zatřiďováním. Je otázka, jestli je možno tyto výsledky interpretovat jako dobré. Přiznávám se, že si nejsem zcela jist.
 
