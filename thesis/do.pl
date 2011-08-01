@@ -8,6 +8,8 @@ for my $f (<$w*>) {
 	}
 }
 
+`rm texput.log`;
+
 system("pdflatex $w");
 
 system("bibtex $w");
@@ -20,3 +22,5 @@ for my $f (<$w*>) {
 		system("rm $f");
 	}
 }
+
+`rm texput.log`;
