@@ -173,6 +173,10 @@ sub get_article_tags {
 	
 	my $hypothesis = $self->learner()->categorize($document);
 	
+	print "Assigned categories: ", join ', ', $hypothesis->categories, "\n";
+ print "Best category: ", $hypothesis->best_category, "\n";
+ print "Assigned scores: ", join ', ', $h->scores( $hypothesis->categories ), "\n";
+	
 	
 	my @categories = ($self->one_category)?($hypothesis->best_category()) : ($hypothesis->categories()); #
 	

@@ -534,7 +534,7 @@ Algoritmy klasifikace se \emph{strojovým učením} (\emph{machine learning}) js
 
 Přesněji popisuje opět \cite{machine_intro}: Vezmeme $\Omega \subset D$ podmnožinu všech dokumentů, na níž \emph{známe} výsledky cílové funkce $\bar{\Phi}$, a na základě této znalosti tvoříme funkci $\Phi$ (která se na $\Omega\times C$ může a nemusí shodovat s~$\bar{\Phi}$). Ono \uv{známe výsledky funkce} je právě ruční zatřiďování na podmnožině $\Omega$.
 
-V~\cite{machine_intro} jsou dobře popsány mnou použité algoritmy pro klasifikaci. Jelikož jsem tyto algoritmy neimplementoval přímo já, ale využil jsem perl modul \texttt{AI::Categorizer}, nebudu se zde o nich tolik zmiňovat a případně mohu odkázat na dokumentaci tohoto mo\-du\-lu, viz \cite{algorithmnaivebayes}. V~rámci tohoto mo\-du\-lu jsem použil algoritmy Naive Bayes, SVM a Decision Tree.
+V~\cite{machine_intro} jsou dobře popsány mnou použité algoritmy pro klasifikaci. Jelikož jsem tyto algoritmy neimplementoval přímo já, ale využil jsem perl modul \texttt{AI::Categorizer}, nebudu se zde o nich tolik zmiňovat a případně mohu odkázat na dokumentaci tohoto mo\-du\-lu, viz \cite{algorithmnaivebayes}. V~rámci tohoto mo\-du\-lu jsem použil algoritmy Naive Bayes, SVM a Decision Tree. 
 
 
 \subsection{Rysy}
@@ -1297,7 +1297,7 @@ Klasifikaci jsem, kromě rozdělení podle klasifikačních algoritmů, rozděli
 \end{itemize}
 
 
-Konkrétní výsledky jsou uvedeny v~Tabulce~\ref{tabulka:kat_ex} - pro varianty 3 a 4 jsem části názvů kategorií \texttt{domácí} a \texttt{svět} zkrátil na \texttt{d} a \texttt{s}, ale, jak je vidět, klasifikátory vracely pouze kategorie \texttt{domácí}. Prázdné políčko tabulky znamená, že klasifikátor nevydal ani jedno rozhodnutí. 
+Konkrétní výsledky jsou uvedeny v~Tabulce~\ref{tabulka:kat_ex} - pro varianty 3 a 4 jsem části názvů kategorií \texttt{domácí} a \texttt{svět} zkrátil na \texttt{d} a \texttt{s}, ale, jak je vidět, klasifikátory vracely pouze kategorie \texttt{domácí}. Prázdné políčko tabulky znamená, že klasifikátor nevydal ani jedno rozhodnutí.\footnote{Žádné rozhodnutí znamená, že všechny kategorie měly příliš malou pravděpodobnost.}
 
 Zde je také dobré zmínit, že ze všech klasifikačních algoritmů je suverénně nejrychlejší algoritmus NaiveBayes, a to řádově.
 
