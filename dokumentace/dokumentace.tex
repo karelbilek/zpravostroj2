@@ -24,7 +24,7 @@
 
 
 \chapter{Úvod}
-Zpravostroj je projekt, který stahuje a ukládá zprávy z vybraných internetových zdrojů. Zároveň na těchto zprávách implementuje některé formy automatické detekce zpravodajských témat, z nichž některé jsou založeny na ručním třídění. Také je implementována evaluace různých způsobů této detekce a vykreslování množství daných typů témat do grafu.
+Zpravostroj je projekt, který stahuje a ukládá zprávy z vybraných internetových zdrojů. Zároveň na těchto zprávách implementuje některé formy automatické detekce zpravodajských témat, z nichž některé jsou založeny na ručním třídění. Také je implementována evaluace různých způsobů této detekce a vykreslování množství témat do grafu.
 
 Projekt je velmi experimentální, jeho výstupy a způsoby jeho volání tedy nejsou příliš uživatelsky přívětivé a program vypisuje velké množství "dočasných" údajů. Dále je na projektu zřejmé, že byl vypracováván současně s bakalářskou prací, tudíž například metody, vykreslující grafy, vytváří právě ty grafy, které jsou použity v bakalářské práci.
 
@@ -35,8 +35,7 @@ Součástí projektu je i aplikace pro manuální označování témat, která b
 
 \chapter{Požadavky projektu}
 
-Projekt potřebuje operační systém Unixového typu a nainstalovaný \texttt{Perl}, minimálně ve verzi 5.8. Projekt byl testován pouze na operačních systémech s jádrem \texttt{Linux}, u jiných systémů by mohl být problém s nainstalováním programu \texttt{TectoMT}, který používám.
-
+Projekt potřebuje operační systém Unixového typu a nainstalovaný \texttt{Perl}, minimálně ve verzi 5.8. Projekt byl testován pouze na operačních systémech s jádrem \texttt{Linux}, u jiných systémů by mohl být problém s nainstalováním programu \texttt{TectoMT}, který používám. (V rámci různých distribucí Linuxu program určitě funguje na Fedoře a Debianu.)
 
 
 Program potřebuje tyto CPAN moduly:
@@ -78,7 +77,9 @@ Facebook aplikace kromě toho potřebuje tyto moduly:
 
 \chapter{Instalace}
 
-Celý projekt je tvořen pouze několika perlovými moduly. Pro spuštění jednotlivých úloh je nutné daný modul načíst pomocí příkazů use nebo require, přičemž musí být "hlavní adresář" (tj. adresář, nadřazený adresáři Zpravostroj) v PERL5LIB - jelikož je ale v \texttt{PERL5LIB} většinou obsažen odkaz na pracovní adresář \texttt{.}, stačí mít hlavní adresář jako pracovní adresář.
+Slovem \emph{hlavní adresář} zde myslím adresář, nadřazený adresáři \texttt{Zpravostroj}.
+
+Celý projekt je tvořen pouze několika perl moduly. Pro spuštění jednotlivých úloh je nutné daný modul načíst pomocí příkazů use nebo require, přičemž musí být hlavní adresář v PERL5LIB - jelikož je ale v \texttt{PERL5LIB} většinou obsažen odkaz na pracovní adresář \texttt{.}, stačí mít hlavní adresář jako pracovní adresář.
 
 Po načtení modulu (různé moduly pro různé úkoly) je možné různé úkoly spustit jedním zavoláním procedury. Kromě modulu \texttt{Zpravostroj::Globals} neexportuje žádný z modulů žádné procedury, je tedy nutné psát celé názvy procedur včetně názvu modulu.
 
@@ -88,7 +89,7 @@ Všechna data (články, výsledky analýz) zapisuje a čte program do adresář
 
 Stejně tak je pro kreslení grafů (viz níže) nutné mít jako podadresář pracovního adresáře adresář \texttt{R\_graphs}, který obsahuje zdrojové kódy v jazyce R pro kreslení grafů.
 
-Velmi tedy doporučuji mít jako pracovní adresář "hlavní adresář" projektu.
+Velmi tedy doporučuji mít jako pracovní adresář hlavní adresář projektu.
 
 Program též zapisuje průběžná data do adresáře \texttt{./tmp/} pod pracovní adresář. Pokud chcete, aby program zapisoval do adresáře \texttt{/tmp} (například), je nutné tento adresář nalinkovat do pracovního adresáře jako \texttt{./tmp/}.
 
@@ -108,7 +109,7 @@ Jako datové mohu nazvat tyto moduly:
 
 	\item \texttt{Zpravostroj::RSS} reprezentuje RSS čtečku.
 	
-	\item \texttt{Zpravostroj::ManualCategorization::ManualCategorization}, \texttt{Zpravostroj::ManualCategorization::NewsTopics} a \texttt{Zpravostroj::ManualCategorization::Unlimited} slouží k načítání a 
+	\item \texttt{Zpravostroj::ManualCategorization::ManualCategorization}, \texttt{Zpravostroj::ManualCategorization::NewsTopics} a \texttt{Zpravostroj::ManualCategorization::Unlimited} slouží k načítání a ukládání ručních kategorií
 	
 \end{itemize}	
 
@@ -143,10 +144,6 @@ Jako prezentační mohu chápat tyto moduly:
 \begin{itemize}
 	\item \texttt{Zpravostroj:HTMLOutput} je modul pro již zmiňovanou Facebook aplikaci, pomocí které lze zatřizovat články do kategorií
 	\item \texttt{Zpravostroj::ThesisData} je modul, přímo určený pro výstup dat pro bakalářskou práci
-	\item \texttt{Zpravostroj::Categorizer::Categorizer} a \texttt{Zpravostroj::Categorizer::Evaluator} jsem velmi stručně popsal též výše
-	\item \texttt{Zpravostroj::Categorizer::TotallyRetarded} je triviální kategorizér
-	\item \texttt{Zpravostroj::Categorizer::FreqThemes}, \texttt{Zpravostroj::Categorizer::StopThemes} a \texttt{Zpravostroj::Categorizer::TfIdfThemes} dávají do kategorií podle témat, hledaných pouze z článku samého
-	\item \texttt{Zpravostroj::Categorizer::AICategorizer} je učící se kategorizér, který je třeba nejdříve naučit na už určených kategoriích. Používá CPAN modul AI::Categorizer
 \end{itemize}
 
 \chapter{Popisy jednotlivých modulů}
