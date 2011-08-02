@@ -1089,7 +1089,7 @@ Již zde je ale zjevný problém tohoto přístupu k~detekci témat --- napřík
 \grafff{average_stop}{Průměrný počet stop-témat na článek}
 
 
-Velikost počtu stop-témat na článek jsem určil jako 10. Výsledky pro ukázkové články jsou v~Tabulkách~\ref{tabulka:stoptemata1} a \ref{tabulka:stoptemata2}, posčítaná stop-témata na celé databázi jsou v~Tabulce~\ref{tabulka:stoptemata_best}. K~té ještě uvedu, že lemma \texttt{09} nejspíše patří k~názvu politické strany TOP09 a lemmata \texttt{.} a \texttt{*} jsou způsobena mírnými chybami v~lemmatizátoru; \texttt{.} ovšem neznamená tečku na konci věty, kterou systém úspěšně ignoruje, ale tečku v~internetových adresách.
+Velikost počtu stop-témat na článek jsem určil jako 10. Výsledky pro ukázkové články jsou v~Tabulkách~\ref{tabulka:stoptemata1} a \ref{tabulka:stoptemata2}, posčítaná stop-témata na celé databázi jsou v~Tabulce~\ref{tabulka:stoptemata_best}. K~té ještě uvedu, že lemma \texttt{09} nejspíše patří k~názvu politické strany TOP09 a lemmata \texttt{.} a \texttt{*} jsou způsobena mírnými chybami v~lemmatizátoru; \texttt{.}~ovšem neznamená tečku na konci věty, kterou systém úspěšně ignoruje, ale tečku v~internetových adresách.
 
 Jak je vidět, stop-témata stále nejsou \emph{tématy} v~pravém slova smyslu; je zřejmé, že na ukázkových článcích jde stále spíše o množinu klíčových slov. Například nelze říct, že by Článek~1 byl \uv{o většině} nebo druhý článek \uv{o Gándhím}; na druhou stranu už lze říci, že druhý článek je \uv{o opicích}, takže stop-témata zcela bez relevance také nejsou.
 
@@ -1252,7 +1252,7 @@ Je otázka, jak tyto pohyby interpretovat. Je možné, že opravdu jde o hledano
 
 \begin{tabular}{|l || l|l|l|l|}
     \hline
-    \textbf{Článek 1} & var. 1 & var. 2 & var. 3 & var. 4  \\ \hline \hline
+    \textbf{Článek 1} & 10V & *V & 10O & *O   \\ \hline \hline
     
     %NaiveBayes & \texttt{domácí politika}  & \texttt{domácí politika} \linebreak \texttt{volby} \linebreak \texttt{soud} \linebreak \texttt{nehoda}  & \texttt{politika domácí}  & \texttt{politika domácí}   \\ \hline
     NaiveBayes & \texttt{domácí politika}  & \texttt{domácí politika} & \texttt{politika d}  & \texttt{politika d}   \\ 
@@ -1270,7 +1270,7 @@ Je otázka, jak tyto pohyby interpretovat. Je možné, že opravdu jde o hledano
 \multicolumn{1}{l}{} \\
 
   \hline
-  \textbf{Článek 2} & var. 1 & var. 2 & var. 3 & var. 4  \\ \hline \hline
+  \textbf{Článek 2} & 10V & *V & 10O & *O  \\ \hline \hline
 
   NaiveBayes & \texttt{nehoda}  & \texttt{domácí politika}  & \texttt{politika d}  & \texttt{politika d}  \\ 
    & \texttt{domácí politika}  &  \texttt{nehoda}  &   &   \\ \hline
@@ -1290,18 +1290,18 @@ Protože chci ale demonstrovat klasifikaci na dvou článcích, které \emph{už
 Klasifikaci jsem, kromě rozdělení podle klasifikačních algoritmů, rozdělil ještě na 4 varianty:
 
 \begin{itemize}
-    \item \emph{Variantou 1} nazývám tu variantu, kdy jako rysy článků beru 10 nej\-cha\-rak\-te\-ri\-sti\-čtěj\-ších slov podle TF-IDF, všechny s~konstantní vahou 1, a články zatřiďuji do \uv{ne\-o\-me\-ze\-ných} kategorií, jak popisuji v~\ref{sec:jakekategorie},
-    \item \emph{variantou 2} nazývám tu variantu, kdy jako rysy nechám \emph{všechna} slova s~jejich vahou spočítanou podle TF-IDF  a články opět zatřiďuji do \uv{neomezených} kategorií, jak popisuji v~\ref{sec:jakekategorie},
-    \item \emph{variantou 3} nazývám obměnu varianty 1 s tím, že zatřiďuji do \uv{o\-me\-ze\-ných}, obecnějších kategorií,
-    \item \emph{variantou 4} nazývám obměnu varianty 2 s tím, že opět zatřiďuji do \uv{o\-me\-ze\-ných} kategorií.
+    \item \emph{10V} nazývám tu variantu, kdy jako rysy článků beru 10 nej\-cha\-rak\-te\-ri\-sti\-čtěj\-ších slov podle TF-IDF, všechny s~konstantní vahou 1, a články zatřiďuji do \uv{ne\-o\-me\-ze\-ných} kategorií, jak popisuji v~\ref{sec:jakekategorie},
+    \item \emph{*V} nazývám tu variantu, kdy jako rysy nechám \emph{všechna} slova s~jejich vahou spočítanou podle TF-IDF  a články opět zatřiďuji do \uv{neomezených} kategorií, jak popisuji v~\ref{sec:jakekategorie},
+    \item \emph{10O} nazývám obměnu varianty 10V s tím, že zatřiďuji do \uv{o\-me\-ze\-ných}, obecnějších kategorií,
+    \item \emph{*O} nazývám obměnu varianty *V s tím, že opět zatřiďuji do \uv{o\-me\-ze\-ných} kategorií.
 \end{itemize}
 
 
-Konkrétní výsledky jsou uvedeny v~Tabulce~\ref{tabulka:kat_ex} - pro varianty 3 a 4 jsem části názvů kategorií \texttt{domácí} a \texttt{svět} zkrátil na \texttt{d} a \texttt{s}, ale, jak je vidět, klasifikátory vracely pouze kategorie \texttt{domácí}. Prázdné políčko tabulky znamená, že klasifikátor nevydal ani jedno rozhodnutí.\footnote{Žádné rozhodnutí znamená, že všechny kategorie měly příliš malou pravděpodobnost.}
+Konkrétní výsledky jsou uvedeny v~Tabulce~\ref{tabulka:kat_ex} - pro varianty O jsem části názvů kategorií \texttt{domácí} a \texttt{svět} zkrátil na \texttt{d} a \texttt{s}, ale, jak je vidět, klasifikátory vracely pouze kategorie \texttt{domácí}. Prázdné políčko tabulky znamená, že klasifikátor nevydal ani jedno rozhodnutí.\footnote{Žádné rozhodnutí znamená, že všechny kategorie měly příliš malou pravděpodobnost.}
 
 Zde je také dobré zmínit, že ze všech klasifikačních algoritmů je suverénně nejrychlejší algoritmus NaiveBayes, a to řádově.
 
-První článek klasifikátory nemají, asi díky vysokému počtu slov, souvisejících s~politikou, problémy zatřídit do kategorie \texttt{domácí politika} (pokud už nějaké rozhodnutí dají), ačkoliv NaiveBayes var. 2 ještě přidá příliš nesouvisející \texttt{soud} a \texttt{nehodu}. Na druhém článku mají naopak klasifikátory problém --- kromě kategorie \texttt{Barack Obama}, kterou DecisionTree var. 3 určí správně, jsou všechny klasifikátory \uv{mimo} --- varianty 3 a 4 ho dokonce z~nějakého důvodu přidávají do kategorie \texttt{domácí počasí}, která je zcela špatně, naopak ani jednou nebyl článek vložen do kategorií, souvisejících se světovou politikou.
+První článek klasifikátory nemají, asi díky vysokému počtu slov, souvisejících s~politikou, problémy zatřídit do kategorie \texttt{domácí politika} (pokud už nějaké rozhodnutí dají), ačkoliv NaiveBayes *V ještě přidá příliš nesouvisející \texttt{soud} a \texttt{nehodu}. Na druhém článku mají naopak klasifikátory problém --- kromě kategorie \texttt{Barack Obama}, kterou DecisionTree *V určí správně, jsou všechny klasifikátory \uv{mimo} --- varianty O ho dokonce z~nějakého důvodu přidávají do kategorie \texttt{domácí počasí}, která je zcela špatně, naopak ani jednou nebyl článek vložen do kategorií, souvisejících se světovou politikou.
 
 Na těchto dvou článcích se dá demonstrovat to, že klasifikátory mají \emph{někdy} tendenci dávat správné výsledky a zatřiďovat do správných kategorií, ale celkově nejsou výsledky příliš přesvědčivé. Může to být i tím, že 200 článků opravdu není příliš, ale, jak jsem se snažil ukázat v~části~\ref{sec:rucnik}, ruční zatřiďování je samo o sobě poměrně náročné.
 
@@ -1334,7 +1334,7 @@ Jednotlivé přístupy jsem porovnal metrikou, popisovanou pro klasifikátory v~
 
 }{Přesnosti a úplnosti neklasifikačních metod}
 
-Metrikou, kterou popisuji v~části~\ref{sec:evaluace_klasifikace} a v~části~\ref{sec:dalsimetody} ji rozšiřuji na algoritmy, které nefungují na principu klasifikace, jsem porovnal různé způsoby detekce témat; výsledky jsou uvedeny v~tabulce~\ref{tabulka:mega}.
+Metrikou, popsanou v~\ref{sec:dalsimetody}, jsem porovnal různé způsoby detekce témat; výsledky jsou uvedeny v~tabulce~\ref{tabulka:neklas}.
 
 \subsubsection{Triviální kategorizace}
 Pro srovnání s~dalšími metodami jsem otestoval i \uv{triviální kategorizaci}, která každému článku přiřadí právě jednu kategorii, a to \texttt{ODS}. Výsledky evaluace jsou, dle očekávání, téměř nulové.

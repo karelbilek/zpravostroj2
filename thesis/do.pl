@@ -15,6 +15,7 @@ system("pdflatex $w");
 system("bibtex $w");
 system("pdflatex $w ");
 system("pdflatex $w");
+system("pdflatex $w");
 
 
 for my $f (<$w*>) {
