@@ -463,7 +463,7 @@ V průběhu přípravy práce jsem zjistil, že úkol detekce tématu je poměrn
 
 Většina zpravodajských médií dnes používá pro vydávání svých článků síť \emph{World Wide Web}, ať už primárně (např. server \url{http://aktualne.cz}), nebo sekundárně jako doplněk např. k~tištěným novinám (např. server \url{http://idnes.cz}). Pro oba případy ale platí, že zpravodajský server lze vzít jako pravidelně aktualizovaný zdroj elektronického zpravodajství.
 
-Výhoda zpravodajským webů je ta, že jsou za krátkou dobu (v řádu měsíců až jednotek let) stylisticky stabilní a jsou psány podobným jazykem, zároveň ale mají jasně danou časovou posloupnost. To nám daný úkol značně zjednodušuje.
+Výhoda zpravodajských webů je ta, že jsou za krátkou dobu (v řádu měsíců až jednotek let) stylisticky stabilní a jsou psány podobným jazykem, zároveň ale mají jasně danou časovou posloupnost. To nám daný úkol značně zjednodušuje.
 
 Zpravodajství na jednotlivých serverech lze jednoduše rozdělit na jednotlivé dokumenty neboli články. Článek na zpravodajském webu má jasně daný obsah, kromě toho je důležité, že nese i informaci o čase vydání (jak datem, kdy se na webu objeví, tak datem, uvedeným v~popisu článku přímo na webu). Toho lze využít a informaci o čase dále zpracovávat.
 
@@ -490,7 +490,7 @@ První nápad na detekci témat je jednoduché počítání frekvencí slov ve �
 Termín \emph{stopslova} (\emph{stopword}, případně \emph{stoplist} ve významu seznam stopslov) popisuje např. \cite{introduction} a další. Jde o po\-mě\-r\-ně ma\-lou mno\-ži\-nu ty\-pů slov, kte\-rá ale před\-sta\-vu\-je vel\-kou část to\-ke\-nů. (V angličtině je to např. po\-dle \cite{introduction} 40-50 pro\-cent; v~části~\ref{sec:stemata} ukazuji statistiky na vlastní databázi zpravodajských článků.) Jde převážně o spojky, částice a zá\-klad\-ní slovesa, která sama o sobě nenesou žádný obsah textu. Je nutno je buď definovat ručně, což je ale jaksi \uv{nesystémové} řešení; nebo se stopslova definují jako nej\-čas\-tě\-ji po\-u\-ží\-va\-ná slo\-va (jak je definuji i já), což s~sebou ne\-se ri\-zi\-ko, že se vel\-mi čas\-tá slo\-va, kte\-rá ale \emph{ne\-jsou} bez\-vý\-zna\-mo\-vá či po\-moc\-ná, ú\-pl\-ně i\-gno\-ru\-jí.
 %jsou jakoby prvním přiblížením, jak oddělit plnovýznamová slova od pomocných
 
-Pro nalezení množiny témat pro daný článek potom vezmu prvních $k$ nej\-ča\-s\-tě\-j\-ších slov --- buď bez ohledu na stopslova, nebo s~jejich vyřazením, kde $k$ je konstantní pro celou databázi.
+Pro nalezení množiny témat pro daný článek potom vezmu prvních $k$ nej\-čas\-těj\-ších slov --- buď bez ohledu na stopslova, nebo s~jejich vyřazením, kde $k$ je konstantní pro celou databázi.
 
 Tento přístup je sice velmi jednoduchý a dobře definovaný, ale jak ukazuji v~části~\ref{sec:ftemata}, nedává příliš dobré výsledky. Je to proto, že četnost slova je brána jako \emph{jediné} kritérium pro určení daného slova jako tématu --- přičemž dané slovo může sice být ve článku četné, ale je podobně četné i v~ostatních článcích, takže velká četnost tohoto slova článek nijak nevymezuje vůči dalším článkům. V~podstatě jde o tentýž problém, který se snaží řešit stopslova, pouze v~menší míře --- nejedná se \emph{přímo} o stopslova, ale přesto tato slova nejsou pro článek natolik důležitá, aby byla jeho tématem.
 
