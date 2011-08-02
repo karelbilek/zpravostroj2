@@ -1316,7 +1316,7 @@ Jednotlivé přístupy jsem porovnal metrikou, popisovanou pro klasifikátory v~
 
 
 
-\section{Neklasifikační metody}
+\subsection{Neklasifikační metody}
 
 \jednatabulka{neklas}{
 
@@ -1334,7 +1334,7 @@ Jednotlivé přístupy jsem porovnal metrikou, popisovanou pro klasifikátory v~
 
 }{Přesnosti a úplnosti neklasifikačních metod, v procentech}
 
-Metrikou, popsanou v~\ref{sec:dalsimetody}, jsem porovnal různé způsoby detekce témat; výsledky jsou uvedeny v~Tabulce~\ref{tabulka:neklas}.
+Metrikou, popsanou v~\ref{sec:dalsimetody}, jsem porovnal různé způsoby detekce témat; výsledky jsou uvedeny v~Tabulce~\ref{tabulka:neklas}. Jak je popsáno v~\ref{sec:dalsimetody}, tyto metody testuji na 200 ručně zatříděných článcích.
 
 \subsubsection{Triviální kategorizace}
 Pro srovnání s~dalšími metodami jsem otestoval i \uv{triviální kategorizaci}, která každému článku přiřadí právě jednu kategorii, a to \texttt{ODS}. Výsledky evaluace jsou, dle očekávání, téměř nulové.
@@ -1350,7 +1350,7 @@ Je zajímavé, že zatímco \uv{opticky} a v~mikroprůměru jsou výsledky stop 
 \subsubsection{TF-IDF}
 Zvýšením počtu témat se zvedla, dle očekávání, úplnost, ale snížila přesnost. Pokud ale necháme počet témat na článek stejný, jako u stop-témat a frekvenčních témat, všechny výsledky v~mikroprůměru se zlepší. Naopak se opakuje situace, kdy i přes \uv{opticky} lepší výsledky a lepší mikroprůměr dostáváme u makroprůměru horší výsledky.
 
-\section{Klasifikační metody}
+\subsection{Klasifikační metody}
 
 \jednatabulka{klas}{
 
@@ -1377,7 +1377,7 @@ Zvýšením počtu témat se zvedla, dle očekávání, úplnost, ale snížila 
 
 }{Přesnosti a úplnosti klasifikátorů, v procentech}
 
-Varianty u klasifikátorů jsou shodné s~variantami, definovanými v~části~\ref{sec:klasifikace_priklady}. 
+Varianty u klasifikátorů jsou shodné s~variantami, definovanými v~části~\ref{sec:klasifikace_priklady}. Evaluace probíhá podle \ref{sec:dalsimetody} --- tj. 10krát je množina 200 ručně zatříděných článků rozdělena na 20 trénovacích a 180 testovacích dat, klasifikátory jsou poté naučeny na 180 článcích a otestovány na 20. Hodnoty $\rho$, $\pi$ a $F$ jsou potom spočítány pro každý z~těchto 10 pokusů zvlášť a nakonec zprůměrovány aritmetickým průměrem.
 
 Lze říci, že výsledky dopadají velmi tristně. Vždy dopadá lépe varianta 10 než varianta *; taktéž je ze všech klasifikátorů nejúspěšnější NaiveBayes (který má také výhodu, že je nejrychlejší).
 
