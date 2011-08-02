@@ -19,6 +19,14 @@ use Zpravostroj::ManualCategorization::Unlimited;
 use Zpravostroj::ManualCategorization::NewsTopics;
 
 
+#toto už nefunguje, úmyslně změněno na straně Facebooku,
+#"secret" key by měla být opravdu "secret"
+
+my @FACEBOOK_APP_INFO = (
+	secret      => "5e26c0f3d3027dfd90d7dfe52575f9be",
+	app_id      => "188978231143185",
+	postback    => 'http://ufallab2.ms.mff.cuni.cz/~bilek/');
+
 my $UNLIMITED=1;
 #jinak news topics
 
@@ -258,13 +266,8 @@ sub generate_HTML {
 	my $c = shift;
 	
 	
-	#toto už nefunguje, úmyslně změněno na straně Facebooku,
-	#"secret" key by měla být opravdu "secret"
-	
 	my $fb = Facebook::Graph->new(
-		secret      => "5e26c0f3d3027dfd90d7dfe52575f9be",
-		app_id      => "188978231143185",
-		postback    => 'http://ufallab2.ms.mff.cuni.cz/~bilek/',
+		@FACEBOOK_APP_INFO
 	);
 	
 	if (!$fb) {

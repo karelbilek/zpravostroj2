@@ -10,6 +10,8 @@
 
 \usepackage{graphicx}
 \usepackage{amsthm}
+\usepackage{listings}
+
 
 \def\uv#1{„#1“}
 
@@ -26,12 +28,19 @@
 \chapter{Úvod}
 Zpravostroj je projekt, který stahuje a ukládá zprávy z vybraných internetových zdrojů. Zároveň na těchto zprávách implementuje některé formy automatické detekce zpravodajských témat, z nichž některé jsou založeny na ručním třídění. Také je implementována evaluace různých způsobů této detekce a vykreslování množství témat do grafu.
 
-Projekt je velmi experimentální, jeho výstupy a způsoby jeho volání tedy nejsou příliš uživatelsky přívětivé a program vypisuje velké množství "dočasných" údajů. Dále je na projektu zřejmé, že byl vypracováván současně s bakalářskou prací, tudíž například metody, vykreslující grafy, vytváří právě ty grafy, které jsou použity v bakalářské práci.
+Projekt je velmi experimentální, jeho výstupy a způsoby jeho volání tedy nejsou příliš uživatelsky přívětivé a program vypisuje velké množství \uv{dočasných} údajů. Dále je na projektu zřejmé, že byl vypracováván současně s bakalářskou prací, tudíž například metody, vykreslující grafy, vytváří právě ty grafy, které jsou použity v bakalářské práci.
 
 Předpokládaným uživatelem je programátor v Perlu, který bude s projektem experimentovat a zkoušet jeho API.
 
 
 Součástí projektu je i aplikace pro manuální označování témat, která byla původně zamýšlena jako webová aplikace pro více uživatelů, proto běží jako Facebook aplikace na adrese \ahrefurl{http://apps.facebook.com/zpravostroj\_z/}; je ale ve skutečnosti umístěna na serveru \texttt{ufallab2.ms.mff.cuni.cz}, který bude v průběhu roku 2011 vypnut a aplikace fungovat asi přestane.
+
+\section{Data}
+\label{sec:data}
+Součástí DVD, které přikládám k bakalářské práci, jsou kromě popisovaného programu ještě stažené články; tyto ale nejsou v kopii projektu, která je na veřejném git repository. Pokud je v adresáři \texttt{data} podadresář \texttt{articles}, zabírající řádově GB dat, znamená to, že články \emph{jsou} přiloženy, jinak přiloženy nejsou.
+
+\section{Licence}
+Kromě samotných článků je celý projekt, včetně této dokumentace, licencován pod licencí Apache 2.0; více informací v souboru \texttt{LICENSE}.
 
 \chapter{Požadavky projektu}
 
@@ -77,6 +86,8 @@ Facebook aplikace kromě toho potřebuje tyto moduly:
 
 \chapter{Instalace}
 
+\section{Instalace projektu}
+
 Slovem \emph{hlavní adresář} zde myslím adresář, nadřazený adresáři \texttt{Zpravostroj}.
 
 Celý projekt je tvořen pouze několika perl moduly. Pro spuštění jednotlivých úloh je nutné daný modul načíst pomocí příkazů use nebo require, přičemž musí být hlavní adresář v PERL5LIB - jelikož je ale v \texttt{PERL5LIB} většinou obsažen odkaz na pracovní adresář \texttt{.}, stačí mít hlavní adresář jako pracovní adresář.
@@ -85,7 +96,7 @@ Po načtení modulu (různé moduly pro různé úkoly) je možné různé úkol
 
 Program vypisuje velké množství pracovních výpisů na standardní výstup; toto je možné vypnout spuštěním procedury \texttt{Zpravostroj::Globals::\_shut\_up()}. Všechny kontrolní výpisy programu jsou v kódování utf-8.
 
-Všechna data (články, výsledky analýz) zapisuje a čte program do adresáře \texttt{./data/}, tj. umístění je závislé na pracovním adresáři. Pokud jsou součástí projektu i stažené články (jsou na DVD k bakalářské práci, ale kvůli copyrightu je nezveřejňuji na veřejném git repository), jsou v adresáři \texttt{data}, který je podadresář hlavního adresáře, je tedy nutné mít hlavní adresář jako pracovní.
+Všechna data (články, výsledky analýz) zapisuje a čte program do adresáře \texttt{./data/}, tj. umístění je závislé na pracovním adresáři. Pokud jsou součástí projektu i stažené články (viz \ref{sec:data}), jsou v adresáři \texttt{data}, který je podadresář hlavního adresáře, je tedy nutné mít hlavní adresář jako pracovní.
 
 Stejně tak je pro kreslení grafů (viz níže) nutné mít jako podadresář pracovního adresáře adresář \texttt{R\_graphs}, který obsahuje zdrojové kódy v jazyce R pro kreslení grafů.
 
@@ -93,22 +104,36 @@ Velmi tedy doporučuji mít jako pracovní adresář hlavní adresář projektu.
 
 Program též zapisuje průběžná data do adresáře \texttt{./tmp/} pod pracovní adresář. Pokud chcete, aby program zapisoval do adresáře \texttt{/tmp} (například), je nutné tento adresář nalinkovat do pracovního adresáře jako \texttt{./tmp/}.
 
+\section{Instalace Facebook aplikace}
+Instalace Facebook aplikace je složitější. Je třeba se nejdříve zaregistrovat na serveru Facebook na adrese \ahrefurl{https://www.facebook.com/}. Poté je třeba zaregistrovat se jako vývojář na adrese \ahrefurl{https://developers.facebook.com}, tam vytvořit novou Facebook aplikaci a okopírovat API Key a App Secret.
+
+Tyto hodnoty je třeba zapsat do zdrojového kódu v modulu \texttt{Zpravostroj::HTMLOutput} v globální proměnné \texttt{@FACEBOOK\_APP\_INFO}. Poté je nutné nastavit u aplikace její url tak, aby nějakým způsobem směřovala na cgi skript, který provede následující kód či kód jemu ekvivalentní:
+
+\lstset{language=Perl, frame=single}
+\begin{lstlisting}
+use CGI;
+my $cgi = CGI->new;                             #nutné pro odchycení POST argumentů
+chdir $cesta_k_hlavnimu_adresari;               #nutné pro přístup ke článkům
+
+use Zpravostroj::HTMLOutput;
+Zpravostroj::HTMLOutput::generate_HTML($cgi);   #samotné generování HTML
+\end{lstlisting}
+
+Tuto url je poté nutné také opět nastavit v modulu \texttt{Zpravostroj::HTMLOutput} v globální proměnné \texttt{@FACEBOOK\_APP\_INFO}.
+
+
 \chapter{Moduly - přehled}
 
-Důležitější moduly jsem si rozdělil pro účely této dokumentace do několika částí: data, infrastruktura, prezentace, výpočty. Rozdělení je pouze orientační, hlavně část infrastrukturní a výpočtová se velmi výrazně překrývá.
+Důležitější moduly jsem si rozdělil pro účely této dokumentace do několika částí: data, infrastruktura, prezentace, výpočty. Rozdělení je \emph{velmi} orientační a pouze pro účely této dokumentace, například část infrastrukturní a výpočtová se \emph{výrazně} překrývá.
 
 \section{Data}
 Jako datové mohu nazvat tyto moduly:
 
 \begin{itemize}
-	\item \texttt{Zpravostroj::Word} reprezentuje slovo, u kterého může být případně skóre.
-
-	\item \texttt{Zpravostroj::Article} reprezentuje článek.
-
-	\item \texttt{Zpravostroj::Date} reprezentuje datum.
-
-	\item \texttt{Zpravostroj::RSS} reprezentuje RSS čtečku.
-	
+	\item \texttt{Zpravostroj::Word} reprezentuje slovo, u kterého může být případně skóre
+	\item \texttt{Zpravostroj::Article} reprezentuje článek
+	\item \texttt{Zpravostroj::Date} reprezentuje datum
+	\item \texttt{Zpravostroj::RSS} reprezentuje RSS čtečku
 	\item \texttt{Zpravostroj::ManualCategorization::ManualCategorization}, \texttt{Zpravostroj::ManualCategorization::NewsTopics} a \texttt{Zpravostroj::ManualCategorization::Unlimited} slouží k načítání a ukládání ručních kategorií
 	
 \end{itemize}	
@@ -117,12 +142,12 @@ Jako datové mohu nazvat tyto moduly:
 Jako infrastrukturní mohu nazvat tyto moduly:
 
 \begin{itemize}
-	\item \texttt{Zpravostroj::DateArticles} reprezentuje všechny články jednoho dne.
-	\item \texttt{Zpravostroj::AllDates} reprezentuje všechny dny. 
+	\item \texttt{Zpravostroj::DateArticles} reprezentuje všechny články jednoho dne
+	\item \texttt{Zpravostroj::AllDates} reprezentuje všechny dny
 	\item \texttt{Zpravostroj::Traversable} je zobecnění objektu, který má více podobjektů, které lze postupně načítat a na kterých lze něco postupně spouštět (traverzovat)
-	\item \texttt{Zpravostroj::Forker} je objekt, který mi "pomáhá" s paralelizací
-	\item \texttt{Zpravostroj::OutCounter} je objekt, který mi "pomáhá" se sčítáním dat pomocí vnějšího třídění
-	\item \texttt{Zpravostroj::InverseDocumentFrequencies} vrací IDF vektor,
+	\item \texttt{Zpravostroj::Forker} je objekt, který mi \uv{pomáhá} s paralelizací
+	\item \texttt{Zpravostroj::OutCounter} je objekt, který mi \uv{pomáhá} se sčítáním dat pomocí vnějšího třídění
+	\item \texttt{Zpravostroj::InverseDocumentFrequencies} vrací IDF vektor
 	\item \texttt{Zpravostroj::TectoClient} a \texttt{Zpravostroj::TectoServer} fungují pro lemmatizaci textu
 \end{itemize}	
 	
@@ -130,11 +155,11 @@ Jako infrastrukturní mohu nazvat tyto moduly:
 Jako výpočtové mohu nazvat tyto moduly:
 
 \begin{itemize}
-	\item \texttt{Zpravostroj::Categorizer::Categorizer} je obecný, abstraktní kategorizér
-	\item \texttt{Zpravostroj::Categorizer::Evaluator} evaluuje libovolný kategorizér srovnáním s ruční kategorizací
-	\item \texttt{Zpravostroj::Categorizer::TotallyRetarded} je triviální kategorizér
-	\item \texttt{Zpravostroj::Categorizer::FreqThemes}, \texttt{Zpravostroj::Categorizer::StopThemes} a \texttt{Zpravostroj::Categorizer::TfIdfThemes} dávají do kategorií podle témat, hledaných pouze z článku samého
-	\item \texttt{Zpravostroj::Categorizer::AICategorizer} je učící se kategorizér, který je třeba nejdříve naučit na už určených kategoriích. Používá CPAN modul AI::Categorizer
+	\item \texttt{Zpravostroj::Categorizer::Categorizer} je obecný, abstraktní klasifikátor
+	\item \texttt{Zpravostroj::Categorizer::Evaluator} evaluuje libovolný klasifikátor srovnáním s ruční kategorizací
+	\item \texttt{Zpravostroj::Categorizer::TotallyRetarded} je triviální klasifikátor
+	\item \texttt{Zpravostroj::Categorizer::FreqThemes}, \texttt{Zpravostroj::Categorizer::StopThemes} a \texttt{Zpravostroj::Categorizer::TfIdfThemes} zatřizují články do kategorií podle témat, hledaných pouze z článku samého
+	\item \texttt{Zpravostroj::Categorizer::AICategorizer} je učící se klasifikátor, který je třeba nejdříve naučit na už určených kategoriích. Používá CPAN modul AI::Categorizer
 	\item \texttt{Zpravostroj::Readability} je modul k vyčištění zdrojového HTML a získání obsahu článku
 	\item \texttt{Zpravostroj::Updater} stahuje nové články a ukládá je do databáze
 \end{itemize}
@@ -143,36 +168,46 @@ Jako výpočtové mohu nazvat tyto moduly:
 Jako prezentační mohu chápat tyto moduly:
 \begin{itemize}
 	\item \texttt{Zpravostroj:HTMLOutput} je modul pro již zmiňovanou Facebook aplikaci, pomocí které lze zatřizovat články do kategorií
-	\item \texttt{Zpravostroj::ThesisData} je modul, přímo určený pro výstup dat pro bakalářskou práci
+	\item \texttt{Zpravostroj::ThesisData} je modul, přímo určený pro výstup dat pro bakalářskou práci (např. grafy nebo experimenty s evaluátory)
 \end{itemize}
 
-\chapter{Popisy jednotlivých modulů}
+\chapter{Popisy programu a jednotlivých modulů}
 
 V této části popíšu jednotlivé části programu; nechci ale vytvářet \uv{kopii} komentářů ve zdrojovém kódu, popíši tedy pouze to, co pokládám za opravdu důležité.
 
 \section{Data}
 		
 \subsection{Uložení článků}
-		
-Články jsou uloženy ve složce \texttt{data/articles}, v souboru na adrese \texttt{data/articles/Y/M/D/N.bz2}, kde \texttt{Y} je rok, \texttt{M} je měsíc, \texttt{D} je den a \texttt{N} je číslo článku. Jsou serializovány pomocí \texttt{YAML::XS} a \texttt{MooseX::Storage}, a jsou zazipovány programem bzip2.
 
-Motivace pro zvolení serializace jako způsobu ukládání byla to, že jsem chtěl mít všechna data o článcích "pohromadě", ale neměl jsem k dispozici klasickou databázi. Pohlíženo zpětně nebyla serializace dobrý nápad, protože trvá, spolu se bzipováním, velmi dlouho.
+Články jsou uloženy\footnote{Jak jsem již uváděl v \ref{sec:data}, databáze článků je pouze na DVD, nikoliv na veřejném repozitáři} ve složce \texttt{data/articles}, v souboru na adrese \texttt{data/articles/Y/M/D/N.bz2}, kde \texttt{Y} je rok, \texttt{M} je měsíc, \texttt{D} je den a \texttt{N} je číslo článku. Jsou serializovány pomocí \texttt{YAML::XS} a \texttt{MooseX::Storage}, a jsou zazipovány programem bzip2.
 
-Bzipování bylo naopak poměrně potřeba - od začátku jsem si chtěl ukládat jak původní HTML kód, tak vyčištěnou část článku, tak všechna slova zlemmatizovaná. Tyto informace v "čistém" textu zabíraly příliš dat, proto jsem radši vše bzipoval.
+Motivace pro zvolení serializace jako způsobu ukládání byla to, že jsem chtěl mít všechna data o článcích \uv{pohromadě}, ale neměl jsem k dispozici klasickou databázi. Pohlíženo zpětně nebyla serializace dobrý nápad, protože trvá, spolu se bzipováním, velmi dlouho, a spolu s bzipováním je často tzv. \uv{bottleneckem}.
+
+Bzipování bylo naopak poměrně potřeba - od začátku jsem si chtěl ukládat jak původní HTML kód, tak vyčištěnou část článku, tak všechna slova zlemmatizovaná. Tyto informace v \uv{čistém} textu zabíraly příliš dat, proto jsem radši vše bzipoval.
 
 \subsection{\texttt{Zpravostroj::Article}}
 
-Všechny články jsou objekty typu \texttt{pravostroj::Article} a různé druhy výpočtu témat mají jako své procedury.
+Všechny články jsou objekty typu \texttt{Zpravostroj::Article} a různé druhy výpočtu témat mají jako své procedury.
 
-Pro načtení článku lze použít například metodu modulu \texttt{Zpravostroj::AllDates} \texttt{Zpravostroj::AllDates::get\_from\_article\_id(\$id)}, kde \texttt{\$id} je string ve formátu \texttt{Y-M-D-A}, kde \texttt{Y} je rok, \texttt{M} je měsíc, \texttt{D} je den a \texttt{A} je číslo článku v daném dni. Pokud jsou součástí projektu už stažené články z roku 2010, je možné jednoduše načíst dva ukázkové články z bakalářské práce pomocí metody modulu \texttt{Zpravostroj::ThesisData} \texttt{Zpravostroj::ThesisData::get\_example\_articles()}, která vrací 2 články, které jsou jako ukázkové v bakalářské práci, v perlovském poli.
+Pro načtení článku lze použít například metodu modulu \texttt{Zpravostroj::AllDates} 
+\begin{lstlisting}
+Zpravostroj::AllDates::get_from_article_id($id)
+\end{lstlisting}
+kde \texttt{\$id} je string ve formátu \texttt{Y-M-D-A}, kde \texttt{Y} je rok, \texttt{M} je měsíc, \texttt{D} je den a \texttt{A} je číslo článku v daném dni. 
+
+Pokud jsou součástí projektu už stažené články z roku 2010 (viz \ref{sec:data}), je možné jednoduše načíst dva ukázkové články z bakalářské práce pomocí metody modulu \texttt{Zpravostroj::ThesisData} 
+\begin{lstlisting}
+Zpravostroj::ThesisData::get_example_articles()
+\end{lstlisting}
+která vrací 2 články, které jsou jako ukázkové v bakalářské práci, v perl poli.
 
 Každý článek má tyto metody pro čtení témat:
 
 \begin{itemize}
 	\item \texttt{\$article->frequency\_themes()} vrací frekvenční témata (pole objektů \texttt{Zpravostroj::Word})
 	\item \texttt{\$article->stop\_themes()} vrací stop-témata (pole objektů \texttt{Zpravostroj::Word})
-	\item \texttt{\$article->unlimited\_manual\_tags()} vrací "neomezená" ručně zatřízená témata, pokud jsou (pole textových řetězců)
-	\item \texttt{\$article->news\_topics\_manual\_tags()} vrací "omezená" ručně zatřízená témata, pokud jsou (pole textových řetězců)
+	\item \texttt{\$article->unlimited\_manual\_tags()} vrací \uv{neomezená} ručně zatřízená témata, pokud jsou (pole textových řetězců)
+	\item \texttt{\$article->news\_topics\_manual\_tags()} vrací \uv{omezená} ručně zatřízená témata, pokud jsou (pole textových řetězců)
 	\item \texttt{\$article->has\_tf\_idf\_themes()} je 1 nebo 0 podle toho, jestli článek má, nebo nemá spočítaná TF-IDF témata
 	\item \texttt{\$article->count\_tf\_idf\_themes(\$idf\_hash, \$article\_count)} TF-IDF témata spočítá - \texttt{\$idf\_hash} je IDF matice, \texttt{\$article\_count} je počet všech článků, obojí je nepovinné - pokud není zadáno, načte se v \texttt{count\_tf\_idf\_themes()}
 	\item \texttt{\$article->tf\_idf\_themes()} jsou tato témata (reference na pole objektů \texttt{Zpravostroj::Word})
@@ -187,29 +222,33 @@ Každý článek má tyto metody pro čtení témat:
 
 \section{Infrastruktura}
 				
-\subsection{Forker}
+\subsection{\texttt{Forker}}
 \label{sec:forker}
-Při experimentování jsem zjistil, že pro rychlejší a spolehlivější uvolňování paměti po operacích náročných na paměť, jako je například načítání článků, je lepší použít modul \texttt{forks}, pomocí něho vytvořit nový proces, náročnější operaci udělat v separátním procesu a výsledky nasdílet zpátky. Program tak uvolní paměť ihned po skončení procesu. (Tento fakt jsem si posléze ověřil i na jiném, nesouvisejícím projektu.)
+Při experimentování jsem zjistil, že pro rychlejší a spolehlivější uvolňování paměti po operacích náročných na paměť, jako je například načítání článků, je lepší použít modul \odkazCPAN{forks}, pomocí něho vytvořit nový proces, náročnější operaci udělat v separátním procesu a výsledky nasdílet zpátky. Program tak uvolní paměť ihned po skončení procesu. (Tento fakt jsem si posléze ověřil i na jiném, nesouvisejícím projektu.)
 
-Modul \texttt{forks} funguje jako "náhrada" vestavěných perl threadů, které ale nejsou příliš praktické. \texttt{forks} používá naprosto stejný syntax, jako modul \texttt{threads}, včetně sdílení proměnných pomocí \texttt{shared} (pro sdílení dat si modul forks vytvoří "nadřazený" proces a např. zámky implementuje pomocí socketů).
+Modul \texttt{forks} funguje jako \uv{náhrada} vestavěných perl threadů, které ale nejsou příliš praktické. \texttt{forks} používá naprosto stejný syntax, jako modul \texttt{threads}, včetně sdílení proměnných pomocí \texttt{shared} (pro sdílení dat si modul forks vytvoří \uv{nadřazený} proces a např. zámky implementuje pomocí socketů).
 
-Kromě toho jsem zjistil, že při načítání většího množství článků je "bottleneck" rozbalování z bz2 a deserializace; je ale možné načítání článků mírně paralelizovat tak, že např. při rozbalování jednoho článku může systém zároveň dělat něco jiného, tím i případně využít více jader procesoru, čímž se vše zrychlí.
+Kromě toho jsem zjistil, že při načítání většího množství článků je \uv{bottleneck} rozbalování z bz2 a deserializace; je ale možné načítání článků mírně paralelizovat tak, že např. při rozbalování jednoho článku může systém zároveň dělat něco jiného, tím i případně využít více jader procesoru, čímž se vše zrychlí.
 
 Pro tuto paralelizaci ale není možné, aby běželo příliš mnoho procesů najednou. Proto jsem si vytvořil objekt \texttt{Zpravostroj::Forker}, který za mě hlídá postupné spouštění forků.
 
-Funguje tak, že se mu dávají odkazy na subroutiny pomocí \texttt{\$forker->run(\$subroutine)}, tyto si pamatuje v poli jako ve frontě. Z fronty potom postupně subroutiny spouští v separátních forcích tak, aby nebylo zároveň spuštěno víc forků, než má \texttt{Forker} povoleno. Počet povolených forků je \texttt{Forker}u zadáno při konstrukci.
+Funguje tak, že se mu dávají odkazy na subroutiny pomocí 
+\begin{lstlisting}
+$forker->run($subroutine)
+\end{lstlisting}
+\texttt{Forker} si tyto subroutiny pamatuje v poli jako ve frontě. Z fronty potom postupně subroutiny spouští v separátních forcích tak, aby nebylo zároveň spuštěno víc forků, než má \texttt{Forker} povoleno. Počet povolených forků je \texttt{Forker}u zadáno při konstrukci.
 
-\texttt{Forker} ale nemá, jak by sám tyto forky spouštěl "mimo" běh hlavního programu (není možné určit vlastní fork na spouštění forků, protože odkazy na subroutiny není možno sdílet mezi jednotlivými forky). Proto je nutné po zadání všech subroutin pomocí \texttt{\$forker->run()} buď pravidelně spouštět \texttt{\$forker->check\_waiting()}, který jednou zkontroluje počet běžících forků a případně nějaké další spustí, nebo jednou spustit \texttt{\$forker->wait()}, což je funkce, která počká na doběhnutí všech nedoběhnutých forků (která pravidelně spouští \texttt{\$forker->check\_waiting}). Pokud se jakékoliv výsledky vrací zpátky do nějaké proměnné, která existuje mimo subroutinu, tak tato musí být sdílená přes modul \texttt{forks::shared}, jinak se při zapisování (perlí fork funguje na principu copy-on-write) vytvoří \textbf{kopie} této proměnné.
+\texttt{Forker} ale nemá, jak by sám tyto forky spouštěl \uv{mimo} běh hlavního programu (není možné určit vlastní fork na spouštění forků, protože odkazy na subroutiny není možno sdílet mezi jednotlivými forky). Proto je nutné po zadání všech subroutin pomocí \texttt{\$forker->run()} buď pravidelně spouštět \texttt{\$forker->check\_waiting()}, který jednou zkontroluje počet běžících forků a případně nějaké další spustí, nebo jednou spustit \texttt{\$forker->wait()}, což je funkce, která počká na doběhnutí všech nedoběhnutých forků (která pravidelně spouští \texttt{\$forker->check\_waiting}). Pokud se jakékoliv výsledky vrací zpátky do nějaké proměnné, která existuje mimo subroutinu, tak tato musí být sdílená přes modul \texttt{forks::shared}, jinak se při zapisování (perlí fork funguje na principu \emph{copy-on-write}) vytvoří \textbf{kopie} této proměnné.
 
-Forkery mohou být "vnořené" do sebe - tj. v subroutině, kterou dostane a bude spouštět jeden \texttt{Forker} může být zase jiný \texttt{Forker}. Forkery ale není možno sdílet mezi forky, tj. "vnitřní" Forker musí být v subroutině vytvořen a v ní opět zaniknout. 
+Forkery mohou být \uv{vnořené} do sebe - tj. v subroutině, kterou dostane a bude spouštět jeden \texttt{Forker} může být zase jiný \texttt{Forker}. Forkery ale \emph{není} možno sdílet mezi forky, tj. \uv{vnitřní} Forker musí být v subroutině vytvořen a v ní opět zaniknout. 
 
-\subsection{Traversable}
+\subsection{\texttt{Traversable}}
 
-\texttt{Zpravostroj::Traversable} je zobecnění objektu, který má více podobjektů, které lze postupně načítat a na kterých lze něco postupně spouštět (traverzovat). V mém případě jsou to dva objekty - jednak objekt \texttt{Zpravostroj::AllDates}, který představuje všechny dny (a který nemá žádné vlastnosti, tj. všechny jeho instance jsou jakoby datově shodné), a objekt Zpravostroj::DateArticles, který představuje všechny články daného dne. V případě \texttt{Zpravostroj::AllDates} jsou "podřazené" objekty, přes které se "traverzuje", objekty \texttt{Zpravostroj::DateArticles}, objektům \texttt{Zpravostroj::DateArticles} jsou zase "podřazené" objekty \texttt{Zpravostroj::Article}.
+\texttt{Zpravostroj::Traversable} je zobecnění objektu, který má více podobjektů, které lze postupně načítat a na kterých lze něco postupně spouštět (traverzovat). V mém případě jsou to dva objekty - jednak objekt \texttt{Zpravostroj::AllDates}, který představuje všechny dny (a který nemá žádné vlastnosti, tj. všechny jeho instance jsou jakoby datově shodné), a objekt \texttt{Zpravostroj::DateArticles}, který představuje všechny články daného dne. V případě \texttt{Zpravostroj::AllDates} jsou \uv{podřazené} objekty, přes které se \uv{traverzuje}, objekty \texttt{Zpravostroj::DateArticles}, objektům \texttt{Zpravostroj::DateArticles} jsou zase \uv{podřazené} objekty \texttt{Zpravostroj::Article}.
 
-\texttt{Zpravostroj::Traversable} je abstraktní třída (v řeči \texttt{Moose} "role"), která funguje tak, že všechny podřazené objekty zároveň nikdy nejsou v paměti (protože by se všechny články naráz do paměti nevešly), ale jednak má abstraktní metodu \texttt{\_get\_traversed\_array}, která vrátí pole řetězců, které jakoby představují podřazené objekty, a abstraktní metodu \texttt{\_get\_object\_from\_string}, která objekt z řetězce vyrobí.
+\texttt{Zpravostroj::Traversable} je abstraktní třída (v řeči \texttt{Moose} \uv{role}), která funguje tak, že všechny podřazené objekty zároveň nikdy nejsou v paměti (protože by se všechny články naráz do paměti nevešly), ale jednak má abstraktní metodu \texttt{\_get\_traversed\_array}, která vrátí pole řetězců, které jakoby představují podřazené objekty, a abstraktní metodu \texttt{\_get\_object\_from\_string}, která objekt z řetězce vyrobí.
 
-Poté má (neabstraktní) metodu \texttt{traverse(\$sub, \$count)}, která dostane odkaz na subroutinu, kterou postupně spouští na každý podřazený objekt. Načtení podobjektu a samotné spuštění subroutiny proběhne v separátním forku, spouštěného pomocí modulu \texttt{Zpravostroj::Forker} (viz výše), forků je zároveň povoleno spouštět \texttt{\$count}. Pokud je \texttt{\$count} 0 nebo 1, žádné forkování neprobíhá a subroutiny se spouštějí všechny ve stejném procesu. (Nemůžu zde napsat "v hlavním procesu", protože zatímco traverzování přes \texttt{AllDates} může forkovat, traverzování přes \texttt{DateArticles} nemusí; naopak, stejně jako můžou být Forkery "vnořovány" do sebe, tak může být traverzování vnořováno do sebe).
+Poté má (neabstraktní) metodu \texttt{traverse(\$sub, \$count)}, která dostane odkaz na subroutinu, kterou postupně spouští na každý podřazený objekt. Načtení podobjektu a samotné spuštění subroutiny proběhne v separátním forku, spouštěného pomocí modulu \texttt{Zpravostroj::Forker} (viz výše), forků je zároveň povoleno spouštět \texttt{\$count}. Pokud je \texttt{\$count} 0 nebo 1, žádné forkování neprobíhá a subroutiny se spouštějí všechny ve stejném procesu. (Nemůžu zde napsat \uv{v hlavním procesu}, protože zatímco traverzování přes \texttt{AllDates} může forkovat, traverzování přes \texttt{DateArticles} nemusí; naopak, stejně jako můžou být Forkery \uv{vnořovány} do sebe, tak může být traverzování vnořováno do sebe).
 
 Opět, jelikož jsou subroutiny spouštěny přes \texttt{Forker}, pokud jsou nějaké výsledky vraceny ven ze subroutiny do nějaké proměnné, je nutné tuto proměnou sdílet mezi forky pomocí forks::shared.
 
@@ -226,22 +265,25 @@ Všechny výše popsané úkony dělám pomocí objektu \texttt{Zpravostroj::Out
 \section{Výpočty, prezentace}
 \subsection{Postup zpracovávání článků}
 
-O stahování nových článků se "stará" modul \texttt{Zpravostroj::Updater}. Pro stáhnutí nových článků do archivu stačí spustit \texttt{Zpravostroj::Updater::download\_new\_articles(\$recount\_all\_tf\_idf\_themes)}.
+O stahování nových článků se \uv{stará} modul \texttt{Zpravostroj::Updater}. Pro stáhnutí nových článků do archivu stačí spustit 
+\begin{lstlisting}
+Zpravostroj::Updater::download_new_articles($recount_all_tf_idf_themes)
+\end{lstlisting}
 
 Tato procedura stáhne nové články, slova převede na lemmata a spočítá je, články také pro všechna jejich slova přidá do IDF matice, články poté uloží do data/articles.
 
-\texttt{\$recount\_all\_tf\_idf\_themes} je volitelná proměnná, která, pokud je rovná 1, spustí update všech tf-idf témat podle nově přidaných slov do IDF matice (při velkém počtu článků může trvat velmi dlouho, proto je defaultně nastavena jako 0).
+\texttt{\$recount\_all\_tf\_idf\_themes} je volitelná proměnná, která, pokud je rovná 1, spustí update \emph{všech} tf-idf témat ve \emph{všech článcích} (nejen nových) podle nově přidaných slov do IDF matice --- při velkém počtu článků může trvat velmi dlouho, proto je defaultně nastavena jako 0.
 
-Nejprve je jím spuštěn \texttt{Zpravostroj::TectoServer}, což je separátní fork (více o forcích v části \ref{sec:forker}), ve kterém běží \texttt{TectoMT}.
+Tato procedura nejdříve spustí \texttt{Zpravostroj::TectoServer}, což je separátní fork (více o forcích v části \ref{sec:forker}), ve kterém běží \texttt{TectoMT}.
 
 
 Potom jsou staženy adresy článků pomocí modulu \texttt{Zpravostroj::RSS} (adresy RSS kanálů a adresy stažených článků jsou v adresáři \texttt{data/articles/RSS}). Poté je článek stáhnut pomocí modulu \texttt{Zpravostroj::WebReader}, poté se pomocí \texttt{Zpravostroj::Readability} z HTML zdroje získá samotný článek bez okolních textů. Poté se modul \texttt{Zpravostroj::TectoClient} spojí s \texttt{TectoServer}em a pošle mu slova ve článku; \texttt{TectoServer} tato zlemmatizuje a určí pojmenované entity.
 
-Tato "kaskáda" operací se spouští díky Moose konstruktoru v modulu \texttt{Zpravostroj::Article}.
+Tato \uv{kaskáda} operací se spouští díky Moose konstruktoru v modulu \texttt{Zpravostroj::Article}.
 
 Články jsou poté uloženy pomocí subrutiny \texttt{Zpravostroj::Globals::dump\_bz2}.
 
-Kromě toho jsou v adresáři archivedumpers/ skripty, které stahují články z jednotlivých serverů z archivu - tyto ale určitě nefungují - jednak proto, že i vnitřní API programu se od doby, co byly napsány, změnilo, a jednak proto, že HTML na daných serverech už se změnilo a nebylo updatováno; tyto skripty mám jako součást programu tedy spíše pro zajímavost a úplnost.
+Kromě toho jsou v adresáři archivedumpers/ skripty, které stahují články z jednotlivých serverů z archivu - tyto ale \textbf{určitě nefungují} - jednak proto, že i \emph{vnitřní} API programu se od doby, co byly napsány, změnilo, a jednak proto, že HTML na daných serverech už se změnilo a skripty nebyly na nové HTML přizpůsobeny; tyto skripty mám jako součást programu tedy spíše pro zajímavost a úplnost.
 
 \subsection{Tf-Idf témata}
 
@@ -249,9 +291,9 @@ Pro TF-IDF témata je nejprve nutné znát IDF vektor (podrobněji viz bakalář
 
 Pokud IDF vektor není znám, je možné jej také spočítat pomocí \texttt{Zpravostroj::InverseDocumentFrequencies}; pokud už spočítaný je, ale přibydou nové články, není nutné jej celý přepočítávat - modul \texttt{Zpravostroj::InverseDocumentFrequencies} si pamatuje poslední článek, který byl započítán, a přidá všechny novější.
 
-Pokud by bylo potřeba opravdu přepočítat celý IDF vektor znovu, je nutné smazat celý adresář \texttt{data/idf/}.
+Pokud by bylo z nějakého důvodu potřeba \emph{opravdu} přepočítat celý IDF vektor znovu, je nutné smazat celý adresář \texttt{data/idf/}.
 
-Pokud chci článku vypočítat TF-IDF témata, je třeba článek načíst, spustit na něj \texttt{count\_tf\_idf\_themes} a znovu ho uložit; toto dělá \texttt{Zpravostroj::AllDates::get\_statistics\_tf\_idf\_themes}.
+Pokud chci článku vypočítat TF-IDF témata, je třeba článek načíst, spustit na něj \texttt{count\_tf\_idf\_themes} a znovu ho uložit; pokud toto chceme provést pro všechny články, můžeme použít \texttt{Zpravostroj::AllDates::get\_statistics\_tf\_idf\_themes}.
 
 
 \subsection{Evaluace}
@@ -259,23 +301,24 @@ Pokud chci článku vypočítat TF-IDF témata, je třeba článek načíst, spu
 Různé klasifikátory lze evaluovat pomocí modulu \texttt{Zpravostroj::Categorizer::Evaluator} a podtříd modulu \texttt{Zpravostroj::Categorizer}. Aby ale nebylo třeba zadávat všechny parametry znovu, je již předpřipravena evaluace s parametry, které byly použity v bakalářské práci, v modulu \texttt{Zpravostroj::ThesisData}, a to následovně:
 
 \begin{itemize}
-	\item \texttt{Zpravostroj::ThesisData::try\_trivial} vyzkouší triviální zatřizování do kategorie "ODS"
-	\item \texttt{Zpravostroj::ThesisData::try\_f\_themes} vyzkouší zatřizování do frekvenčních témat
-	\item \texttt{Zpravostroj::ThesisData::try\_stop\_themes} vyzkouší zatřizování do stop témat
-	\item \texttt{Zpravostroj::ThesisData::try\_tf\_idf\_themes} vyzouší zatřizování do tf-idf témat
-	\item \texttt{Zpravostroj::ThesisData::try\_categorizer} zkusí různé "skutečné" kategorizéry se strojovým učením s různými parametry. Pozor, trvá velmi dlouho (na mém stroji kolem 6 hodin)
+	\item \texttt{Zpravostroj::ThesisData::try\_trivial} vyzkouší triviální zatřiďování do kategorie \uv{ODS}
+	\item \texttt{Zpravostroj::ThesisData::try\_f\_themes} vyzkouší zatřiďování do frekvenčních témat
+	\item \texttt{Zpravostroj::ThesisData::try\_stop\_themes} vyzkouší zatřiďování do stop témat
+	\item \texttt{Zpravostroj::ThesisData::try\_tf\_idf\_themes} vyzkouší zatřiďování do tf-idf témat
+	\item \texttt{Zpravostroj::ThesisData::try\_categorizer} zkusí různé \uv{skutečné} klasifikátory se strojovým učením s různými parametry. Pozor, trvá velmi dlouho (na mém stroji kolem 6 hodin)
 \end{itemize}
-Všechny zkoušky už rovnou vypisují TeXovské řetězce, kde na každém řádku jsou procenta úspěšnosti v pořadí: micro ro, micro pi, micro F, macro ro, macro pi, macro F. Pozor, tyto řetězce jsou vypsány na obrazovku pomocí stejných metod, jako vypisuji kontrolní výpisy, tedy \texttt{Zpravostroj::Globals::\_shut\_up()} vypne i výsledné výpisy. Uznávám, že toto řešení není příliš čisté a do budoucna by bylo lepší jej změnit.
+Všechny zkoušky už rovnou vypisují TeXovské řetězce, kde na každém řádku jsou procenta úspěšnosti v pořadí: micro ro, micro pi, micro F, macro ro, macro pi, macro F. Pozor, tyto řetězce jsou vypsány na obrazovku pomocí stejných metod, jako vypisuji kontrolní výpisy, tedy \texttt{Zpravostroj::Globals::\_shut\_up()} vypne i výsledné výpisy. Uznávám, že toto řešení není příliš čisté a do budoucna by bylo \emph{jistě} lepší jej změnit.
 
 Tuto evaluaci popisuji poměrně podrobně v bakalářské práci.
 
 \subsection{Statistiky, grafy}
 
-Počítání většiny statistik je jakoby "dvojúrovňové". První, časově výrazně náročnější část je průchod všemi články v archivu, kdy pro každý den se daná statistika uloží do adresáře data/daycounters a ještě v tomto kroku se z těchto denních statistik spočítají statistiky pro celý archiv. Konkrétně se například ukládá pro každý den statistika všech tf-idf témat.
+Počítání většiny statistik je jakoby \uv{dvojúrovňové}.
 
-Druhá část je pak velmi rychlý průchod těmito výsledky a vykreslení některých statistik do grafu v PDF - například historie vybraného tf-idf tématu. PDF soubory jsou ukládány do adresáře R\_graphs/, data, potřebná pro kreslení těchto grafů, jsou v adresáři \texttt{data/R\_data}.
+\subsubsection{První úroveň statistik}
+První, časově \textbf{výrazně} náročnější část je průchod všemi články v archivu, kdy pro každý den se daná statistika uloží do adresáře \texttt{data/daycounters} a ještě v tomto kroku se z těchto denních statistik spočítají statistiky pro celý archiv. Konkrétně se například ukládá pro každý den statistika všech tf-idf témat.
 
-První úroveň se spouští veškerá přes modul Zpravostroj::AllDates, a to následovně:
+První úroveň se spouští veškerá přes modul \texttt{Zpravostroj::AllDates}, a to následovně:
 
 \begin{itemize}
 	\item \texttt{Zpravostroj::AllDates::get\_statistics\_f\_themes()} spočítá f-témata u článků, ukládá statistiky do souborů \texttt{data/daycounters/f\_themes\_Y-M-D}, a statistiky všech f-témat ukládá do souboru \texttt{data/allresults/f\_themes\_counted\_sorted\_by\_frequency}
@@ -284,6 +327,13 @@ První úroveň se spouští veškerá přes modul Zpravostroj::AllDates, a to n
 	\item \texttt{Zpravostroj::AllDates::get\_statistics\_tf\_idf\_themes()} spočítá pro každý článek tf-idf témata, uloží je zpět do článku, statistiky denních tf-idf témat uloží do souborů \texttt{data/daycounters/tf\_idf\_Y-M-D} a všech do \texttt{data/allresults/tf\_idf\_counted\_sorted\_by\_frequency}
 	\item \texttt{Zpravostroj::AllDates::get\_most\_frequent\_lemmas} spočítá nejčastější lemmata, denní výsledky ale neukládá, uloží pouze výsledky z celého archivu a uloží je do \texttt{data/allresults/lemmas\_counted\_sorted\_by\_frequency}
 \end{itemize}
+
+
+
+\subsubsection{Druhá úroveň statistik}
+
+Druhá část je pak velmi rychlý průchod těmito výsledky a vykreslení některých statistik do grafu v PDF - například historie vybraného tf-idf tématu. PDF soubory jsou ukládány do adresáře R\_graphs/, data, potřebná pro kreslení těchto grafů, jsou v adresáři \texttt{data/R\_data}.
+
 
 Druhá úroveň už je celá v modulu Zpravostroj::ThesisData (název je ThesisData proto, že jdou vykreslit v podstatě pouze ty grafy, které mám v bakalářské práci), a to následovně:
 \begin{itemize}

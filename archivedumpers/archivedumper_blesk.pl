@@ -1,3 +1,4 @@
+#Tyto skripty pro stahovani z archivu NEFUNGUJI, potrebovaly by upravu. Jsou prilozeny spise pro informaci.
 use strict;
 use warnings;
 
