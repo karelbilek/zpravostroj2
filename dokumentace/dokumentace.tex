@@ -115,7 +115,7 @@ use CGI;
 my $cgi = CGI->new;                             #nutné pro odchycení POST argumentů
 chdir $cesta_k_hlavnimu_adresari;               #nutné pro přístup ke článkům
 
-use Zpravostroj::HTMLOutput;
+require Zpravostroj::HTMLOutput;		#require proto, že už je potřeba, abych byl v hlavním adresáři
 Zpravostroj::HTMLOutput::generate_HTML($cgi);   #samotné generování HTML
 \end{lstlisting}
 

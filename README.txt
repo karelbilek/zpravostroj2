@@ -7,6 +7,6 @@ Readability (c) 2010 Arc90 Inc
 Licencováno pod Apache 2.0 licencí, viz soubory LICENSE a NOTICE.
 
 
-Další dokumentace v adresáři dokumentace/ ve formátu HTML.
+Další dokumentace v adresáři dokumentace/ ve formátu LaTex a z něho vygenerovaného HTML.
 
-Samotná bakalářská práce je v adresáři thesis/.
+Samotná bakalářská práce je v adresáři thesis/ ve formátu LaTeX a z něho vygenerovaného PDF; thesis/prace.pdf je samotná práce.
