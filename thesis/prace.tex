@@ -452,8 +452,9 @@ News, articles, topics, keywords
 
 \openright
 \pagestyle{plain}
-\setcounter{page}{1}
 \tableofcontents
+
+\setcounter{page}{1}
 
 \chapwithtoc{Úvod}
 
@@ -1279,7 +1280,7 @@ Je otázka, jak tyto pohyby interpretovat. Je možné, že opravdu jde o hledano
    &   &  \texttt{armáda}  &  &  \\ \hline 
 
 \end{tabular}
-}{Kategorizace na Článcích 1 a 2}
+}{Výsledky klasifikátorů na Článcích 1 a 2}
 
 %
 
@@ -1332,9 +1333,9 @@ Jednotlivé přístupy jsem porovnal metrikou, popisovanou pro klasifikátory v~
     
   \end{tabular}
 
-}{Přesnosti a úplnosti neklasifikačních metod}
+}{Přesnosti a úplnosti neklasifikačních metod, v procentech}
 
-Metrikou, popsanou v~\ref{sec:dalsimetody}, jsem porovnal různé způsoby detekce témat; výsledky jsou uvedeny v~tabulce~\ref{tabulka:neklas}.
+Metrikou, popsanou v~\ref{sec:dalsimetody}, jsem porovnal různé způsoby detekce témat; výsledky jsou uvedeny v~Tabulce~\ref{tabulka:neklas}.
 
 \subsubsection{Triviální kategorizace}
 Pro srovnání s~dalšími metodami jsem otestoval i \uv{triviální kategorizaci}, která každému článku přiřadí právě jednu kategorii, a to \texttt{ODS}. Výsledky evaluace jsou, dle očekávání, téměř nulové.
@@ -1343,7 +1344,9 @@ Pro srovnání s~dalšími metodami jsem otestoval i \uv{triviální kategorizac
 Frekvenční témata dávají možná lepší výsledky, než by se zdálo ze zběžného prohlížení nalezených témat, jak jsem činil v~části \ref{sec:ftemata}. To, že úplnost je téměř 30 \%, zatímco přesnost je méně než 10 \%, je nejspíš tím, že metoda vrací vždy 10 témat na článek, zatímco průměrný počet témat na článek v ruční kategorizaci je nižší. Zmenšením počtu témat na článek bychom zvýšili přesnost, ale snížili úplnost, jak je vidět i dále na části s~TF-IDF.
 
 \subsubsection{Stop témata}
-Je zajímavé, že zatímco \uv{opticky} a v~mikroprůměru jsou výsledky stop témat lepší, v~makroprůměru se výsledky zhorší. U tohoto jevu si nejsem schopen vysvětlit příčiny; jako čistou spekulaci mohu uvést to, že 
+Je zajímavé, že zatímco \uv{opticky} a v~mikroprůměru jsou výsledky stop témat lepší, v~makroprůměru se výsledky zhorší.
+
+ U tohoto jevu si nejsem schopen vysvětlit příčiny; makroprůměr se ale chová (u $\pi$ i $\rho$) tak, že většina kategorií má nahoře ve zlomku 0, ze zbylých kategorií má zase naopak většina v~čitateli i jmenovateli 1, tj. vyskytne se pouze jednou a tehdy je zatřídění úspěšné. Možná zde by mohlo ležet vysvětlení.
 
 \subsubsection{TF-IDF}
 Zvýšením počtu témat se zvedla, dle očekávání, úplnost, ale snížila přesnost. Pokud ale necháme počet témat na článek stejný, jako u stop-témat a frekvenčních témat, všechny výsledky v~mikroprůměru se zlepší. Naopak se opakuje situace, kdy i přes \uv{opticky} lepší výsledky a lepší mikroprůměr dostáváme u makroprůměru horší výsledky.
@@ -1356,30 +1359,32 @@ Zvýšením počtu témat se zvedla, dle očekávání, úplnost, ale snížila 
     \hline
      & $\rho_{\mu}$ & $\pi_{\mu}$ & $F_\mu$ & $\rho_{M}$ & $\pi_{M}$  & $F_M$  \\ \hline
     
-    NaiveBayes - var.1 & 13.18  & 17.13  & 14.85  & 9.01  & 5.85  & 7.04  \\ \hline
-    NaiveBayes - var.2 & 5.36  & 5.69  & 5.50  & 4.02  & 1.19  & 1.75 \\ \hline
-    SVM - var.1 & 2.17  & 90.00  & 4.16  & 1.72  & 1.94  & 1.81  \\ \hline
-    SVM - var.2 & 0.00  & 100.00  & 0.00  & 0.00  & 0.00  & 0.00 \\ \hline
-    DecisionTree - var.1 & 11.57  & 33.55  & 16.89  & 7.79  & 8.21  & 7.93 \\ \hline 
-    DecisionTree - var.2 & 9.00  & 13.93  & 10.77  & 5.34  & 5.25  & 5.25  \\ \hline \hline
+    NaiveBayes - 10V & 13.18  & 17.13  & 14.85  & 9.01  & 5.85  & 7.04  \\ \hline
+    NaiveBayes - *V & 5.36  & 5.69  & 5.50  & 4.02  & 1.19  & 1.75 \\ \hline
+    SVM - 10V & 2.17  & 90.00  & 4.16  & 1.72  & 1.94  & 1.81  \\ \hline
+    SVM - *V & 0.00  & 100.00  & 0.00  & 0.00  & 0.00  & 0.00 \\ \hline
+    DecisionTree - 10V & 11.57  & 33.55  & 16.89  & 7.79  & 8.21  & 7.93 \\ \hline 
+    DecisionTree - *V & 9.00  & 13.93  & 10.77  & 5.34  & 5.25  & 5.25  \\ \hline \hline
     
-    NaiveBayes - var.3 & 48.50  & 48.50  & 48.50  & 30.05  & 25.88  & 27.49  \\ \hline
-    NaiveBayes - var.4 & 31.50  & 31.50  & 31.50  & 12.69  & 7.92  & 9.40  \\ \hline
-    SVM - var.3 & 16.00  & 16.00  & 16.00  & 13.75  & 14.90  & 13.33 \\ \hline
-    SVM - var.4 &  6.00  & 6.00  & 6.00  & 7.26  & 3.71  & 4.07  \\ \hline
+    NaiveBayes - 10O & 48.50  & 48.50  & 48.50  & 30.05  & 25.88  & 27.49  \\ \hline
+    NaiveBayes - *O & 31.50  & 31.50  & 31.50  & 12.69  & 7.92  & 9.40  \\ \hline
+    SVM - 10O & 16.00  & 16.00  & 16.00  & 13.75  & 14.90  & 13.33 \\ \hline
+    SVM - *O &  6.00  & 6.00  & 6.00  & 7.26  & 3.71  & 4.07  \\ \hline
     
-    DecisionTree - var.3 & 24.50  & 24.50  & 24.50  & 16.96  & 18.75  & 17.41  \\ \hline 
-    DecisionTree - var.4 & 33.50  & 33.50  & 33.50  & 22.43  & 23.83  & 22.82  \\ \hline
+    DecisionTree - 10O & 24.50  & 24.50  & 24.50  & 16.96  & 18.75  & 17.41  \\ \hline 
+    DecisionTree - *O & 33.50  & 33.50  & 33.50  & 22.43  & 23.83  & 22.82  \\ \hline
     
   \end{tabular}
 
-}{Přesnosti a úplnosti klasifikátorů}
+}{Přesnosti a úplnosti klasifikátorů, v procentech}
 
 Varianty u klasifikátorů jsou shodné s~variantami, definovanými v~části~\ref{sec:klasifikace_priklady}. 
 
-Lze říci, že výsledky dopadají velmi tristně. Vždy dopadá lépe varianta, kdy jako rysy je bráno pouze prvních 10 slov; taktéž je ze všech klasifikátorů nejúspěšnější NaiveBayes (který má také výhodu, že je nejrychlejší).
+Lze říci, že výsledky dopadají velmi tristně. Vždy dopadá lépe varianta 10 než varianta *; taktéž je ze všech klasifikátorů nejúspěšnější NaiveBayes (který má také výhodu, že je nejrychlejší).
 
-Taktéž dopadá lépe verze, kdy kategorie jsou velmi obecné. Je ale otázka, zda by na těchto kategoriích šly sledovat trendy a jestli by naopak nebyl poměr těchto kategorií v~čase stále konstantní; s~jistotou ale nevím a tak můžu pouze spekulovat. Možná, že by bylo lepší se opravdu soustředit pouze na takto definované kategorie, jelikož zatřiďování do nich je rychlé a klasifikátory nemají tak špatné výsledky.
+Taktéž dopadá lépe verze O, kdy kategorie jsou velmi obecné. Je ale otázka, zda by na těchto kategoriích šly sledovat trendy a jestli by naopak nebyl poměr těchto kategorií v~čase stále konstantní; s~jistotou ale nevím a tak můžu pouze spekulovat. Možná, že by bylo lepší se opravdu soustředit pouze na takto definované kategorie, jelikož zatřiďování do nich je rychlé a klasifikátory nemají až \emph{tak} špatné výsledky.
+
+Jen dodám, že $\pi_{\mu}=1$ u varianty SVM-*V proto, že klasifikátor nevydá ani jedno rozhodnutí.
 
 \chapwithtoc{Závěr}
 
@@ -1391,7 +1396,7 @@ V~práci jsem v~části \ref{sec:hledanitemat_hlavni} uvedl několik způsobů d
 
 V~části \ref{sec:evaluace_jedn_prist} jsem prezentoval výsledky porovnání těchto algoritmů s~ručním zatřiďováním. Je otázka, jestli je možno tyto výsledky interpretovat jako dobré. Přiznávám se, že si nejsem zcela jist.
 
-Jak jsem se snažil částečně ukázat už v~části \ref{sec:rucnik}, problematickým vnímám hlavně zatřiďování do ručních kategorií, které je nejasně definované, proto je jednak poměrně náročné a také je evaluace proti němu problematická, stejně jako je problematické na těchto kategoriích učit algoritmy, založené na principu kategorizace se strojovým učením.
+Jak jsem se snažil částečně ukázat už v~části \ref{sec:rucnik}, problematickým vnímám hlavně zatřiďování do ručních kategorií, které je nejasně definované, proto je jednak poměrně náročné a také je evaluace proti němu problematická, stejně jako je problematické na těchto kategoriích učit algoritmy, založené na principu klasifikace se strojovým učením.
 
 Pokud bychom trvali na požadavku metriky, určené jako shody s~lidským zatřiďováním, bylo by asi nutné zlepšit definici kategorií pro ruční zatřiďování --- kromě velmi obecných kategorií, uvedených v~části \ref{sec:omezene_teorie}, se mi ale nepodařilo žádnou lepší definici nalézt. 
 
@@ -1449,7 +1454,7 @@ Dále se mi v~části \ref{sec:hledanitemat_prezentace_vysledku} podařilo urči
 
 Na přiloženém DVD je obsaženo:
 \begin{itemize}
-    \item Tato práce ve formátech \LaTeX a PDF v~adresáři \texttt{thesis}
+    \item Tato práce ve formátech {\LaTeX} a PDF v~adresáři \texttt{thesis}
     \item Stažené zprávy a z nich získaná data data v~adresáři \texttt{data}
     \item Grafy, použité v~této bakalářské práci, v~adresáři \texttt{R\_graphs}
     
