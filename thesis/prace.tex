@@ -1334,7 +1334,7 @@ Jednotlivé přístupy jsem porovnal metrikou, popisovanou pro klasifikátory v~
 
 }{Přesnosti a úplnosti neklasifikačních metod, v procentech}
 
-Metrikou, popsanou v~\ref{sec:dalsimetody}, jsem porovnal různé způsoby detekce témat; výsledky jsou uvedeny v~Tabulce~\ref{tabulka:neklas}. Jak je popsáno v~\ref{sec:dalsimetody}, tyto metody testuji na 200 ručně zatříděných článcích.
+Metrikou, popsanou v~\ref{sec:dalsimetody}, jsem porovnal různé způsoby detekce témat; výsledky jsou uvedeny v~Tabulce~\ref{tabulka:neklas}. Jak je popsáno v~\ref{sec:dalsimetody}, tyto metody testuji na 200 ručně zatříděných článcích, \uv{jedním} průchodem (narozdíl od \ref{sec:evaluace_jedn_prist_klas}, kde provádím cross-evaluaci).
 
 \subsubsection{Triviální kategorizace}
 Pro srovnání s~dalšími metodami jsem otestoval i \uv{triviální kategorizaci}, která každému článku přiřadí právě jednu kategorii, a to \texttt{ODS}. Výsledky evaluace jsou, dle očekávání, téměř nulové.
@@ -1351,6 +1351,9 @@ Je zajímavé, že zatímco \uv{opticky} a v~mikroprůměru jsou výsledky stop 
 Zvýšením počtu témat se zvedla, dle očekávání, úplnost, ale snížila přesnost. Pokud ale necháme počet témat na článek stejný, jako u stop-témat a frekvenčních témat, všechny výsledky v~mikroprůměru se zlepší. Naopak se opakuje situace, kdy i přes \uv{opticky} lepší výsledky a lepší mikroprůměr dostáváme u makroprůměru horší výsledky.
 
 \subsection{Klasifikační metody}
+\label{sec:evaluace_jedn_prist_klas}
+
+
 
 \jednatabulka{klas}{
 
