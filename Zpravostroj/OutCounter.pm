@@ -157,7 +157,6 @@ sub count_and_sort_it {
 sub count_it {
 	my $s = shift;
 	
-	$s->counted(1);
 	
 	
 	if (!$s->counted) {
@@ -203,6 +202,9 @@ sub count_it {
 		close $of;
 		
 	}
+	
+	$s->counted(1);
+	
 }
 
 1;
